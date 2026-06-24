@@ -1,16 +1,27 @@
-/* Main App Component - Handles routing (using react-router-dom), query client and other providers - use this file to add all routes */
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
+import Login from './pages/Login'
 import Layout from './components/Layout'
+import { DashboardLayout } from './components/DashboardLayout'
+import ClientDashboard from './pages/dashboard/Client'
+import OwnerDashboard from './pages/dashboard/Owner'
+import AdminDashboard from './pages/dashboard/Admin'
+import { ThemeProvider } from './stores/use-theme-store'
+import { AuthProvider, useAuth } from './stores/use-auth-store'
 
-// ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
-// AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
+// Protected Route Wrapper
+function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== role) return <Navigate to={`/dashboard/${user.role}`} replace />
+  return <>{children}</>
+}
 
-const App = () => (
+const AppContent = () => (
   <BrowserRouter>
     <TooltipProvider>
       <Toaster />
@@ -18,12 +29,50 @@ const App = () => (
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
         </Route>
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Navigate to="/login" replace />} />
+          <Route
+            path="client"
+            element={
+              <ProtectedRoute role="client">
+                <ClientDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="owner"
+            element={
+              <ProtectedRoute role="owner">
+                <OwnerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute role="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>
   </BrowserRouter>
+)
+
+const App = () => (
+  <ThemeProvider defaultTheme="system" storageKey="acersol-theme">
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  </ThemeProvider>
 )
 
 export default App
