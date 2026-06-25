@@ -68,6 +68,25 @@ export function Calculator() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label htmlFor="estado">Estado</Label>
+                  <Select defaultValue="MG">
+                    <SelectTrigger id="estado">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MG">Minas Gerais</SelectItem>
+                      <SelectItem value="SP">São Paulo</SelectItem>
+                      <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cidade">Cidade</Label>
+                  <Input id="cidade" placeholder="Ex: Belo Horizonte" />
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="valor">Valor Médio da Conta (R$)</Label>
                   <Input
                     id="valor"

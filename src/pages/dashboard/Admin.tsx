@@ -1,133 +1,232 @@
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Settings, BarChart2, Shield, Users, Network, TrendingUp } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import {
+  Settings,
+  BarChart2,
+  Shield,
+  Users,
+  Network,
+  TrendingUp,
+  FolderOpen,
+  Plus,
+  UserPlus,
+  FileText,
+} from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
+import { AdminCRM } from '@/components/dashboard/AdminCRM'
 
 export default function AdminDashboard() {
+  const [hasData, setHasData] = useState(false)
+
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-dashed">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">ERP & CRM Executivo</h2>
           <p className="text-muted-foreground">Visão geral da plataforma ACERSOL.</p>
         </div>
-        <Button variant="outline">
-          <Settings className="mr-2 h-4 w-4" /> Configurações
-        </Button>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center space-x-3 bg-background px-5 py-2.5 rounded-full shadow-sm border transition-colors hover:border-brand-blue/30">
+            <Switch id="demo-mode" checked={hasData} onCheckedChange={setHasData} />
+            <Label htmlFor="demo-mode" className="font-medium cursor-pointer text-sm">
+              {hasData ? 'Dados de Teste Ativos' : 'Modo Real (Vazio)'}
+            </Label>
+          </div>
+          <Button variant="outline" className="hidden sm:flex rounded-full">
+            <Settings className="mr-2 h-4 w-4" /> Configurações
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[
-          { title: 'Total de Clientes', val: '15.420', icon: Users, desc: '+120 esta semana' },
-          { title: 'Usinas Operacionais', val: '124', icon: Network, desc: '4 em implantação' },
-          { title: 'Receita (MRR)', val: 'R$ 4.2M', icon: TrendingUp, desc: '+12% vs mês ant.' },
-          { title: 'Eficiência', val: '98.5%', icon: BarChart2, desc: 'Motor Inteligente Ativo' },
+          {
+            title: 'Total de Clientes',
+            val: hasData ? '15.420' : '0',
+            icon: Users,
+            desc: hasData ? '+120 esta semana' : 'Nenhum cliente cadastrado',
+          },
+          {
+            title: 'Usinas Operacionais',
+            val: hasData ? '124' : '0',
+            icon: Network,
+            desc: hasData ? '4 em implantação' : 'Nenhuma usina conectada',
+          },
+          {
+            title: 'Receita (MRR)',
+            val: hasData ? 'R$ 4.2M' : 'R$ 0,00',
+            icon: TrendingUp,
+            desc: hasData ? '+12% vs mês ant.' : 'Sem faturamento',
+          },
+          {
+            title: 'Eficiência',
+            val: hasData ? '98.5%' : '-',
+            icon: BarChart2,
+            desc: hasData ? 'Motor Inteligente Ativo' : 'Aguardando dados',
+          },
         ].map((kpi, i) => (
-          <Card key={i}>
+          <Card
+            key={i}
+            className="transition-all duration-300 hover:shadow-md hover:border-brand-blue/30 border-muted"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-              <kpi.icon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {kpi.title}
+              </CardTitle>
+              <kpi.icon className="h-4 w-4 text-brand-blue/50" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{kpi.val}</div>
-              <p className="text-xs text-muted-foreground mt-1">{kpi.desc}</p>
+              <div className="text-3xl font-bold tracking-tight">{kpi.val}</div>
+              <p className="text-xs text-muted-foreground mt-2 font-medium">{kpi.desc}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <Tabs defaultValue="crm" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="crm">CRM Pipeline</TabsTrigger>
-          <TabsTrigger value="engine">Motor de Alocação</TabsTrigger>
+        <TabsList className="mb-4 h-12 p-1 bg-muted/50 rounded-xl">
+          <TabsTrigger value="crm" className="rounded-lg">
+            CRM Pipeline
+          </TabsTrigger>
+          <TabsTrigger value="engine" className="rounded-lg">
+            Motor de Alocação
+          </TabsTrigger>
+          <TabsTrigger value="finance" className="rounded-lg">
+            Financeiro
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="crm" className="space-y-4">
-          <Card>
+          <Card className="border-muted shadow-sm">
             <CardHeader>
               <CardTitle>Funil de Vendas</CardTitle>
               <CardDescription>Acompanhe a conversão do site e equipe comercial.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col md:flex-row gap-4 h-[400px]">
-                {[
-                  { stage: 'Leads Captados', count: 450, color: 'border-blue-200' },
-                  { stage: 'Proposta Enviada', count: 120, color: 'border-amber-200' },
-                  { stage: 'Em Negociação', count: 45, color: 'border-purple-200' },
-                  { stage: 'Contratos Fechados', count: 18, color: 'border-green-200' },
-                ].map((col, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 bg-muted/50 rounded-xl border-t-4 ${col.color} p-4 overflow-y-auto`}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-semibold text-sm">{col.stage}</h4>
-                      <span className="bg-background text-xs px-2 py-1 rounded-full border">
-                        {col.count}
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          key={item}
-                          className="bg-background p-3 rounded-lg border shadow-sm cursor-pointer hover:border-brand-blue transition-colors"
-                        >
-                          <p className="font-medium text-sm">Empresa/Cliente #{item + i * 10}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Valor Est.: R$ 2.{item}00
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {hasData ? (
+                <AdminCRM />
+              ) : (
+                <EmptyState
+                  icon={<FolderOpen className="h-10 w-10 text-brand-blue" />}
+                  title="Nenhum Lead no Funil"
+                  description="Você ainda não possui leads captados ou oportunidades em andamento no CRM da ACERSOL."
+                  action={
+                    <Button className="mt-4 bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-8">
+                      <Plus className="mr-2 h-4 w-4" /> Importar Leads
+                    </Button>
+                  }
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="engine">
-          <Card>
+          <Card className="border-muted shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Network className="h-5 w-5 text-brand-blue" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Network className="h-6 w-6 text-brand-blue" />
                 Motor Inteligente de Alocação
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-xl border bg-card p-6">
-                <div className="grid md:grid-cols-3 gap-8">
-                  <div className="space-y-4 col-span-2">
-                    <h4 className="font-semibold">Lógica de Distribuição Atual</h4>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>1. Priorizar clientes com faturas a vencer</span>
-                        <span className="text-brand-green font-medium">Ativo</span>
+              {hasData ? (
+                <div className="rounded-2xl border bg-card p-8 shadow-sm">
+                  <div className="grid md:grid-cols-3 gap-8">
+                    <div className="space-y-6 col-span-2">
+                      <h4 className="font-semibold text-lg border-b pb-4">
+                        Lógica de Distribuição Atual
+                      </h4>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
+                          <span className="font-medium">
+                            1. Priorizar clientes com faturas a vencer
+                          </span>
+                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                            ATIVO
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
+                          <span className="font-medium">2. Minimizar Custo de Disponibilidade</span>
+                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                            ATIVO
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
+                          <span className="font-medium">3. Compensação Sazonal Automática</span>
+                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                            ATIVO
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>2. Minimizar Custo de Disponibilidade</span>
-                        <span className="text-brand-green font-medium">Ativo</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>3. Compensação Sazonal Automática</span>
-                        <span className="text-brand-green font-medium">Ativo</span>
+                      <div className="pt-4 flex gap-4">
+                        <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md">
+                          Forçar Recálculo Global
+                        </Button>
                       </div>
                     </div>
-                    <div className="pt-4 flex gap-4">
-                      <Button className="bg-brand-blue hover:bg-blue-800 text-white">
-                        Forçar Recálculo Global
-                      </Button>
+                    <div className="bg-gradient-to-br from-brand-blue/5 to-brand-green/5 p-6 rounded-2xl flex flex-col justify-center items-center text-center border border-brand-blue/10">
+                      <Shield className="h-16 w-16 text-brand-green mb-6 drop-shadow-md" />
+                      <h5 className="font-bold text-lg">Status do Algoritmo</h5>
+                      <p className="text-sm text-muted-foreground mt-3 font-medium">
+                        Nenhuma sobra não alocada identificada na rede elétrica.
+                      </p>
                     </div>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg flex flex-col justify-center items-center text-center">
-                    <Shield className="h-12 w-12 text-brand-green mb-4" />
-                    <h5 className="font-semibold">Status do Algoritmo</h5>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Nenhuma sobra não alocada identificada na rede CEMIG e CPFL.
-                    </p>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <EmptyState
+                  icon={<Shield className="h-10 w-10 text-brand-blue" />}
+                  title="Motor em Repouso"
+                  description="O motor inteligente de alocação entrará em operação automaticamente assim que as usinas e clientes forem conectados e homologados na plataforma."
+                  action={
+                    <div className="flex gap-4 mt-6">
+                      <Button variant="outline" className="rounded-full px-6">
+                        <UserPlus className="mr-2 h-4 w-4" /> Adicionar Cliente
+                      </Button>
+                      <Button className="bg-brand-blue text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
+                        <Network className="mr-2 h-4 w-4" /> Cadastrar Usina
+                      </Button>
+                    </div>
+                  }
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="finance">
+          <Card className="border-muted shadow-sm">
+            <CardHeader>
+              <CardTitle>Visão Financeira</CardTitle>
+              <CardDescription>
+                Fluxo de caixa, faturamento unificado e repasses programados.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasData ? (
+                <div className="h-80 flex flex-col items-center justify-center border border-dashed rounded-2xl bg-muted/10">
+                  <BarChart2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
+                  <p className="text-muted-foreground font-medium">
+                    Gráficos financeiros carregados em modo de demonstração.
+                  </p>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<FileText className="h-10 w-10 text-brand-blue" />}
+                  title="Sem Movimentações Financeiras"
+                  description="Nenhum faturamento ou repasse foi gerado até o momento. O fluxo financeiro iniciará junto com o primeiro ciclo de compensação de créditos."
+                  action={
+                    <Button variant="outline" className="mt-4 rounded-full px-8">
+                      Configurar Dados Bancários
+                    </Button>
+                  }
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>

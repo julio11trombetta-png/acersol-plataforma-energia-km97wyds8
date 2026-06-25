@@ -21,6 +21,7 @@ export default {
           blue: '#004587',
           green: '#38A349',
           yellow: '#FFB800',
+          orange: '#F97316',
           dark: '#050A10',
         },
         border: 'hsl(var(--border))',

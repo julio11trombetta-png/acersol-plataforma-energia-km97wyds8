@@ -10,6 +10,14 @@ import { DashboardLayout } from './components/DashboardLayout'
 import ClientDashboard from './pages/dashboard/Client'
 import OwnerDashboard from './pages/dashboard/Owner'
 import AdminDashboard from './pages/dashboard/Admin'
+import {
+  AboutPage,
+  ClientsPage,
+  OwnersPage,
+  FaqPage,
+  BlogPage,
+  ContactPage,
+} from './pages/marketing/Pages'
 import { ThemeProvider } from './stores/use-theme-store'
 import { AuthProvider, useAuth } from './stores/use-auth-store'
 
@@ -29,6 +37,12 @@ const AppContent = () => (
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Index />} />
+          <Route path="/sobre" element={<AboutPage />} />
+          <Route path="/clientes" element={<ClientsPage />} />
+          <Route path="/usinas" element={<OwnersPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/contato" element={<ContactPage />} />
         </Route>
 
         <Route path="/login" element={<Login />} />

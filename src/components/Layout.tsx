@@ -1,140 +1,151 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Logo } from './Logo'
+import { Button } from './ui/button'
 import { ThemeToggle } from './ThemeToggle'
-import { Button } from '@/components/ui/button'
 import { Menu } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from './ui/sheet'
+import { useEffect } from 'react'
 
 export default function Layout() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  const links = [
+    { label: 'Início', href: '/' },
+    { label: 'Para Clientes', href: '/clientes' },
+    { label: 'Para Usinas', href: '/usinas' },
+    { label: 'Sobre Nós', href: '/sobre' },
+    { label: 'FAQ', href: '/faq' },
+    { label: 'Blog', href: '/blog' },
+    { label: 'Contato', href: '/contato' },
+  ]
+
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans overflow-x-hidden selection:bg-brand-blue selection:text-white">
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 glass">
-        <div className="container flex h-20 items-center justify-between">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between">
+          <Link to="/">
             <Logo />
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
-            <Link to="/" className="transition-colors hover:text-brand-blue">
-              Início
-            </Link>
-            <a href="#como-funciona" className="transition-colors hover:text-brand-blue">
-              Como Funciona
-            </a>
-            <a href="#beneficios" className="transition-colors hover:text-brand-blue">
-              Benefícios
-            </a>
-            <Link to="/login" className="transition-colors hover:text-brand-blue">
-              Para Usinas
-            </Link>
+          <nav className="hidden lg:flex gap-6 items-center">
+            {links.map((link) => (
+              <Link
+                key={link.label}
+                to={link.href}
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <ThemeToggle />
-            <div className="hidden md:flex gap-4">
-              <Button
-                variant="outline"
-                asChild
-                className="rounded-full border-brand-blue text-brand-blue hover:bg-brand-blue/10 dark:border-blue-400 dark:text-blue-400"
-              >
-                <Link to="/login">Área do Cliente</Link>
-              </Button>
-              <Button className="rounded-full bg-gradient-to-r from-brand-blue to-brand-green hover:opacity-90 transition-opacity">
-                Quero Economizar
-              </Button>
-            </div>
-
+            <Button
+              asChild
+              className="hidden sm:flex bg-brand-blue hover:bg-blue-800 text-white rounded-full transition-transform active:scale-95 shadow-md shadow-brand-blue/20"
+            >
+              <Link to="/login">Área do Cliente</Link>
+            </Button>
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
+                <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
-                <div className="flex flex-col gap-6 py-6">
-                  <Logo />
-                  <nav className="flex flex-col gap-4 mt-8">
-                    <Link to="/" className="text-lg font-medium hover:text-brand-blue">
-                      Início
+              <SheetContent side="right">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <div className="flex flex-col gap-6 mt-6">
+                  {links.map((link) => (
+                    <Link key={link.label} to={link.href} className="text-sm font-medium">
+                      {link.label}
                     </Link>
-                    <a href="#como-funciona" className="text-lg font-medium hover:text-brand-blue">
-                      Como Funciona
-                    </a>
-                    <Link to="/login" className="text-lg font-medium text-brand-blue mt-4">
-                      Login / Área do Cliente
-                    </Link>
-                  </nav>
+                  ))}
+                  <Button asChild className="w-full bg-brand-blue text-white rounded-full">
+                    <Link to="/login">Área do Cliente</Link>
+                  </Button>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </header>
-
       <main className="flex-1">
         <Outlet />
       </main>
-
-      <footer className="border-t bg-muted/40 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        <div className="container py-12 md:py-16 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <Logo />
-              <p className="text-sm text-muted-foreground mt-4">
-                Revolucionando a gestão de energia solar compartilhada no Brasil.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-foreground">Links Úteis</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-brand-blue">
-                    Sobre nós
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-brand-blue">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-brand-blue">
-                    Dúvidas Frequentes
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-foreground">Legal</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>
-                  <a href="#" className="hover:text-brand-blue">
-                    Termos de Uso
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-brand-blue">
-                    Política de Privacidade (LGPD)
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4 text-foreground">Assine nossa Newsletter</h3>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="Seu melhor e-mail"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                <Button>Assinar</Button>
-              </div>
-            </div>
+      <footer className="border-t bg-brand-dark py-12 text-white/80 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-blue/20 to-transparent pointer-events-none"></div>
+        <div className="container relative z-10 grid gap-8 md:grid-cols-4">
+          <div className="space-y-4">
+            <Logo className="[&_span]:text-white" />
+            <p className="text-sm text-white/60">
+              Conectando você às melhores usinas de energia renovável com tecnologia premium.
+            </p>
           </div>
-          <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} ACERSOL. Todos os direitos reservados.
+          <div>
+            <h4 className="font-semibold text-white mb-4">Plataforma</h4>
+            <ul className="space-y-2 text-sm text-white/60">
+              <li>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Início
+                </Link>
+              </li>
+              <li>
+                <Link to="/clientes" className="hover:text-white transition-colors">
+                  Para Clientes
+                </Link>
+              </li>
+              <li>
+                <Link to="/usinas" className="hover:text-white transition-colors">
+                  Para Usinas
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-white mb-4">Empresa</h4>
+            <ul className="space-y-2 text-sm text-white/60">
+              <li>
+                <Link to="/sobre" className="hover:text-white transition-colors">
+                  Sobre Nós
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className="hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <Link to="/contato" className="hover:text-white transition-colors">
+                  Contato
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-white mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm text-white/60">
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Termos de Uso
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Política de Privacidade
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </footer>

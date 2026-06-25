@@ -32,20 +32,38 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      <div className="hidden md:flex md:w-1/2 bg-brand-dark p-12 flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent"></div>
+      <div className="hidden md:flex md:w-1/2 bg-brand-dark p-12 flex-col justify-between relative overflow-hidden shadow-2xl">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://img.usecurling.com/p/800/1200?q=modern%20solar%20panel&color=black"
+            alt="Solar Energy"
+            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-blue/30 to-transparent"></div>
+        </div>
         <div className="relative z-10">
           <Logo className="text-white [&>span]:text-white" />
         </div>
         <div className="relative z-10 space-y-6">
-          <h1 className="text-4xl font-bold text-white leading-tight">
+          <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-md mb-4 animate-fade-in shadow-lg">
+            <ShieldAlert className="mr-2 h-4 w-4" /> Acesso Protegido
+          </div>
+          <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight animate-fade-in-up">
             Gestão inteligente para o futuro da energia.
           </h1>
-          <p className="text-lg text-gray-300">
-            Acesse seu painel para acompanhar sua economia e produção em tempo real.
+          <p
+            className="text-lg text-white/70 animate-fade-in-up"
+            style={{ animationDelay: '100ms' }}
+          >
+            Acesse seu painel executivo para acompanhar sua economia e produção em tempo real, com a
+            tecnologia mais avançada do setor.
           </p>
         </div>
-        <div className="relative z-10 text-sm text-gray-400">
+        <div
+          className="relative z-10 text-sm text-white/50 animate-fade-in"
+          style={{ animationDelay: '200ms' }}
+        >
           © {new Date().getFullYear()} ACERSOL Plataforma Energia
         </div>
       </div>
@@ -101,11 +119,11 @@ export default function Login() {
                   </CardContent>
                   <CardFooter>
                     <Button
-                      className="w-full bg-brand-blue hover:bg-blue-800 text-white"
+                      className="w-full bg-brand-blue hover:bg-blue-800 text-white rounded-full transition-transform active:scale-[0.98] shadow-md"
                       onClick={() => handleLogin(role)}
                       disabled={isLoading}
                     >
-                      {isLoading ? 'Entrando...' : 'Entrar na Plataforma'}
+                      {isLoading ? 'Autenticando...' : 'Entrar na Plataforma'}
                     </Button>
                   </CardFooter>
                 </Card>
