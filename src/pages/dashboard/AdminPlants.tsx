@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getPlants, createPlant, updatePlant, deletePlant } from '@/services/plants'
+import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, Plus, Zap, AlertCircle, Edit, Trash2, MapPin, Network } from 'lucide-react'
@@ -49,6 +51,7 @@ export default function AdminPlants() {
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPlant, setEditingPlant] = useState<PlantData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const form = useForm<PlantData>({
     resolver: zodResolver(plantSchema),
@@ -60,13 +63,38 @@ export default function AdminPlants() {
     },
   })
 
-  const filteredPlants = useMemo(() => {
-    return plants.filter(
-      (p) =>
-        p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.location.toLowerCase().includes(search.toLowerCase()),
-    )
-  }, [plants, search])
+  const loadData = async (query = '') => {
+    try {
+      const data = await getPlants(1, query)
+      setPlants(
+        data.items.map((d) => ({
+          id: d.id,
+          name: d.name,
+          capacity: d.capacity,
+          location: d.location,
+          technologyType: d.technologyType,
+          status: d.status,
+          generation_now: d.generation_now,
+        })),
+      )
+    } catch (err) {
+      toast.error('Erro ao carregar usinas')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    const debounce = setTimeout(() => {
+      loadData(search)
+    }, 400)
+    return () => clearTimeout(debounce)
+  }, [search])
+
+  useRealtime('plants', () => {
+    loadData(search)
+  })
 
   const openDialog = (plant?: PlantData) => {
     if (plant) {
@@ -84,22 +112,28 @@ export default function AdminPlants() {
     setIsDialogOpen(true)
   }
 
-  const onSubmit = (data: PlantData) => {
-    if (editingPlant) {
-      setPlants(
-        plants.map((p) => (p.id === editingPlant.id ? { ...data, id: editingPlant.id } : p)),
-      )
-      toast.success('Usina atualizada com sucesso!')
-    } else {
-      setPlants([...plants, { ...data, id: Math.random().toString(36).substring(7) }])
-      toast.success('Usina registrada com sucesso!')
+  const onSubmit = async (data: PlantData) => {
+    try {
+      if (editingPlant?.id) {
+        await updatePlant(editingPlant.id, data)
+        toast.success('Usina atualizada com sucesso!')
+      } else {
+        await createPlant(data)
+        toast.success('Usina registrada com sucesso!')
+      }
+      setIsDialogOpen(false)
+    } catch (err) {
+      toast.error('Erro ao salvar usina')
     }
-    setIsDialogOpen(false)
   }
 
-  const handleDelete = (id: string) => {
-    setPlants(plants.filter((p) => p.id !== id))
-    toast.info('Usina removida')
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePlant(id)
+      toast.info('Usina removida')
+    } catch (err) {
+      toast.error('Erro ao remover usina')
+    }
   }
 
   return (
@@ -117,18 +151,6 @@ export default function AdminPlants() {
         </Button>
       </div>
 
-      <Alert
-        variant="destructive"
-        className="bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-950/30 dark:text-orange-200 dark:border-orange-900"
-      >
-        <AlertCircle className="h-4 w-4" color="currentColor" />
-        <AlertTitle>Backend Não Conectado</AlertTitle>
-        <AlertDescription>
-          Os dados inseridos não serão persistidos no banco de dados. Conecte o Supabase ou Skip
-          Cloud para ativar a persistência.
-        </AlertDescription>
-      </Alert>
-
       <Card className="border-muted shadow-sm overflow-hidden">
         <CardHeader className="pb-4 border-b bg-muted/10">
           <div className="flex justify-between items-center">
@@ -145,7 +167,11 @@ export default function AdminPlants() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {plants.length === 0 ? (
+          {loading ? (
+            <div className="p-8 flex justify-center text-muted-foreground animate-pulse">
+              Carregando usinas...
+            </div>
+          ) : plants.length === 0 ? (
             <div className="p-8">
               <EmptyState
                 icon={<Network className="h-12 w-12 text-brand-green opacity-80" />}
@@ -174,7 +200,7 @@ export default function AdminPlants() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPlants.map((plant) => (
+                  {plants.map((plant) => (
                     <TableRow key={plant.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium pl-6">
                         <div className="flex items-center gap-3">
@@ -227,7 +253,7 @@ export default function AdminPlants() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredPlants.length === 0 && (
+                  {plants.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                         Nenhuma usina encontrada para "{search}".

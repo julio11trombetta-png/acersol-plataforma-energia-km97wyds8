@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getClients, createClient, updateClient, deleteClient } from '@/services/clients'
+import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search, Plus, Users, AlertCircle, Edit, Trash2, Building, Zap } from 'lucide-react'
@@ -49,6 +51,7 @@ export default function AdminClients() {
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<ClientData | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const form = useForm<ClientData>({
     resolver: zodResolver(clientSchema),
@@ -60,11 +63,36 @@ export default function AdminClients() {
     },
   })
 
-  const filteredClients = useMemo(() => {
-    return clients.filter(
-      (c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.energyUnitId.includes(search),
-    )
-  }, [clients, search])
+  const loadData = async (query = '') => {
+    try {
+      const data = await getClients(1, query)
+      setClients(
+        data.items.map((d) => ({
+          id: d.id,
+          name: d.name,
+          energyUnitId: d.energyUnitId,
+          consumptionProfile: d.consumptionProfile,
+          contactInfo: d.contactInfo,
+        })),
+      )
+    } catch (err) {
+      toast.error('Erro ao carregar clientes')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    const debounce = setTimeout(() => {
+      loadData(search)
+    }, 400)
+    return () => clearTimeout(debounce)
+  }, [search])
+
+  useRealtime('clients', () => {
+    loadData(search)
+  })
 
   const openDialog = (client?: ClientData) => {
     if (client) {
@@ -82,22 +110,28 @@ export default function AdminClients() {
     setIsDialogOpen(true)
   }
 
-  const onSubmit = (data: ClientData) => {
-    if (editingClient) {
-      setClients(
-        clients.map((c) => (c.id === editingClient.id ? { ...data, id: editingClient.id } : c)),
-      )
-      toast.success('Cliente atualizado com sucesso!')
-    } else {
-      setClients([...clients, { ...data, id: Math.random().toString(36).substring(7) }])
-      toast.success('Cliente registrado com sucesso!')
+  const onSubmit = async (data: ClientData) => {
+    try {
+      if (editingClient?.id) {
+        await updateClient(editingClient.id, data)
+        toast.success('Cliente atualizado com sucesso!')
+      } else {
+        await createClient(data)
+        toast.success('Cliente registrado com sucesso!')
+      }
+      setIsDialogOpen(false)
+    } catch (err) {
+      toast.error('Erro ao salvar cliente')
     }
-    setIsDialogOpen(false)
   }
 
-  const handleDelete = (id: string) => {
-    setClients(clients.filter((c) => c.id !== id))
-    toast.info('Cliente removido')
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteClient(id)
+      toast.info('Cliente removido')
+    } catch (err) {
+      toast.error('Erro ao remover cliente')
+    }
   }
 
   return (
@@ -117,18 +151,6 @@ export default function AdminClients() {
         </Button>
       </div>
 
-      <Alert
-        variant="destructive"
-        className="bg-orange-50 text-orange-900 border-orange-200 dark:bg-orange-950/30 dark:text-orange-200 dark:border-orange-900"
-      >
-        <AlertCircle className="h-4 w-4" color="currentColor" />
-        <AlertTitle>Backend Não Conectado</AlertTitle>
-        <AlertDescription>
-          Os dados inseridos não serão persistidos no banco de dados. Conecte o Supabase ou Skip
-          Cloud para ativar a persistência.
-        </AlertDescription>
-      </Alert>
-
       <Card className="border-muted shadow-sm overflow-hidden">
         <CardHeader className="pb-4 border-b bg-muted/10">
           <div className="flex justify-between items-center">
@@ -145,7 +167,11 @@ export default function AdminClients() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {clients.length === 0 ? (
+          {loading ? (
+            <div className="p-8 flex justify-center text-muted-foreground animate-pulse">
+              Carregando clientes...
+            </div>
+          ) : clients.length === 0 ? (
             <div className="p-8">
               <EmptyState
                 icon={<Users className="h-12 w-12 text-brand-blue opacity-80" />}
@@ -174,7 +200,7 @@ export default function AdminClients() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClients.map((client) => (
+                  {clients.map((client) => (
                     <TableRow key={client.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium pl-6">
                         <div className="flex items-center gap-3">
@@ -219,7 +245,7 @@ export default function AdminClients() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {filteredClients.length === 0 && (
+                  {clients.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                         Nenhum cliente encontrado para "{search}".

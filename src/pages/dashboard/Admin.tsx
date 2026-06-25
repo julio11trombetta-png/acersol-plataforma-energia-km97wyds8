@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getClients } from '@/services/clients'
+import { getPlants } from '@/services/plants'
+import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
@@ -21,7 +24,27 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { AdminCRM } from '@/components/dashboard/AdminCRM'
 
 export default function AdminDashboard() {
-  const [hasData, setHasData] = useState(false)
+  const [hasData, setHasData] = useState(true)
+  const [stats, setStats] = useState({ clients: 0, plants: 0 })
+
+  const loadStats = async () => {
+    try {
+      const [clientsRes, plantsRes] = await Promise.all([getClients(), getPlants()])
+      setStats({ clients: clientsRes.totalItems, plants: plantsRes.totalItems })
+    } catch {
+      /* intentionally ignored */
+    }
+  }
+
+  useEffect(() => {
+    loadStats()
+  }, [])
+  useRealtime('clients', () => {
+    loadStats()
+  })
+  useRealtime('plants', () => {
+    loadStats()
+  })
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -47,15 +70,15 @@ export default function AdminDashboard() {
         {[
           {
             title: 'Total de Clientes',
-            val: hasData ? '15.420' : '0',
+            val: hasData ? stats.clients.toString() : '0',
             icon: Users,
-            desc: hasData ? '+120 esta semana' : 'Nenhum cliente cadastrado',
+            desc: stats.clients > 0 ? 'Clientes cadastrados' : 'Nenhum cliente cadastrado',
           },
           {
             title: 'Usinas Operacionais',
-            val: hasData ? '124' : '0',
+            val: hasData ? stats.plants.toString() : '0',
             icon: Network,
-            desc: hasData ? '4 em implantação' : 'Nenhuma usina conectada',
+            desc: stats.plants > 0 ? 'Usinas conectadas' : 'Nenhuma usina conectada',
           },
           {
             title: 'Receita (MRR)',

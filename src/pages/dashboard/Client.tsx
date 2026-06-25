@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getInvoices } from '@/services/invoices'
+import { getConsumptions } from '@/services/consumptions'
+import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -17,17 +20,25 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
 
-const consumeData = [
-  { month: 'Jan', consumo: 400, creditos: 450 },
-  { month: 'Fev', consumo: 380, creditos: 450 },
-  { month: 'Mar', consumo: 420, creditos: 450 },
-  { month: 'Abr', consumo: 390, creditos: 450 },
-  { month: 'Mai', consumo: 410, creditos: 450 },
-  { month: 'Jun', consumo: 450, creditos: 450 },
-]
-
 export default function ClientDashboard() {
-  const [hasData, setHasData] = useState(false)
+  const [hasData, setHasData] = useState(true)
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [consumeData, setConsumeData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadData = async () => {
+    try {
+      const [inv, cons] = await Promise.all([getInvoices(), getConsumptions()])
+      setInvoices(inv)
+      setConsumeData(cons)
+    } catch { /* intentionally ignored */ } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadData() }, [])
+  useRealtime('invoices', () => { loadData() })
+  useRealtime('consumptions', () => { loadData() })
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -63,9 +74,9 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData ? 'R$ 1.240,50' : 'R$ 0,00'}
+              {hasData && consumeData.length > 0 ? 'R$ 1.240,50' : 'R$ 0,00'}
             </div>
-            {hasData ? (
+            {hasData && consumeData.length > 0 ? (
               <p className="text-xs font-medium mt-2 flex items-center text-brand-green">
                 <ArrowUpRight className="h-3 w-3 mr-1" /> +18% comparado ao ano anterior
               </p>
@@ -85,7 +96,7 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData ? '1.250 kWh' : '0 kWh'}
+              {hasData && consumeData.length > 0 ? '1.250 kWh' : '0 kWh'}
             </div>
             <p className="text-xs text-muted-foreground mt-2 font-medium">
               Saldo de energia acumulado disponível
@@ -100,10 +111,10 @@ export default function ClientDashboard() {
             <FileText className="h-4 w-4 text-brand-blue/60" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{hasData ? 'R$ 380,00' : '-'}</div>
-            {hasData ? (
+            <div className="text-3xl font-bold tracking-tight">{hasData && invoices.length > 0 ? `R$ ${invoices[0].amount},00` : '-'}</div>
+            {hasData && invoices.length > 0 ? (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
-                Vencimento programado: 10/07/2026
+                Referência: {invoices[0].month}
               </p>
             ) : (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
@@ -120,7 +131,7 @@ export default function ClientDashboard() {
             <TrendingDown className="h-4 w-4 text-foreground" />
           </CardHeader>
           <CardContent>
-            {hasData ? (
+            {hasData && consumeData.length > 0 ? (
               <>
                 <div className="flex items-center gap-3">
                   <span className="relative flex h-3 w-3">
@@ -156,7 +167,9 @@ export default function ClientDashboard() {
             <CardTitle>Histórico de Consumo vs Créditos (kWh)</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            {hasData ? (
+            {loading ? (
+              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">Carregando histórico...</div>
+            ) : hasData && consumeData.length > 0 ? (
               <ChartContainer
                 config={{
                   consumo: { color: 'hsl(var(--chart-1))' },
@@ -190,53 +203,34 @@ export default function ClientDashboard() {
             <CardDescription>Gerencie seus pagamentos de forma simplificada.</CardDescription>
           </CardHeader>
           <CardContent>
-            {hasData ? (
+            {loading ? (
+              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">Carregando faturas...</div>
+            ) : hasData && invoices.length > 0 ? (
               <div className="space-y-4">
-                {[
-                  {
-                    mes: 'Junho 2026',
-                    valor: 'R$ 380,00',
-                    status: 'Pendente',
-                    color: 'text-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20',
-                  },
-                  {
-                    mes: 'Maio 2026',
-                    valor: 'R$ 410,00',
-                    status: 'Pago',
-                    color: 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20',
-                  },
-                  {
-                    mes: 'Abril 2026',
-                    valor: 'R$ 395,00',
-                    status: 'Pago',
-                    color: 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20',
-                  },
-                  {
-                    mes: 'Março 2026',
-                    valor: 'R$ 420,00',
-                    status: 'Pago',
-                    color: 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20',
-                  },
-                ].map((fatura, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2.5 bg-background rounded-lg shadow-sm border">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
+                {invoices.map((fatura) => {
+                  const color = fatura.status === 'Pendente' 
+                    ? 'text-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20' 
+                    : 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20'
+                  return (
+                    <div
+                      key={fatura.id}
+                      className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="p-2.5 bg-background rounded-lg shadow-sm border">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold leading-none">{fatura.month}</p>
+                          <span
+                            className={`text-[10px] uppercase tracking-wider font-bold mt-2 inline-block px-2 py-0.5 rounded-full ${color}`}
+                          >
+                            {fatura.status}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold leading-none">{fatura.mes}</p>
-                        <span
-                          className={`text-[10px] uppercase tracking-wider font-bold mt-2 inline-block px-2 py-0.5 rounded-full ${fatura.color}`}
-                        >
-                          {fatura.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-semibold">{fatura.valor}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="font-semibold">R$ {fatura.amount},00</span>
                       <Button
                         variant="outline"
                         size="sm"

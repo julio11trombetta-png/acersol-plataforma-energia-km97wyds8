@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getPlants } from '@/services/plants'
+import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -28,7 +30,29 @@ const productionData = [
 ]
 
 export default function OwnerDashboard() {
-  const [hasData, setHasData] = useState(false)
+  const [hasData, setHasData] = useState(true)
+  const [plants, setPlants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadData = async () => {
+    try {
+      const data = await getPlants()
+      setPlants(data.items)
+    } catch {
+      /* intentionally ignored */
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [])
+  useRealtime('plants', () => {
+    loadData()
+  })
+
+  const totalGen = plants.reduce((acc, p) => acc + (p.generation_now || 0), 0)
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -69,9 +93,9 @@ export default function OwnerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData ? '2.450 kWh' : '0 kWh'}
+              {hasData && plants.length > 0 ? `${totalGen} kW` : '0 kW'}
             </div>
-            {hasData ? (
+            {hasData && plants.length > 0 ? (
               <p className="text-xs font-medium mt-2 flex items-center text-brand-green">
                 <ArrowUpRight className="h-3 w-3 mr-1" /> +5% de performance vs ontem
               </p>
@@ -175,31 +199,21 @@ export default function OwnerDashboard() {
             <CardDescription>Resumo de usinas cadastradas.</CardDescription>
           </CardHeader>
           <CardContent>
-            {hasData ? (
+            {loading ? (
+              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
+                Carregando usinas...
+              </div>
+            ) : hasData && plants.length > 0 ? (
               <div className="space-y-4">
-                {[
-                  {
-                    nome: 'Usina Solar Norte I',
-                    cap: '1.2 MWp',
-                    status: 'Online',
-                    gerando: '650 kW',
-                  },
-                  {
-                    nome: 'Usina Solar Sul II',
-                    cap: '0.8 MWp',
-                    status: 'Online',
-                    gerando: '420 kW',
-                  },
-                  { nome: 'Complexo Leste III', cap: '2.0 MWp', status: 'Em obras', gerando: '-' },
-                ].map((usina, i) => (
+                {plants.map((usina) => (
                   <div
-                    key={i}
+                    key={usina.id}
                     className="flex items-center justify-between p-4 border rounded-2xl hover:bg-muted/30 transition-all duration-300 bg-background shadow-sm hover:shadow-md"
                   >
                     <div>
-                      <h4 className="text-sm font-bold">{usina.nome}</h4>
+                      <h4 className="text-sm font-bold">{usina.name}</h4>
                       <p className="text-xs text-muted-foreground mt-1 font-medium">
-                        Potência Total: {usina.cap}
+                        Potência Total: {usina.capacity} kW
                       </p>
                     </div>
                     <div className="text-right">
@@ -208,7 +222,9 @@ export default function OwnerDashboard() {
                       >
                         {usina.status}
                       </span>
-                      <p className="text-sm mt-2 font-mono font-bold">{usina.gerando}</p>
+                      <p className="text-sm mt-2 font-mono font-bold">
+                        {usina.generation_now ? `${usina.generation_now} kW` : '-'}
+                      </p>
                     </div>
                   </div>
                 ))}
