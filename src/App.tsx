@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -10,6 +10,8 @@ import { DashboardLayout } from './components/DashboardLayout'
 import ClientDashboard from './pages/dashboard/Client'
 import OwnerDashboard from './pages/dashboard/Owner'
 import AdminDashboard from './pages/dashboard/Admin'
+import AdminClients from './pages/dashboard/AdminClients'
+import AdminPlants from './pages/dashboard/AdminPlants'
 import {
   AboutPage,
   ClientsPage,
@@ -69,10 +71,22 @@ const AppContent = () => (
             path="admin"
             element={
               <ProtectedRoute role="admin">
-                <AdminDashboard />
+                <Outlet />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="clients" element={<AdminClients />} />
+            <Route path="plants" element={<AdminPlants />} />
+            <Route
+              path="finance"
+              element={<div className="p-8">Financeiro em construção...</div>}
+            />
+            <Route
+              path="settings"
+              element={<div className="p-8">Configurações em construção...</div>}
+            />
+          </Route>
         </Route>
 
         <Route path="*" element={<NotFound />} />

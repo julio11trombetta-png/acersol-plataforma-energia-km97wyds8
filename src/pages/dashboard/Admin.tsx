@@ -15,6 +15,7 @@ import {
   Plus,
   UserPlus,
   FileText,
+  Zap,
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AdminCRM } from '@/components/dashboard/AdminCRM'
@@ -175,6 +176,67 @@ export default function AdminDashboard() {
                       <p className="text-sm text-muted-foreground mt-3 font-medium">
                         Nenhuma sobra não alocada identificada na rede elétrica.
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Vínculo de Dados */}
+                  <div className="mt-8 border-t pt-8">
+                    <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                      <Network className="h-5 w-5 text-brand-blue" />
+                      Vínculos Ativos (Usinas x Clientes)
+                    </h4>
+                    <div className="overflow-x-auto rounded-xl border border-muted bg-background/50">
+                      <table className="w-full text-sm text-left">
+                        <thead className="bg-muted/50 text-muted-foreground">
+                          <tr>
+                            <th className="px-4 py-3 font-medium">Usina Geradora</th>
+                            <th className="px-4 py-3 font-medium">Cliente Beneficiário</th>
+                            <th className="px-4 py-3 font-medium">Percentual de Rateio</th>
+                            <th className="px-4 py-3 font-medium">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-muted">
+                          <tr className="hover:bg-muted/30">
+                            <td className="px-4 py-3 font-medium flex items-center gap-2">
+                              <Zap className="h-3 w-3 text-yellow-500" /> Usina Solar Alvorada (500
+                              kWp)
+                            </td>
+                            <td className="px-4 py-3">Supermercado Silva Ltda</td>
+                            <td className="px-4 py-3">35%</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-medium">
+                                Homologado
+                              </span>
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-muted/30">
+                            <td className="px-4 py-3 font-medium flex items-center gap-2">
+                              <Zap className="h-3 w-3 text-yellow-500" /> Usina Solar Alvorada (500
+                              kWp)
+                            </td>
+                            <td className="px-4 py-3">Padaria Doce Pão</td>
+                            <td className="px-4 py-3">15%</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-medium">
+                                Homologado
+                              </span>
+                            </td>
+                          </tr>
+                          <tr className="hover:bg-muted/30">
+                            <td className="px-4 py-3 font-medium flex items-center gap-2">
+                              <Zap className="h-3 w-3 text-yellow-500" /> Central Fotovoltaica Minas
+                              (1.2 MWp)
+                            </td>
+                            <td className="px-4 py-3">Indústria Metalúrgica XYZ</td>
+                            <td className="px-4 py-3">80%</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs rounded-full font-medium">
+                                Em Validação
+                              </span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
