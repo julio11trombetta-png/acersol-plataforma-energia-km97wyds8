@@ -2,17 +2,7 @@ import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Search,
-  Plus,
-  Zap,
-  AlertCircle,
-  Edit,
-  Trash2,
-  MapPin,
-  Network,
-  UserSquare,
-} from 'lucide-react'
+import { Search, Plus, Zap, AlertCircle, Edit, Trash2, MapPin, Network } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
   Dialog,
@@ -49,8 +39,7 @@ const plantSchema = z.object({
   name: z.string().min(3, 'Nome muito curto'),
   capacity: z.coerce.number().min(1, 'Capacidade deve ser maior que 0'),
   location: z.string().min(3, 'Localização inválida'),
-  distributor: z.string().min(2, 'Concessionária obrigatória'),
-  owner: z.string().min(3, 'Informação do proprietário obrigatória'),
+  technologyType: z.string().min(2, 'Tipo de tecnologia obrigatória'),
 })
 
 type PlantData = z.infer<typeof plantSchema>
@@ -67,8 +56,7 @@ export default function AdminPlants() {
       name: '',
       capacity: 0,
       location: '',
-      distributor: '',
-      owner: '',
+      technologyType: '',
     },
   })
 
@@ -90,8 +78,7 @@ export default function AdminPlants() {
         name: '',
         capacity: 0,
         location: '',
-        distributor: '',
-        owner: '',
+        technologyType: '',
       })
     }
     setIsDialogOpen(true)
@@ -169,7 +156,7 @@ export default function AdminPlants() {
                     onClick={() => openDialog()}
                     className="mt-4 rounded-full bg-brand-green hover:bg-green-700 text-white shadow-md"
                   >
-                    <Plus className="mr-2 h-4 w-4" /> Cadastrar Novo
+                    <Plus className="mr-2 h-4 w-4" /> Cadastrar Primeira Usina
                   </Button>
                 }
               />
@@ -180,9 +167,9 @@ export default function AdminPlants() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="pl-6">Nome da Usina</TableHead>
-                    <TableHead>Capacidade (kWp)</TableHead>
-                    <TableHead>Local / Concessionária</TableHead>
-                    <TableHead>Proprietário</TableHead>
+                    <TableHead>Capacidade (kW/MW)</TableHead>
+                    <TableHead>Localização</TableHead>
+                    <TableHead>Tipo de Tecnologia</TableHead>
                     <TableHead className="text-right pr-6">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -202,7 +189,7 @@ export default function AdminPlants() {
                           variant="secondary"
                           className="font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900"
                         >
-                          {plant.capacity} kWp
+                          {plant.capacity} kW
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -211,14 +198,12 @@ export default function AdminPlants() {
                             <MapPin className="h-3 w-3 text-muted-foreground" />
                             {plant.location}
                           </div>
-                          <div className="text-xs text-muted-foreground">{plant.distributor}</div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <UserSquare className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">{plant.owner}</span>
-                        </div>
+                        <Badge variant="outline" className="text-sm font-medium">
+                          {plant.technologyType}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right pr-6">
                         <div className="flex justify-end gap-2">
@@ -294,7 +279,7 @@ export default function AdminPlants() {
                     name="capacity"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Capacidade Total (kWp)</FormLabel>
+                        <FormLabel>Capacidade (kW/MW)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -309,13 +294,13 @@ export default function AdminPlants() {
                   />
                   <FormField
                     control={form.control}
-                    name="distributor"
+                    name="technologyType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Concessionária</FormLabel>
+                        <FormLabel>Tipo de Tecnologia</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Ex: CEMIG, CPFL..."
+                            placeholder="Ex: Solar Fotovoltaica..."
                             className="bg-muted/30"
                             {...field}
                           />
@@ -330,23 +315,10 @@ export default function AdminPlants() {
                   name="location"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Localização (Cidade/UF)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Uberlândia/MG" className="bg-muted/30" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="owner"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Informação do Proprietário</FormLabel>
+                      <FormLabel>Localização</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Ex: Investimentos S.A ou João da Silva"
+                          placeholder="Ex: Uberlândia/MG ou Endereço"
                           className="bg-muted/30"
                           {...field}
                         />

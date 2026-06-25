@@ -12,6 +12,8 @@ import OwnerDashboard from './pages/dashboard/Owner'
 import AdminDashboard from './pages/dashboard/Admin'
 import AdminClients from './pages/dashboard/AdminClients'
 import AdminPlants from './pages/dashboard/AdminPlants'
+import AdminFinance from './pages/dashboard/AdminFinance'
+import AdminSystemData from './pages/dashboard/AdminSystemData'
 import {
   AboutPage,
   ClientsPage,
@@ -78,14 +80,8 @@ const AppContent = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="clients" element={<AdminClients />} />
             <Route path="plants" element={<AdminPlants />} />
-            <Route
-              path="finance"
-              element={<div className="p-8">Financeiro em construção...</div>}
-            />
-            <Route
-              path="settings"
-              element={<div className="p-8">Configurações em construção...</div>}
-            />
+            <Route path="finance" element={<AdminFinance />} />
+            <Route path="system-data" element={<AdminSystemData />} />
           </Route>
         </Route>
 

@@ -37,10 +37,9 @@ import { Badge } from '@/components/ui/badge'
 const clientSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(3, 'Nome muito curto'),
-  document: z.string().min(11, 'Documento inválido'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().min(10, 'Telefone inválido'),
-  consumption: z.coerce.number().min(1, 'Consumo deve ser maior que 0'),
+  energyUnitId: z.string().min(1, 'ID da Unidade Consumidora obrigatório'),
+  consumptionProfile: z.string().min(1, 'Perfil de consumo obrigatório'),
+  contactInfo: z.string().min(5, 'Informação de contato obrigatória'),
 })
 
 type ClientData = z.infer<typeof clientSchema>
@@ -55,16 +54,15 @@ export default function AdminClients() {
     resolver: zodResolver(clientSchema),
     defaultValues: {
       name: '',
-      document: '',
-      email: '',
-      phone: '',
-      consumption: 0,
+      energyUnitId: '',
+      consumptionProfile: '',
+      contactInfo: '',
     },
   })
 
   const filteredClients = useMemo(() => {
     return clients.filter(
-      (c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.document.includes(search),
+      (c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.energyUnitId.includes(search),
     )
   }, [clients, search])
 
@@ -76,10 +74,9 @@ export default function AdminClients() {
       setEditingClient(null)
       form.reset({
         name: '',
-        document: '',
-        email: '',
-        phone: '',
-        consumption: 0,
+        energyUnitId: '',
+        consumptionProfile: '',
+        contactInfo: '',
       })
     }
     setIsDialogOpen(true)
@@ -139,7 +136,7 @@ export default function AdminClients() {
             <div className="relative w-72">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nome ou documento..."
+                placeholder="Buscar por nome ou Unidade Consumidora..."
                 className="pl-9 rounded-full bg-background border-muted"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -159,7 +156,7 @@ export default function AdminClients() {
                     onClick={() => openDialog()}
                     className="mt-4 rounded-full bg-brand-blue hover:bg-blue-800 text-white shadow-md"
                   >
-                    <Plus className="mr-2 h-4 w-4" /> Cadastrar Novo
+                    <Plus className="mr-2 h-4 w-4" /> Cadastrar Primeiro Cliente
                   </Button>
                 }
               />
@@ -170,9 +167,9 @@ export default function AdminClients() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="pl-6">Nome / Razão Social</TableHead>
-                    <TableHead>Documento</TableHead>
+                    <TableHead>Unidade Consumidora</TableHead>
+                    <TableHead>Perfil de Consumo</TableHead>
                     <TableHead>Contato</TableHead>
-                    <TableHead>Consumo (kWh)</TableHead>
                     <TableHead className="text-right pr-6">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -187,10 +184,8 @@ export default function AdminClients() {
                           {client.name}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{client.document}</TableCell>
-                      <TableCell>
-                        <div className="text-sm font-medium">{client.email}</div>
-                        <div className="text-xs text-muted-foreground">{client.phone}</div>
+                      <TableCell className="text-muted-foreground font-medium">
+                        {client.energyUnitId}
                       </TableCell>
                       <TableCell>
                         <Badge
@@ -198,9 +193,10 @@ export default function AdminClients() {
                           className="font-semibold bg-brand-blue/10 text-brand-blue border-brand-blue/20"
                         >
                           <Zap className="mr-1 h-3 w-3" />
-                          {client.consumption} kWh
+                          {client.consumptionProfile}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">{client.contactInfo}</TableCell>
                       <TableCell className="text-right pr-6">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -271,12 +267,16 @@ export default function AdminClients() {
                 />
                 <FormField
                   control={form.control}
-                  name="document"
+                  name="energyUnitId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>CPF / CNPJ</FormLabel>
+                      <FormLabel>ID da Unidade Consumidora (UC)</FormLabel>
                       <FormControl>
-                        <Input placeholder="Apenas números" className="bg-muted/30" {...field} />
+                        <Input
+                          placeholder="Número da Instalação"
+                          className="bg-muted/30"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -285,14 +285,13 @@ export default function AdminClients() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormField
                     control={form.control}
-                    name="email"
+                    name="consumptionProfile"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>E-mail</FormLabel>
+                        <FormLabel>Perfil de Consumo</FormLabel>
                         <FormControl>
                           <Input
-                            type="email"
-                            placeholder="contato@empresa.com"
+                            placeholder="Ex: Comercial, Residencial..."
                             className="bg-muted/30"
                             {...field}
                           />
@@ -303,36 +302,22 @@ export default function AdminClients() {
                   />
                   <FormField
                     control={form.control}
-                    name="phone"
+                    name="contactInfo"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel>Informação de Contato</FormLabel>
                         <FormControl>
-                          <Input placeholder="(00) 00000-0000" className="bg-muted/30" {...field} />
+                          <Input
+                            placeholder="E-mail ou Telefone"
+                            className="bg-muted/30"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <FormField
-                  control={form.control}
-                  name="consumption"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Consumo de Energia (kWh/mês)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Ex: 850"
-                          className="bg-muted/30"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <div className="flex justify-end gap-3 pt-6">
                   <Button

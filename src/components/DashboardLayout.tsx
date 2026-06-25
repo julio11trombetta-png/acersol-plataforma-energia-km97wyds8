@@ -13,6 +13,7 @@ import {
   Zap,
   DollarSign,
   Settings,
+  Database,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -50,7 +51,7 @@ export function DashboardLayout() {
     { name: 'Clientes', path: '/dashboard/admin/clients', icon: Users },
     { name: 'Usinas', path: '/dashboard/admin/plants', icon: Zap },
     { name: 'Financeiro', path: '/dashboard/admin/finance', icon: DollarSign },
-    { name: 'Configurações', path: '/dashboard/admin/settings', icon: Settings },
+    { name: 'Dados do Sistema', path: '/dashboard/admin/system-data', icon: Database },
   ]
 
   const isDesktopAdmin = user.role === 'admin'
