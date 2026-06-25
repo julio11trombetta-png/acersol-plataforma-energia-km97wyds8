@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClients } from '@/services/clients'
 import { getPlants } from '@/services/plants'
+import { getInvoices } from '@/services/invoices'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Settings,
   BarChart2,
@@ -14,36 +14,60 @@ import {
   Users,
   Network,
   TrendingUp,
-  FolderOpen,
-  Plus,
   UserPlus,
   FileText,
-  Zap,
 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AdminCRM } from '@/components/dashboard/AdminCRM'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 
 export default function AdminDashboard() {
-  const [hasData, setHasData] = useState(true)
-  const [stats, setStats] = useState({ clients: 0, plants: 0 })
+  const [stats, setStats] = useState({ clients: 0, plants: 0, activePlants: 0, mrr: 0 })
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const loadStats = async () => {
+  const loadData = async () => {
     try {
-      const [clientsRes, plantsRes] = await Promise.all([getClients(), getPlants()])
-      setStats({ clients: clientsRes.totalItems, plants: plantsRes.totalItems })
+      const [clientsRes, plantsRes, invoicesRes] = await Promise.all([
+        getClients(1, ''),
+        getPlants(1, ''),
+        getInvoices(),
+      ])
+      const mrr = invoicesRes.reduce((acc, inv) => acc + (inv.amount || 0), 0)
+      const activePlants = plantsRes.items.filter((p: any) => p.status === 'Online').length
+      setStats({
+        clients: clientsRes.totalItems,
+        plants: plantsRes.totalItems,
+        activePlants,
+        mrr,
+      })
+      setInvoices(invoicesRes.slice(0, 5))
     } catch {
       /* intentionally ignored */
+    } finally {
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadStats()
+    loadData()
   }, [])
   useRealtime('clients', () => {
-    loadStats()
+    loadData()
   })
   useRealtime('plants', () => {
-    loadStats()
+    loadData()
+  })
+  useRealtime('invoices', () => {
+    loadData()
   })
 
   return (
@@ -54,12 +78,6 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Visão geral da plataforma ACERSOL.</p>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center space-x-3 bg-background px-5 py-2.5 rounded-full shadow-sm border transition-colors hover:border-brand-blue/30">
-            <Switch id="demo-mode" checked={hasData} onCheckedChange={setHasData} />
-            <Label htmlFor="demo-mode" className="font-medium cursor-pointer text-sm">
-              {hasData ? 'Dados de Teste Ativos' : 'Modo Real (Vazio)'}
-            </Label>
-          </div>
           <Button variant="outline" className="hidden sm:flex rounded-full">
             <Settings className="mr-2 h-4 w-4" /> Configurações
           </Button>
@@ -70,27 +88,27 @@ export default function AdminDashboard() {
         {[
           {
             title: 'Total de Clientes',
-            val: hasData ? stats.clients.toString() : '0',
+            val: stats.clients.toString(),
             icon: Users,
             desc: stats.clients > 0 ? 'Clientes cadastrados' : 'Nenhum cliente cadastrado',
           },
           {
             title: 'Usinas Operacionais',
-            val: hasData ? stats.plants.toString() : '0',
+            val: stats.activePlants.toString(),
             icon: Network,
-            desc: stats.plants > 0 ? 'Usinas conectadas' : 'Nenhuma usina conectada',
+            desc: stats.activePlants > 0 ? 'Usinas conectadas' : 'Nenhuma usina conectada',
           },
           {
             title: 'Receita (MRR)',
-            val: hasData ? 'R$ 4.2M' : 'R$ 0,00',
+            val: `R$ ${stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             icon: TrendingUp,
-            desc: hasData ? '+12% vs mês ant.' : 'Sem faturamento',
+            desc: stats.mrr > 0 ? 'Faturamento total' : 'Sem faturamento',
           },
           {
             title: 'Eficiência',
-            val: hasData ? '98.5%' : '-',
+            val: stats.activePlants > 0 ? '98.5%' : '-',
             icon: BarChart2,
-            desc: hasData ? 'Motor Inteligente Ativo' : 'Aguardando dados',
+            desc: stats.activePlants > 0 ? 'Motor Inteligente Ativo' : 'Aguardando dados',
           },
         ].map((kpi, i) => (
           <Card
@@ -104,8 +122,12 @@ export default function AdminDashboard() {
               <kpi.icon className="h-4 w-4 text-brand-blue/50" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold tracking-tight">{kpi.val}</div>
-              <p className="text-xs text-muted-foreground mt-2 font-medium">{kpi.desc}</p>
+              <div className="text-3xl font-bold tracking-tight">
+                {loading ? <Skeleton className="h-8 w-24" /> : kpi.val}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 font-medium">
+                {loading ? <Skeleton className="h-4 w-32 mt-1" /> : kpi.desc}
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -131,20 +153,7 @@ export default function AdminDashboard() {
               <CardDescription>Acompanhe a conversão do site e equipe comercial.</CardDescription>
             </CardHeader>
             <CardContent>
-              {hasData ? (
-                <AdminCRM />
-              ) : (
-                <EmptyState
-                  icon={<FolderOpen className="h-10 w-10 text-brand-blue" />}
-                  title="Nenhum Lead no Funil"
-                  description="Você ainda não possui leads captados ou oportunidades em andamento no CRM da ACERSOL."
-                  action={
-                    <Button className="mt-4 bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-8">
-                      <Plus className="mr-2 h-4 w-4" /> Importar Leads
-                    </Button>
-                  }
-                />
-              )}
+              <AdminCRM />
             </CardContent>
           </Card>
         </TabsContent>
@@ -158,7 +167,12 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {hasData ? (
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-32 w-full rounded-2xl" />
+                  <Skeleton className="h-64 w-full rounded-2xl" />
+                </div>
+              ) : stats.plants > 0 && stats.clients > 0 ? (
                 <div className="rounded-2xl border bg-card p-8 shadow-sm">
                   <div className="grid md:grid-cols-3 gap-8">
                     <div className="space-y-6 col-span-2">
@@ -197,69 +211,8 @@ export default function AdminDashboard() {
                       <Shield className="h-16 w-16 text-brand-green mb-6 drop-shadow-md" />
                       <h5 className="font-bold text-lg">Status do Algoritmo</h5>
                       <p className="text-sm text-muted-foreground mt-3 font-medium">
-                        Nenhuma sobra não alocada identificada na rede elétrica.
+                        A distribuição inteligente está ativa e operando de forma autônoma.
                       </p>
-                    </div>
-                  </div>
-
-                  {/* Vínculo de Dados */}
-                  <div className="mt-8 border-t pt-8">
-                    <h4 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                      <Network className="h-5 w-5 text-brand-blue" />
-                      Vínculos Ativos (Usinas x Clientes)
-                    </h4>
-                    <div className="overflow-x-auto rounded-xl border border-muted bg-background/50">
-                      <table className="w-full text-sm text-left">
-                        <thead className="bg-muted/50 text-muted-foreground">
-                          <tr>
-                            <th className="px-4 py-3 font-medium">Usina Geradora</th>
-                            <th className="px-4 py-3 font-medium">Cliente Beneficiário</th>
-                            <th className="px-4 py-3 font-medium">Percentual de Rateio</th>
-                            <th className="px-4 py-3 font-medium">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-muted">
-                          <tr className="hover:bg-muted/30">
-                            <td className="px-4 py-3 font-medium flex items-center gap-2">
-                              <Zap className="h-3 w-3 text-yellow-500" /> Usina Solar Alvorada (500
-                              kWp)
-                            </td>
-                            <td className="px-4 py-3">Supermercado Silva Ltda</td>
-                            <td className="px-4 py-3">35%</td>
-                            <td className="px-4 py-3">
-                              <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-medium">
-                                Homologado
-                              </span>
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="px-4 py-3 font-medium flex items-center gap-2">
-                              <Zap className="h-3 w-3 text-yellow-500" /> Usina Solar Alvorada (500
-                              kWp)
-                            </td>
-                            <td className="px-4 py-3">Padaria Doce Pão</td>
-                            <td className="px-4 py-3">15%</td>
-                            <td className="px-4 py-3">
-                              <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-medium">
-                                Homologado
-                              </span>
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-muted/30">
-                            <td className="px-4 py-3 font-medium flex items-center gap-2">
-                              <Zap className="h-3 w-3 text-yellow-500" /> Central Fotovoltaica Minas
-                              (1.2 MWp)
-                            </td>
-                            <td className="px-4 py-3">Indústria Metalúrgica XYZ</td>
-                            <td className="px-4 py-3">80%</td>
-                            <td className="px-4 py-3">
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs rounded-full font-medium">
-                                Em Validação
-                              </span>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
                     </div>
                   </div>
                 </div>
@@ -267,7 +220,7 @@ export default function AdminDashboard() {
                 <EmptyState
                   icon={<Shield className="h-10 w-10 text-brand-blue" />}
                   title="Motor em Repouso"
-                  description="O motor inteligente de alocação entrará em operação automaticamente assim que as usinas e clientes forem conectados e homologados na plataforma."
+                  description="O motor de alocação entrará em operação assim que houver usinas e clientes cadastrados no sistema."
                   action={
                     <div className="flex gap-4 mt-6">
                       <Button variant="outline" className="rounded-full px-6">
@@ -288,28 +241,57 @@ export default function AdminDashboard() {
           <Card className="border-muted shadow-sm">
             <CardHeader>
               <CardTitle>Visão Financeira</CardTitle>
-              <CardDescription>
-                Fluxo de caixa, faturamento unificado e repasses programados.
-              </CardDescription>
+              <CardDescription>Faturas recentes e movimentações financeiras.</CardDescription>
             </CardHeader>
             <CardContent>
-              {hasData ? (
-                <div className="h-80 flex flex-col items-center justify-center border border-dashed rounded-2xl bg-muted/10">
-                  <BarChart2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-muted-foreground font-medium">
-                    Gráficos financeiros carregados em modo de demonstração.
-                  </p>
+              {loading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              ) : invoices.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Mês</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {invoices.map((inv) => (
+                        <TableRow key={inv.id}>
+                          <TableCell className="font-medium flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            {inv.month}
+                          </TableCell>
+                          <TableCell>R$ {inv.amount},00</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                inv.status === 'Pago'
+                                  ? 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20'
+                                  : inv.status === 'Pendente'
+                                    ? 'text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
+                                    : 'text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20'
+                              }
+                            >
+                              {inv.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
                 <EmptyState
                   icon={<FileText className="h-10 w-10 text-brand-blue" />}
-                  title="Sem Movimentações Financeiras"
-                  description="Nenhum faturamento ou repasse foi gerado até o momento. O fluxo financeiro iniciará junto com o primeiro ciclo de compensação de créditos."
-                  action={
-                    <Button variant="outline" className="mt-4 rounded-full px-8">
-                      Configurar Dados Bancários
-                    </Button>
-                  }
+                  title="Nenhum faturamento"
+                  description="Ainda não existem faturas processadas no sistema."
                 />
               )}
             </CardContent>

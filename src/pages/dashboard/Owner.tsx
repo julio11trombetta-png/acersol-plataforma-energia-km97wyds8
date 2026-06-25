@@ -3,8 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { getPlants } from '@/services/plants'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sun,
   Activity,
@@ -19,24 +18,13 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
 
-const productionData = [
-  { time: '06:00', geracao: 10 },
-  { time: '08:00', geracao: 150 },
-  { time: '10:00', geracao: 400 },
-  { time: '12:00', geracao: 650 },
-  { time: '14:00', geracao: 600 },
-  { time: '16:00', geracao: 350 },
-  { time: '18:00', geracao: 50 },
-]
-
 export default function OwnerDashboard() {
-  const [hasData, setHasData] = useState(true)
   const [plants, setPlants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
     try {
-      const data = await getPlants()
+      const data = await getPlants(1, '')
       setPlants(data.items)
     } catch {
       /* intentionally ignored */
@@ -53,6 +41,23 @@ export default function OwnerDashboard() {
   })
 
   const totalGen = plants.reduce((acc, p) => acc + (p.generation_now || 0), 0)
+  const activePlantsCount = plants.filter((p) => p.status === 'Online').length
+  const estimatedRevenue = totalGen * 45 // Estimation based on generation
+  const hasData = plants.length > 0
+  const isOnline = activePlantsCount > 0
+
+  // Chart data scaled to real aggregated generation limits
+  const productionData = hasData
+    ? [
+        { time: '06:00', geracao: totalGen * 0.1 },
+        { time: '08:00', geracao: totalGen * 0.3 },
+        { time: '10:00', geracao: totalGen * 0.7 },
+        { time: '12:00', geracao: totalGen },
+        { time: '14:00', geracao: totalGen * 0.8 },
+        { time: '16:00', geracao: totalGen * 0.4 },
+        { time: '18:00', geracao: totalGen * 0.05 },
+      ]
+    : []
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -64,18 +69,10 @@ export default function OwnerDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center space-x-3 bg-background px-5 py-2.5 rounded-full shadow-sm border transition-colors hover:border-brand-blue/30">
-            <Switch id="owner-demo" checked={hasData} onCheckedChange={setHasData} />
-            <Label htmlFor="owner-demo" className="font-medium cursor-pointer text-sm">
-              {hasData ? 'Modo Demonstração' : 'Modo Vazio'}
-            </Label>
-          </div>
           <div className="flex gap-3 hidden sm:flex">
-            {hasData && (
-              <Button variant="outline" className="rounded-full px-6">
-                <Wrench className="mr-2 h-4 w-4" /> Relatório Técnico
-              </Button>
-            )}
+            <Button variant="outline" className="rounded-full px-6">
+              <Wrench className="mr-2 h-4 w-4" /> Relatório Técnico
+            </Button>
             <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
               <Plus className="mr-2 h-4 w-4" /> Adicionar Usina
             </Button>
@@ -87,25 +84,26 @@ export default function OwnerDashboard() {
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Geração Hoje
+              Geração Atual
             </CardTitle>
             <Sun className="h-4 w-4 text-brand-yellow" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData && plants.length > 0 ? `${totalGen} kW` : '0 kW'}
+              {loading ? <Skeleton className="h-8 w-24" /> : `${totalGen.toLocaleString()} kW`}
             </div>
-            {hasData && plants.length > 0 ? (
+            {!loading && hasData ? (
               <p className="text-xs font-medium mt-2 flex items-center text-brand-green">
-                <ArrowUpRight className="h-3 w-3 mr-1" /> +5% de performance vs ontem
+                <ArrowUpRight className="h-3 w-3 mr-1" /> Baseado nas usinas ativas
               </p>
-            ) : (
+            ) : !loading ? (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
                 Nenhuma usina gerando energia
               </p>
-            )}
+            ) : null}
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -115,43 +113,72 @@ export default function OwnerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData ? 'R$ 18.540,00' : 'R$ 0,00'}
+              {loading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                `R$ ${estimatedRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-2 font-medium">
-              {hasData ? 'Fechamento programado em 5 dias' : 'Sem previsão de receita comercial'}
+              {loading ? (
+                <Skeleton className="h-4 w-32" />
+              ) : hasData ? (
+                'Projeção de geração'
+              ) : (
+                'Sem previsão comercial'
+              )}
             </p>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Clientes Alocados
+              Usinas Ativas
             </CardTitle>
             <Users className="h-4 w-4 text-brand-orange" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{hasData ? '42 Unidades' : '0'}</div>
+            <div className="text-3xl font-bold tracking-tight">
+              {loading ? <Skeleton className="h-8 w-16" /> : activePlantsCount}
+            </div>
             <p className="text-xs text-muted-foreground mt-2 font-medium">
-              {hasData ? '100% da capacidade preenchida' : 'Nenhuma energia foi alocada'}
+              {loading ? (
+                <Skeleton className="h-4 w-32" />
+              ) : hasData ? (
+                `De um total de ${plants.length} cadastradas`
+              ) : (
+                'Nenhuma usina alocada'
+              )}
             </p>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Status do Inversor
+              Status Global
             </CardTitle>
             <BatteryCharging className="h-4 w-4 text-foreground" />
           </CardHeader>
           <CardContent>
-            <div
-              className={`text-2xl font-bold tracking-tight ${hasData ? 'text-brand-green' : 'text-muted-foreground'}`}
-            >
-              {hasData ? 'Operacional' : 'Inativo'}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">
-              {hasData ? 'Última telemetria lida há 2 mins' : 'Sem conexão com inversores'}
-            </p>
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ) : (
+              <>
+                <div
+                  className={`text-2xl font-bold tracking-tight ${isOnline ? 'text-brand-green' : 'text-muted-foreground'}`}
+                >
+                  {isOnline ? 'Operacional' : 'Inativo'}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 font-medium">
+                  {isOnline ? 'Conexão estável com inversores' : 'Sem conexão com inversores'}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -162,7 +189,13 @@ export default function OwnerDashboard() {
             <CardTitle>Curva de Geração (Hoje)</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            {hasData ? (
+            {loading ? (
+              <div className="h-[300px] p-6 pb-12 flex items-end gap-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="w-full h-full max-h-[60%] rounded-md" />
+                ))}
+              </div>
+            ) : hasData && totalGen > 0 ? (
               <ChartContainer
                 config={{ geracao: { color: 'hsl(var(--chart-3))' } }}
                 className="h-[300px] w-full"
@@ -186,7 +219,7 @@ export default function OwnerDashboard() {
               <EmptyState
                 icon={<Activity className="h-10 w-10 text-brand-blue" />}
                 title="Sem Dados de Telemetria"
-                description="O gráfico de geração em tempo real da sua operação será exibido instantaneamente assim que o primeiro inversor for conectado e homologado."
+                description="O gráfico de geração será exibido assim que houver geração registrada hoje."
                 className="h-[300px]"
               />
             )}
@@ -200,11 +233,13 @@ export default function OwnerDashboard() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
-                Carregando usinas...
-              </div>
-            ) : hasData && plants.length > 0 ? (
               <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+                ))}
+              </div>
+            ) : hasData ? (
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
                 {plants.map((usina) => (
                   <div
                     key={usina.id}
@@ -218,7 +253,7 @@ export default function OwnerDashboard() {
                     </div>
                     <div className="text-right">
                       <span
-                        className={`text-[10px] uppercase font-extrabold px-3 py-1 rounded-full tracking-wider ${usina.status === 'Online' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}
+                        className={`text-[10px] uppercase font-extrabold px-3 py-1 rounded-full tracking-wider ${usina.status === 'Online' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30'}`}
                       >
                         {usina.status}
                       </span>
@@ -233,12 +268,7 @@ export default function OwnerDashboard() {
               <EmptyState
                 icon={<MapPin className="h-10 w-10 text-brand-blue" />}
                 title="Nenhuma Planta Geradora"
-                description="Você ainda não concluiu o cadastro de nenhuma usina no sistema de gestão ACERSOL."
-                action={
-                  <Button className="mt-6 rounded-full bg-brand-blue hover:bg-blue-800 text-white w-full h-12 shadow-md shadow-brand-blue/20">
-                    <Plus className="mr-2 h-5 w-5" /> Iniciar Cadastro
-                  </Button>
-                }
+                description="Você ainda não cadastrou nenhuma usina."
               />
             )}
           </CardContent>

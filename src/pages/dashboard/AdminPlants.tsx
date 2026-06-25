@@ -168,8 +168,10 @@ export default function AdminPlants() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 flex justify-center text-muted-foreground animate-pulse">
-              Carregando usinas...
+            <div className="p-8 space-y-4">
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
             </div>
           ) : plants.length === 0 ? (
             <div className="p-8">

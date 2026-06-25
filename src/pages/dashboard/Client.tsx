@@ -4,8 +4,7 @@ import { getInvoices } from '@/services/invoices'
 import { getConsumptions } from '@/services/consumptions'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Download,
   FileText,
@@ -14,14 +13,12 @@ import {
   TrendingDown,
   ArrowUpRight,
   Search,
-  PlusCircle,
 } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export default function ClientDashboard() {
-  const [hasData, setHasData] = useState(true)
   const [invoices, setInvoices] = useState<any[]>([])
   const [consumeData, setConsumeData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,6 +45,11 @@ export default function ClientDashboard() {
     loadData()
   })
 
+  const totalEconomy = consumeData.reduce((acc, c) => acc + (c.creditos || 0) * 0.85, 0)
+  const activeCredits = consumeData.reduce((acc, c) => acc + (c.creditos || 0), 0)
+  const lastInvoice = invoices.length > 0 ? invoices[0].amount : 0
+  const hasData = consumeData.length > 0
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-dashed">
@@ -58,17 +60,9 @@ export default function ClientDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-6">
-          <div className="flex items-center space-x-3 bg-background px-5 py-2.5 rounded-full shadow-sm border transition-colors hover:border-brand-blue/30">
-            <Switch id="client-demo" checked={hasData} onCheckedChange={setHasData} />
-            <Label htmlFor="client-demo" className="font-medium cursor-pointer text-sm">
-              {hasData ? 'Modo Demonstração' : 'Modo Vazio'}
-            </Label>
-          </div>
-          {hasData && (
-            <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
-              <Download className="mr-2 h-4 w-4" /> Relatório Oficial
-            </Button>
-          )}
+          <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
+            <Download className="mr-2 h-4 w-4" /> Relatório Oficial
+          </Button>
         </div>
       </div>
 
@@ -76,25 +70,28 @@ export default function ClientDashboard() {
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Economia Total Anual
+              Economia Estimada Anual
             </CardTitle>
             <DollarSign className="h-4 w-4 text-brand-green" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData && consumeData.length > 0 ? 'R$ 1.240,50' : 'R$ 0,00'}
+              {loading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : (
+                `R$ ${totalEconomy.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+              )}
             </div>
-            {hasData && consumeData.length > 0 ? (
+            {!loading && hasData ? (
               <p className="text-xs font-medium mt-2 flex items-center text-brand-green">
-                <ArrowUpRight className="h-3 w-3 mr-1" /> +18% comparado ao ano anterior
+                <ArrowUpRight className="h-3 w-3 mr-1" /> Baseado nos seus créditos
               </p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-2 font-medium">
-                Aguardando seu primeiro faturamento
-              </p>
-            )}
+            ) : !loading ? (
+              <p className="text-xs text-muted-foreground mt-2 font-medium">Aguardando dados</p>
+            ) : null}
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -104,13 +101,16 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData && consumeData.length > 0 ? '1.250 kWh' : '0 kWh'}
+              {loading ? <Skeleton className="h-8 w-24" /> : `${activeCredits} kWh`}
             </div>
-            <p className="text-xs text-muted-foreground mt-2 font-medium">
-              Saldo de energia acumulado disponível
-            </p>
+            {!loading && hasData ? (
+              <p className="text-xs text-muted-foreground mt-2 font-medium">Saldo disponível</p>
+            ) : !loading ? (
+              <p className="text-xs text-muted-foreground mt-2 font-medium">Sem créditos</p>
+            ) : null}
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -120,19 +120,26 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold tracking-tight">
-              {hasData && invoices.length > 0 ? `R$ ${invoices[0].amount},00` : '-'}
+              {loading ? (
+                <Skeleton className="h-8 w-24" />
+              ) : lastInvoice > 0 ? (
+                `R$ ${lastInvoice},00`
+              ) : (
+                '-'
+              )}
             </div>
-            {hasData && invoices.length > 0 ? (
+            {!loading && invoices.length > 0 ? (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
                 Referência: {invoices[0].month}
               </p>
-            ) : (
+            ) : !loading ? (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
-                Nenhuma fatura gerada até o momento
+                Nenhuma fatura gerada
               </p>
-            )}
+            ) : null}
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow border-muted bg-gradient-to-br from-background to-muted/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -141,7 +148,12 @@ export default function ClientDashboard() {
             <TrendingDown className="h-4 w-4 text-foreground" />
           </CardHeader>
           <CardContent>
-            {hasData && consumeData.length > 0 ? (
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            ) : hasData ? (
               <>
                 <div className="flex items-center gap-3">
                   <span className="relative flex h-3 w-3">
@@ -150,9 +162,7 @@ export default function ClientDashboard() {
                   </span>
                   <div className="text-2xl font-bold text-brand-green tracking-tight">Ativo</div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2 font-medium">
-                  Conectado: Usina Solar ACERSOL I
-                </p>
+                <p className="text-xs text-muted-foreground mt-2 font-medium">Recebendo energia</p>
               </>
             ) : (
               <>
@@ -163,7 +173,7 @@ export default function ClientDashboard() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 font-medium">
-                  Aguardando alocação automática de usina
+                  Aguardando alocação
                 </p>
               </>
             )}
@@ -178,10 +188,14 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent className="pl-2">
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
-                Carregando histórico...
+              <div className="h-[300px] flex flex-col justify-end gap-2 px-6 pb-6">
+                <div className="flex items-end justify-between h-full gap-2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="h-full w-full max-h-[70%] rounded-t-sm" />
+                  ))}
+                </div>
               </div>
-            ) : hasData && consumeData.length > 0 ? (
+            ) : hasData ? (
               <ChartContainer
                 config={{
                   consumo: { color: 'hsl(var(--chart-1))' },
@@ -201,8 +215,8 @@ export default function ClientDashboard() {
             ) : (
               <EmptyState
                 icon={<Search className="h-10 w-10 text-brand-blue" />}
-                title="Sem Histórico Analítico"
-                description="O seu gráfico detalhado de consumo e compensação de créditos aparecerá aqui após o encerramento do primeiro ciclo oficial de faturamento."
+                title="Sem Histórico"
+                description="Seu gráfico detalhado de consumo aparecerá aqui após o primeiro ciclo."
                 className="h-[300px]"
               />
             )}
@@ -212,20 +226,22 @@ export default function ClientDashboard() {
         <Card className="col-span-3 border-muted shadow-sm">
           <CardHeader>
             <CardTitle>Faturas Recentes</CardTitle>
-            <CardDescription>Gerencie seus pagamentos de forma simplificada.</CardDescription>
+            <CardDescription>Gerencie seus pagamentos.</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
-                Carregando faturas...
-              </div>
-            ) : hasData && invoices.length > 0 ? (
               <div className="space-y-4">
-                {invoices.map((fatura) => {
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-14 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : invoices.length > 0 ? (
+              <div className="space-y-4">
+                {invoices.slice(0, 5).map((fatura) => {
                   const color =
                     fatura.status === 'Pendente'
-                      ? 'text-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20'
-                      : 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20'
+                      ? 'text-brand-orange bg-brand-orange/10'
+                      : 'text-brand-green bg-brand-green/10'
                   return (
                     <div
                       key={fatura.id}
@@ -246,11 +262,7 @@ export default function ClientDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold">R$ {fatura.amount},00</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full hover:bg-brand-blue hover:text-white transition-colors"
-                        >
+                        <Button variant="outline" size="sm" className="rounded-full">
                           PIX
                         </Button>
                       </div>
@@ -262,12 +274,7 @@ export default function ClientDashboard() {
               <EmptyState
                 icon={<FileText className="h-10 w-10 text-brand-blue" />}
                 title="Nenhuma Fatura Processada"
-                description="As suas faturas inteligentes e digitais ficarão seguras e disponíveis para pagamento ou consulta nesta seção."
-                action={
-                  <Button variant="outline" className="mt-4 rounded-full px-6">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Enviar Fatura Atual
-                  </Button>
-                }
+                description="As suas faturas digitais ficarão disponíveis aqui."
               />
             )}
           </CardContent>

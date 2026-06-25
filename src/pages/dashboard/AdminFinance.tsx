@@ -54,8 +54,10 @@ export default function AdminFinance() {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-8 flex justify-center text-muted-foreground animate-pulse">
-              Carregando faturas...
+            <div className="p-8 space-y-4">
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
+              <div className="h-10 bg-muted/40 rounded-md animate-pulse" />
             </div>
           ) : invoices.length === 0 ? (
             <div className="p-8">

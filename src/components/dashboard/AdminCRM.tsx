@@ -26,6 +26,7 @@ const columns = [
 
 export function AdminCRM() {
   const [leads, setLeads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
     try {
@@ -33,6 +34,8 @@ export function AdminCRM() {
       setLeads(data)
     } catch {
       /* intentionally ignored */
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -58,37 +61,44 @@ export function AdminCRM() {
               </Badge>
             </div>
 
-            {colLeads.map((lead) => (
-              <Card
-                key={lead.id}
-                className="cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors"
-              >
-                <CardContent className="p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-sm">{lead.company}</span>
-                      <span className="text-xs text-muted-foreground">
-                        CNPJ: {lead.cnpj || '...'}
-                      </span>
+            {loading ? (
+              <div className="space-y-3">
+                <div className="h-24 bg-muted/50 rounded-lg animate-pulse" />
+                <div className="h-24 bg-muted/50 rounded-lg animate-pulse" />
+              </div>
+            ) : (
+              colLeads.map((lead) => (
+                <Card
+                  key={lead.id}
+                  className="cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors"
+                >
+                  <CardContent className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">{lead.company}</span>
+                        <span className="text-xs text-muted-foreground">
+                          CNPJ: {lead.cnpj || '...'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <Badge variant="outline" className="text-[10px]">
-                      {lead.type || 'Geral'}
-                    </Badge>
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage
-                        src={`https://img.usecurling.com/ppl/thumbnail?seed=${lead.id}`}
-                      />
-                      <AvatarFallback>{lead.company.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {colLeads.length === 0 && (
-              <div className="text-xs text-center text-muted-foreground p-2 border border-dashed rounded-lg">
-                Nenhum lead
+                    <div className="flex items-center justify-between mt-2">
+                      <Badge variant="outline" className="text-[10px]">
+                        {lead.type || 'Geral'}
+                      </Badge>
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage
+                          src={`https://img.usecurling.com/ppl/thumbnail?seed=${lead.id}`}
+                        />
+                        <AvatarFallback>{lead.company.substring(0, 2)}</AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            {!loading && colLeads.length === 0 && (
+              <div className="text-xs text-center text-muted-foreground p-4 border border-dashed rounded-lg bg-muted/20">
+                Nenhum lead neste estágio
               </div>
             )}
           </div>
