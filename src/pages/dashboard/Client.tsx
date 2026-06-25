@@ -31,14 +31,22 @@ export default function ClientDashboard() {
       const [inv, cons] = await Promise.all([getInvoices(), getConsumptions()])
       setInvoices(inv)
       setConsumeData(cons)
-    } catch { /* intentionally ignored */ } finally {
+    } catch {
+      /* intentionally ignored */
+    } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { loadData() }, [])
-  useRealtime('invoices', () => { loadData() })
-  useRealtime('consumptions', () => { loadData() })
+  useEffect(() => {
+    loadData()
+  }, [])
+  useRealtime('invoices', () => {
+    loadData()
+  })
+  useRealtime('consumptions', () => {
+    loadData()
+  })
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -111,7 +119,9 @@ export default function ClientDashboard() {
             <FileText className="h-4 w-4 text-brand-blue/60" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{hasData && invoices.length > 0 ? `R$ ${invoices[0].amount},00` : '-'}</div>
+            <div className="text-3xl font-bold tracking-tight">
+              {hasData && invoices.length > 0 ? `R$ ${invoices[0].amount},00` : '-'}
+            </div>
             {hasData && invoices.length > 0 ? (
               <p className="text-xs text-muted-foreground mt-2 font-medium">
                 Referência: {invoices[0].month}
@@ -168,7 +178,9 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent className="pl-2">
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">Carregando histórico...</div>
+              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
+                Carregando histórico...
+              </div>
             ) : hasData && consumeData.length > 0 ? (
               <ChartContainer
                 config={{
@@ -204,13 +216,16 @@ export default function ClientDashboard() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">Carregando faturas...</div>
+              <div className="h-[300px] flex items-center justify-center animate-pulse text-muted-foreground">
+                Carregando faturas...
+              </div>
             ) : hasData && invoices.length > 0 ? (
               <div className="space-y-4">
                 {invoices.map((fatura) => {
-                  const color = fatura.status === 'Pendente' 
-                    ? 'text-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20' 
-                    : 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20'
+                  const color =
+                    fatura.status === 'Pendente'
+                      ? 'text-brand-orange bg-brand-orange/10 dark:bg-brand-orange/20'
+                      : 'text-brand-green bg-brand-green/10 dark:bg-brand-green/20'
                   return (
                     <div
                       key={fatura.id}
@@ -231,16 +246,17 @@ export default function ClientDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold">R$ {fatura.amount},00</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full hover:bg-brand-blue hover:text-white transition-colors"
-                      >
-                        PIX
-                      </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full hover:bg-brand-blue hover:text-white transition-colors"
+                        >
+                          PIX
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <EmptyState
