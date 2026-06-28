@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { useAuth, type UserRole } from '@/stores/use-auth-store'
@@ -12,6 +12,7 @@ interface LoginFormFieldsProps {
   buttonClassName?: string
   showForgotLink?: boolean
   expectedRole?: UserRole
+  footer?: ReactNode
 }
 
 export function LoginFormFields({
@@ -19,6 +20,7 @@ export function LoginFormFields({
   buttonClassName,
   showForgotLink = true,
   expectedRole,
+  footer,
 }: LoginFormFieldsProps) {
   const { signIn } = useAuth()
   const [email, setEmail] = useState('')
@@ -51,11 +53,13 @@ export function LoginFormFields({
     if (error) {
       toast.error(error)
       setIsSubmitting(false)
+    } else {
+      toast.success('Login realizado com sucesso! Redirecionando...')
     }
   }
 
   return (
-    <>
+    <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
         <Label htmlFor="email">E-mail</Label>
         <Input
@@ -116,12 +120,13 @@ export function LoginFormFields({
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Autenticando...
+            Processando...
           </>
         ) : (
           submitLabel
         )}
       </Button>
-    </>
+      {footer}
+    </form>
   )
 }

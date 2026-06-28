@@ -73,21 +73,21 @@ export function LoginPortal({
               <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <LoginFormFields
-                  submitLabel={submitLabel}
-                  showForgotLink={false}
-                  expectedRole={expectedRole}
-                />
-                <Link
-                  to="/"
-                  className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="inline-flex items-center gap-1">
-                    <ArrowLeft className="h-3 w-3" /> Voltar para o site
-                  </span>
-                </Link>
-              </form>
+              <LoginFormFields
+                submitLabel={submitLabel}
+                showForgotLink={false}
+                expectedRole={expectedRole}
+                footer={
+                  <Link
+                    to="/"
+                    className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <ArrowLeft className="h-3 w-3" /> Voltar para o site
+                    </span>
+                  </Link>
+                }
+              />
             </CardContent>
           </Card>
         </div>
@@ -143,21 +143,21 @@ export function LoginPortal({
           </div>
           <Card className="border-border/60 shadow-lg">
             <CardContent className="pt-6">
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <LoginFormFields
-                  submitLabel={submitLabel ?? 'Entrar na Plataforma'}
-                  buttonClassName={buttonClassName}
-                  expectedRole={expectedRole}
-                />
-                <Link
-                  to="/"
-                  className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="inline-flex items-center gap-1">
-                    <ArrowLeft className="h-3 w-3" /> Voltar para o site
-                  </span>
-                </Link>
-              </form>
+              <LoginFormFields
+                submitLabel={submitLabel ?? 'Entrar na Plataforma'}
+                buttonClassName={buttonClassName}
+                expectedRole={expectedRole}
+                footer={
+                  <Link
+                    to="/"
+                    className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span className="inline-flex items-center gap-1">
+                      <ArrowLeft className="h-3 w-3" /> Voltar para o site
+                    </span>
+                  </Link>
+                }
+              />
             </CardContent>
           </Card>
         </div>

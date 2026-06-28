@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { User, Building, ShieldAlert, ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { LoginFormFields } from '@/components/auth/LoginFormFields'
+import { useAuth } from '@/stores/use-auth-store'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const portals = [
   {
@@ -28,6 +32,29 @@ const portals = [
 ]
 
 export default function Login() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate(`/dashboard/${user.role}`, { replace: true })
+    }
+  }, [loading, user, navigate])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-muted/50 to-background p-6">
+        <div className="w-full max-w-[400px] space-y-6">
+          <Skeleton className="h-10 w-32 mx-auto" />
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-12 w-full rounded-full" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-muted/50 to-background p-6">
       <div className="w-full max-w-4xl space-y-10">
@@ -36,37 +63,56 @@ export default function Login() {
             <Logo />
           </div>
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Escolha seu portal de acesso</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Acesse sua plataforma</h1>
             <p className="text-muted-foreground">
-              Selecione o perfil correspondente para entrar na plataforma
+              Entre com suas credenciais ou escolha seu portal específico
             </p>
           </div>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {portals.map((portal) => (
-            <Link key={portal.to} to={portal.to}>
-              <Card className="group h-full p-6 cursor-pointer border-border/60 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
-                <div
-                  className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${portal.color} mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110`}
+
+        <Card className="max-w-md mx-auto border-border/60 shadow-lg">
+          <CardHeader className="space-y-2 text-center">
+            <CardTitle className="text-2xl">Login Rápido</CardTitle>
+            <CardDescription>Use suas credenciais para acessar o portal</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LoginFormFields
+              submitLabel="Acessar Portal"
+              showForgotLink={false}
+              footer={
+                <Link
+                  to="/"
+                  className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <portal.icon className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-1">{portal.title}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{portal.description}</p>
-                <div className="inline-flex items-center text-sm font-medium text-primary gap-1 group-hover:gap-2 transition-all">
-                  Acessar <ArrowRight className="h-4 w-4" />
-                </div>
-              </Card>
-            </Link>
-          ))}
-        </div>
-        <div className="text-center">
-          <Link
-            to="/"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Voltar para o site
-          </Link>
+                  ← Voltar para o site
+                </Link>
+              }
+            />
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <p className="text-center text-sm text-muted-foreground">
+            Ou acesse pelo seu perfil específico:
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            {portals.map((portal) => (
+              <Link key={portal.to} to={portal.to}>
+                <Card className="group h-full p-6 cursor-pointer border-border/60 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
+                  <div
+                    className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${portal.color} mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110`}
+                  >
+                    <portal.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-1">{portal.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{portal.description}</p>
+                  <div className="inline-flex items-center text-sm font-medium text-primary gap-1 group-hover:gap-2 transition-all">
+                    Acessar <ArrowRight className="h-4 w-4" />
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -45,6 +45,22 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: s
   return <>{children}</>
 }
 
+// Guest Route Wrapper — redirects authenticated users away from login pages
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+  if (isAuthenticated && user) {
+    return <Navigate to={`/dashboard/${user.role}`} replace />
+  }
+  return <>{children}</>
+}
+
 const AppContent = () => (
   <BrowserRouter>
     <TooltipProvider>
@@ -61,10 +77,38 @@ const AppContent = () => (
           <Route path="/contato" element={<ContactPage />} />
         </Route>
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/cliente" element={<LoginCliente />} />
-        <Route path="/usina" element={<LoginUsina />} />
-        <Route path="/admin" element={<LoginAdmin />} />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <Login />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/cliente"
+          element={
+            <GuestRoute>
+              <LoginCliente />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/usina"
+          element={
+            <GuestRoute>
+              <LoginUsina />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <GuestRoute>
+              <LoginAdmin />
+            </GuestRoute>
+          }
+        />
 
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Navigate to="/" replace />} />
