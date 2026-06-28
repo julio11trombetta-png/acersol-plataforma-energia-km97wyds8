@@ -60,7 +60,7 @@ export default function Login() {
       <div className="w-full max-w-4xl space-y-10">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <Logo />
+            <Logo showText={false} />
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight">Acesse sua plataforma</h1>

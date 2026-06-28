@@ -66,7 +66,7 @@ export function LoginPortal({
       <div className="min-h-screen flex items-center justify-center bg-muted/30 p-6">
         <div className="w-full max-w-[420px] space-y-6">
           <div className="flex justify-center">
-            <Logo />
+            <Logo showText={false} />
           </div>
           <Card className="border-border/60 shadow-xl">
             <CardHeader className="space-y-2 text-center">
@@ -111,7 +111,7 @@ export function LoginPortal({
           <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent" />
         </div>
         <div className="relative z-10">
-          <Logo className="text-white [&>span]:text-white" />
+          <Logo showText={false} />
         </div>
         <div className="relative z-10 space-y-6">
           {badgeText && (
@@ -139,7 +139,7 @@ export function LoginPortal({
       <div className="flex-1 flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-[400px] space-y-8">
           <div className="md:hidden flex justify-center">
-            <Logo />
+            <Logo showText={false} />
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold tracking-tight">{title}</h2>

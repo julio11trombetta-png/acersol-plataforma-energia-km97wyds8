@@ -45,7 +45,7 @@ export default function ForcePasswordChange() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-6">
       <div className="w-full max-w-[420px] space-y-6">
         <div className="flex justify-center">
-          <Logo />
+          <Logo showText={false} />
         </div>
         <Card className="border-border/60 shadow-xl">
           <CardHeader className="space-y-2 text-center">
