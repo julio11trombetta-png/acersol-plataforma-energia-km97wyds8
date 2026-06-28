@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
-import { Logo } from '@/components/Logo'
+import { PublicLogo } from '@/components/PublicLogo'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +24,7 @@ export function Layout() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/">
-            <Logo />
+            <PublicLogo />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6">
@@ -89,7 +89,7 @@ export function Layout() {
         <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start gap-2">
-              <Logo />
+              <PublicLogo />
               <p className="text-xs text-muted-foreground">
                 Plataforma de gestão de energia solar compartilhada
               </p>
