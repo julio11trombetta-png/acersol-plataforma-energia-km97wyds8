@@ -3,6 +3,8 @@ import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
 import { useAuth } from '@/stores/use-auth-store'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   LogOut,
   Bell,
@@ -12,7 +14,6 @@ import {
   Users,
   Zap,
   DollarSign,
-  Settings,
   Database,
 } from 'lucide-react'
 import {
@@ -105,18 +106,25 @@ export function DashboardLayout() {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            onClick={() => toast.info('Você não tem novas notificações')}
+          >
             <Bell className="h-5 w-5" />
             <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600"></span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-9 w-9 rounded-full overflow-hidden border"
-              >
-                <img src={user.avatar} alt={user.name} className="object-cover" />
-              </Button>
+              <button className="relative h-9 w-9 rounded-full overflow-hidden border">
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel>
@@ -126,13 +134,19 @@ export function DashboardLayout() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  isDesktopAdmin
+                    ? navigate('/dashboard/admin/system-data')
+                    : toast.info('Configurações de conta em breve')
+                }
+              >
                 <UserCircle className="mr-2 h-4 w-4" /> Conta
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
                   logout()
-                  navigate('/login')
+                  navigate('/')
                 }}
               >
                 <LogOut className="mr-2 h-4 w-4" /> Sair

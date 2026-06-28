@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getPlants, createPlant, updatePlant, deletePlant } from '@/services/plants'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Plus, Zap, AlertCircle, Edit, Trash2, MapPin, Network } from 'lucide-react'
+import { Search, Plus, Zap, Edit, Trash2, MapPin, Network } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
@@ -35,6 +34,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
 
 const plantSchema = z.object({
   id: z.string().optional(),
@@ -42,6 +49,16 @@ const plantSchema = z.object({
   capacity: z.coerce.number().min(1, 'Capacidade deve ser maior que 0'),
   location: z.string().min(3, 'Localização inválida'),
   technologyType: z.string().min(2, 'Tipo de tecnologia obrigatória'),
+  status: z.string().optional(),
+  generation_now: z.coerce.number().optional(),
+  cnpj: z.string().optional(),
+  cpf: z.string().optional(),
+  phone: z.string().optional(),
+  email: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), 'E-mail inválido'),
+  address: z.string().optional(),
 })
 
 type PlantData = z.infer<typeof plantSchema>
@@ -60,6 +77,13 @@ export default function AdminPlants() {
       capacity: 0,
       location: '',
       technologyType: '',
+      status: 'Online',
+      generation_now: 0,
+      cnpj: '',
+      cpf: '',
+      phone: '',
+      email: '',
+      address: '',
     },
   })
 
@@ -75,6 +99,11 @@ export default function AdminPlants() {
           technologyType: d.technologyType,
           status: d.status,
           generation_now: d.generation_now,
+          cnpj: d.cnpj || '',
+          cpf: d.cpf || '',
+          phone: d.phone || '',
+          email: d.email || '',
+          address: d.address || '',
         })),
       )
     } catch (err) {
@@ -107,6 +136,13 @@ export default function AdminPlants() {
         capacity: 0,
         location: '',
         technologyType: '',
+        status: 'Online',
+        generation_now: 0,
+        cnpj: '',
+        cpf: '',
+        phone: '',
+        email: '',
+        address: '',
       })
     }
     setIsDialogOpen(true)
@@ -347,6 +383,136 @@ export default function AdminPlants() {
                       <FormControl>
                         <Input
                           placeholder="Ex: Uberlândia/MG ou Endereço"
+                          className="bg-muted/30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-muted/30">
+                              <SelectValue placeholder="Selecione o status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Online">Online</SelectItem>
+                            <SelectItem value="Em obras">Em obras</SelectItem>
+                            <SelectItem value="Inativo">Inativo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="generation_now"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Geração Atual (kW)</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="Ex: 650"
+                            className="bg-muted/30"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cnpj"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CNPJ</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="00.000.000/0001-00"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatCNPJ(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="000.000.000-00"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="(00) 00000-0000"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="contato@email.com"
+                            className="bg-muted/30"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Rua, número, bairro, cidade/UF"
                           className="bg-muted/30"
                           {...field}
                         />

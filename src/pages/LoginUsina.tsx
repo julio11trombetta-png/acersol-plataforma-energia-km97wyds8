@@ -9,7 +9,7 @@ export default function LoginUsina() {
       description="Monitore a produção e desempenho das suas usinas"
       badgeText="Produção de Energia"
       badgeIcon={Factory}
-      imageUrl="https://img.usecurling.com/p/800/1200?q=solar%20power%20plant&color=blue"
+      imageUrl="https://img.usecurling.com/p/800/1200?q=solar%20farm%20panels&color=blue&dpr=2"
       heroTitle="Gestão inteligente da sua geração solar."
       heroDescription="Acompanhe a produção, capacidade e status das suas usinas em tempo real."
       submitLabel="Entrar na Plataforma"

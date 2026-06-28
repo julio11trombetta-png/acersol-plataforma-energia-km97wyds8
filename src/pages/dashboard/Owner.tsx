@@ -4,6 +4,7 @@ import { getPlants } from '@/services/plants'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toast } from 'sonner'
 import {
   Sun,
   Activity,
@@ -70,10 +71,19 @@ export default function OwnerDashboard() {
         </div>
         <div className="flex items-center gap-6">
           <div className="flex gap-3 hidden sm:flex">
-            <Button variant="outline" className="rounded-full px-6">
+            <Button
+              variant="outline"
+              className="rounded-full px-6"
+              onClick={() => toast.info('Relatório técnico em preparação')}
+            >
               <Wrench className="mr-2 h-4 w-4" /> Relatório Técnico
             </Button>
-            <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
+            <Button
+              className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6"
+              onClick={() =>
+                toast.info('Entre em contato com o administrador para cadastrar novas usinas')
+              }
+            >
               <Plus className="mr-2 h-4 w-4" /> Adicionar Usina
             </Button>
           </div>

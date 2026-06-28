@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClients, createClient, updateClient, deleteClient } from '@/services/clients'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, Plus, Users, AlertCircle, Edit, Trash2, Building, Zap } from 'lucide-react'
+import { Search, Plus, Users, Edit, Trash2, Building, Zap } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
@@ -35,6 +34,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
 
 const clientSchema = z.object({
   id: z.string().optional(),
@@ -42,6 +42,14 @@ const clientSchema = z.object({
   energyUnitId: z.string().min(1, 'ID da Unidade Consumidora obrigatório'),
   consumptionProfile: z.string().min(1, 'Perfil de consumo obrigatório'),
   contactInfo: z.string().min(5, 'Informação de contato obrigatória'),
+  cnpj: z.string().optional(),
+  cpf: z.string().optional(),
+  phone: z.string().optional(),
+  email: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), 'E-mail inválido'),
+  address: z.string().optional(),
 })
 
 type ClientData = z.infer<typeof clientSchema>
@@ -60,6 +68,11 @@ export default function AdminClients() {
       energyUnitId: '',
       consumptionProfile: '',
       contactInfo: '',
+      cnpj: '',
+      cpf: '',
+      phone: '',
+      email: '',
+      address: '',
     },
   })
 
@@ -73,6 +86,11 @@ export default function AdminClients() {
           energyUnitId: d.energyUnitId,
           consumptionProfile: d.consumptionProfile,
           contactInfo: d.contactInfo,
+          cnpj: d.cnpj || '',
+          cpf: d.cpf || '',
+          phone: d.phone || '',
+          email: d.email || '',
+          address: d.address || '',
         })),
       )
     } catch (err) {
@@ -105,6 +123,11 @@ export default function AdminClients() {
         energyUnitId: '',
         consumptionProfile: '',
         contactInfo: '',
+        cnpj: '',
+        cpf: '',
+        phone: '',
+        email: '',
+        address: '',
       })
     }
     setIsDialogOpen(true)
@@ -346,6 +369,97 @@ export default function AdminClients() {
                     )}
                   />
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormField
+                    control={form.control}
+                    name="cnpj"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CNPJ</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="00.000.000/0001-00"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatCNPJ(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cpf"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CPF</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="000.000.000-00"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="(00) 00000-0000"
+                            className="bg-muted/30"
+                            {...field}
+                            onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>E-mail</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="contato@email.com"
+                            className="bg-muted/30"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Endereço</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Rua, número, bairro, cidade/UF"
+                          className="bg-muted/30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="flex justify-end gap-3 pt-6">
                   <Button

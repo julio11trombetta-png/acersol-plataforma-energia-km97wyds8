@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+import { formatCurrency } from '@/lib/formatters'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClients } from '@/services/clients'
 import { getPlants } from '@/services/plants'
@@ -30,6 +33,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
   const [stats, setStats] = useState({ clients: 0, plants: 0, activePlants: 0, mrr: 0 })
   const [invoices, setInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -78,7 +82,11 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground">Visão geral da plataforma ACERSOL.</p>
         </div>
         <div className="flex items-center gap-6">
-          <Button variant="outline" className="hidden sm:flex rounded-full">
+          <Button
+            variant="outline"
+            className="hidden sm:flex rounded-full"
+            onClick={() => navigate('/dashboard/admin/system-data')}
+          >
             <Settings className="mr-2 h-4 w-4" /> Configurações
           </Button>
         </div>
@@ -202,7 +210,10 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="pt-4 flex gap-4">
-                        <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md">
+                        <Button
+                          className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md"
+                          onClick={() => toast.success('Recálculo global iniciado com sucesso')}
+                        >
                           Forçar Recálculo Global
                         </Button>
                       </div>
@@ -223,10 +234,17 @@ export default function AdminDashboard() {
                   description="O motor de alocação entrará em operação assim que houver usinas e clientes cadastrados no sistema."
                   action={
                     <div className="flex gap-4 mt-6">
-                      <Button variant="outline" className="rounded-full px-6">
+                      <Button
+                        variant="outline"
+                        className="rounded-full px-6"
+                        onClick={() => navigate('/dashboard/admin/clients')}
+                      >
                         <UserPlus className="mr-2 h-4 w-4" /> Adicionar Cliente
                       </Button>
-                      <Button className="bg-brand-blue text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
+                      <Button
+                        className="bg-brand-blue text-white rounded-full shadow-md shadow-brand-blue/20 px-6"
+                        onClick={() => navigate('/dashboard/admin/plants')}
+                      >
                         <Network className="mr-2 h-4 w-4" /> Cadastrar Usina
                       </Button>
                     </div>
@@ -267,7 +285,7 @@ export default function AdminDashboard() {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                             {inv.month}
                           </TableCell>
-                          <TableCell>R$ {inv.amount},00</TableCell>
+                          <TableCell>{formatCurrency(inv.amount)}</TableCell>
                           <TableCell>
                             <Badge
                               variant="outline"

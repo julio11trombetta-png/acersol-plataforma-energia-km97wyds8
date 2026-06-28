@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { DollarSign, FileText } from 'lucide-react'
+import { formatCurrency } from '@/lib/formatters'
 import { getInvoices } from '@/services/invoices'
 import { useRealtime } from '@/hooks/use-realtime'
 import {
@@ -86,7 +87,7 @@ export default function AdminFinance() {
                           {inv.month}
                         </div>
                       </TableCell>
-                      <TableCell>R$ {inv.amount},00</TableCell>
+                      <TableCell>{formatCurrency(inv.amount)}</TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"

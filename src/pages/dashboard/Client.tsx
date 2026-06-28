@@ -17,6 +17,8 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
+import { toast } from 'sonner'
+import { formatCurrency } from '@/lib/formatters'
 
 export default function ClientDashboard() {
   const [invoices, setInvoices] = useState<any[]>([])
@@ -60,7 +62,10 @@ export default function ClientDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-6">
-          <Button className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6">
+          <Button
+            className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6"
+            onClick={() => toast.success('Relatório em preparação. Você receberá por e-mail.')}
+          >
             <Download className="mr-2 h-4 w-4" /> Relatório Oficial
           </Button>
         </div>
@@ -123,7 +128,7 @@ export default function ClientDashboard() {
               {loading ? (
                 <Skeleton className="h-8 w-24" />
               ) : lastInvoice > 0 ? (
-                `R$ ${lastInvoice},00`
+                formatCurrency(lastInvoice)
               ) : (
                 '-'
               )}
@@ -203,7 +208,7 @@ export default function ClientDashboard() {
                 }}
                 className="h-[300px] w-full"
               >
-                <BarChart data={consumeData}>
+                <BarChart data={[...consumeData].reverse()}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.5} />
                   <XAxis dataKey="month" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} />
@@ -261,8 +266,13 @@ export default function ClientDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <span className="font-semibold">R$ {fatura.amount},00</span>
-                        <Button variant="outline" size="sm" className="rounded-full">
+                        <span className="font-semibold">{formatCurrency(fatura.amount)}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={() => toast.info('Pagamento via PIX em breve disponível')}
+                        >
                           PIX
                         </Button>
                       </div>

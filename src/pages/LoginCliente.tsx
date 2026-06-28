@@ -9,7 +9,7 @@ export default function LoginCliente() {
       description="Acompanhe sua economia e consumo em tempo real"
       badgeText="Energia Sustentável"
       badgeIcon={Leaf}
-      imageUrl="https://img.usecurling.com/p/800/1200?q=sustainable%20energy%20home&color=green"
+      imageUrl="https://img.usecurling.com/p/800/1200?q=solar%20panel%20roof&color=green&dpr=2"
       heroTitle="Sua energia limpa, sua economia real."
       heroDescription="Acompanhe em tempo real o quanto você economiza com energia solar compartilhada."
       submitLabel="Entrar na Plataforma"
