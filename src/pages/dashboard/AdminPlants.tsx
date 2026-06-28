@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getPlants, createPlant, updatePlant, deletePlant } from '@/services/plants'
+import {
+  getPlants,
+  createPlant,
+  updatePlant,
+  deletePlant,
+  checkDocumentExists,
+} from '@/services/plants'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -42,7 +48,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
+import { formatDocument, formatPhone } from '@/lib/formatters'
+import { validateCPF, validateCNPJ } from '@/lib/document-validation'
 import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
 
 const plantSchema = z.object({
@@ -53,8 +60,15 @@ const plantSchema = z.object({
   technologyType: z.string().min(2, 'Tipo de tecnologia obrigatória'),
   status: z.string().optional(),
   generation_now: z.coerce.number().optional(),
-  cnpj: z.string().optional(),
-  cpf: z.string().optional(),
+  document_number: z
+    .string()
+    .min(1, 'CPF ou CNPJ obrigatório')
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      if (digits.length === 11) return validateCPF(digits)
+      if (digits.length === 14) return validateCNPJ(digits)
+      return false
+    }, 'Documento inválido'),
   phone: z.string().optional(),
   email: z
     .string()
@@ -84,8 +98,7 @@ export default function AdminPlants() {
       technologyType: '',
       status: 'Online',
       generation_now: 0,
-      cnpj: '',
-      cpf: '',
+      document_number: '',
       phone: '',
       email: '',
       address: '',
@@ -106,8 +119,7 @@ export default function AdminPlants() {
           technologyType: d.technologyType,
           status: d.status,
           generation_now: d.generation_now,
-          cnpj: d.cnpj || '',
-          cpf: d.cpf || '',
+          document_number: d.document_number || '',
           phone: d.phone || '',
           email: d.email || '',
           address: d.address || '',
@@ -147,8 +159,7 @@ export default function AdminPlants() {
         technologyType: '',
         status: 'Online',
         generation_now: 0,
-        cnpj: '',
-        cpf: '',
+        document_number: '',
         phone: '',
         email: '',
         address: '',
@@ -161,6 +172,11 @@ export default function AdminPlants() {
 
   const onSubmit = async (data: PlantData) => {
     try {
+      const exists = await checkDocumentExists(data.document_number, editingPlant?.id)
+      if (exists) {
+        form.setError('document_number', { message: 'Este CPF/CNPJ já está cadastrado' })
+        return
+      }
       if (editingPlant?.id) {
         await updatePlant(editingPlant.id, data)
         toast.success('Usina atualizada com sucesso!')
@@ -500,34 +516,16 @@ export default function AdminPlants() {
                   />
                   <FormField
                     control={form.control}
-                    name="cnpj"
+                    name="document_number"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CNPJ</FormLabel>
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>CPF ou CNPJ</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="00.000.000/0001-00"
+                            placeholder="000.000.000-00 ou 00.000.000/0001-00"
                             className="bg-muted/30"
                             {...field}
-                            onChange={(e) => field.onChange(formatCNPJ(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cpf"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CPF</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="000.000.000-00"
-                            className="bg-muted/30"
-                            {...field}
-                            onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                            onChange={(e) => field.onChange(formatDocument(e.target.value))}
                           />
                         </FormControl>
                         <FormMessage />

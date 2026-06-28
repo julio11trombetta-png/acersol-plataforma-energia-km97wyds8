@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getClients, createClient, updateClient, deleteClient } from '@/services/clients'
+import {
+  getClients,
+  createClient,
+  updateClient,
+  deleteClient,
+  checkDocumentExists,
+} from '@/services/clients'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -51,8 +57,15 @@ const clientSchema = z.object({
   energyUnitId: z.string().min(1, 'ID da Unidade Consumidora obrigatório'),
   consumptionProfile: z.string().min(1, 'Perfil de consumo obrigatório'),
   contactInfo: z.string().min(5, 'Informação de contato obrigatória'),
-  cnpj: z.string().optional(),
-  cpf: z.string().optional(),
+  document_number: z
+    .string()
+    .min(1, 'CPF ou CNPJ obrigatório')
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      if (digits.length === 11) return validateCPF(digits)
+      if (digits.length === 14) return validateCNPJ(digits)
+      return false
+    }, 'Documento inválido'),
   phone: z.string().optional(),
   email: z
     .string()
@@ -80,8 +93,7 @@ export default function AdminClients() {
       energyUnitId: '',
       consumptionProfile: '',
       contactInfo: '',
-      cnpj: '',
-      cpf: '',
+      document_number: '',
       phone: '',
       email: '',
       address: '',
@@ -100,8 +112,7 @@ export default function AdminClients() {
           energyUnitId: d.energyUnitId,
           consumptionProfile: d.consumptionProfile,
           contactInfo: d.contactInfo,
-          cnpj: d.cnpj || '',
-          cpf: d.cpf || '',
+          document_number: d.document_number || '',
           phone: d.phone || '',
           email: d.email || '',
           address: d.address || '',
@@ -139,8 +150,7 @@ export default function AdminClients() {
         energyUnitId: '',
         consumptionProfile: '',
         contactInfo: '',
-        cnpj: '',
-        cpf: '',
+        document_number: '',
         phone: '',
         email: '',
         address: '',
@@ -153,6 +163,11 @@ export default function AdminClients() {
 
   const onSubmit = async (data: ClientData) => {
     try {
+      const exists = await checkDocumentExists(data.document_number, editingClient?.id)
+      if (exists) {
+        form.setError('document_number', { message: 'Este CPF/CNPJ já está cadastrado' })
+        return
+      }
       if (editingClient?.id) {
         await updateClient(editingClient.id, data)
         toast.success('Cliente atualizado com sucesso!')
@@ -447,34 +462,16 @@ export default function AdminClients() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormField
                     control={form.control}
-                    name="cnpj"
+                    name="document_number"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CNPJ</FormLabel>
+                      <FormItem className="md:col-span-2">
+                        <FormLabel>CPF ou CNPJ</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="00.000.000/0001-00"
+                            placeholder="000.000.000-00 ou 00.000.000/0001-00"
                             className="bg-muted/30"
                             {...field}
-                            onChange={(e) => field.onChange(formatCNPJ(e.target.value))}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="cpf"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CPF</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="000.000.000-00"
-                            className="bg-muted/30"
-                            {...field}
-                            onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                            onChange={(e) => field.onChange(formatDocument(e.target.value))}
                           />
                         </FormControl>
                         <FormMessage />

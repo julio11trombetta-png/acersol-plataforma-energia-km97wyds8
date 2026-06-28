@@ -10,3 +10,15 @@ export const deletePlant = (id: string) => pb.collection('plants').delete(id)
 
 export const getAllPlants = () => pb.collection('plants').getFullList({ sort: 'name' })
 export const getPlantById = (id: string) => pb.collection('plants').getOne(id)
+
+export const checkDocumentExists = async (document: string, excludeId?: string) => {
+  try {
+    const filter = excludeId
+      ? `document_number = "${document}" && id != "${excludeId}"`
+      : `document_number = "${document}"`
+    const results = await pb.collection('plants').getList(1, 1, { filter })
+    return results.items.length > 0
+  } catch {
+    return false
+  }
+}

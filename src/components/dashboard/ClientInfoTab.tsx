@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
-import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
-import { updateClient } from '@/services/clients'
+import { formatDocument, formatPhone } from '@/lib/formatters'
+import { validateCPF, validateCNPJ } from '@/lib/document-validation'
+import { updateClient, checkDocumentExists } from '@/services/clients'
 import { toast } from 'sonner'
 import { Save, Loader2 } from 'lucide-react'
 
@@ -31,8 +32,15 @@ const schema = z.object({
   energyUnitId: z.string().min(1, 'UC obrigatória'),
   consumptionProfile: z.string().optional(),
   contactInfo: z.string().optional(),
-  cnpj: z.string().optional(),
-  cpf: z.string().optional(),
+  document_number: z
+    .string()
+    .min(1, 'CPF ou CNPJ obrigatório')
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      if (digits.length === 11) return validateCPF(digits)
+      if (digits.length === 14) return validateCNPJ(digits)
+      return false
+    }, 'Documento inválido'),
   phone: z.string().optional(),
   email: z
     .string()
@@ -51,7 +59,7 @@ interface FieldDef {
   label: string
   placeholder: string
   full?: boolean
-  format?: 'cnpj' | 'cpf' | 'phone'
+  format?: 'cnpj' | 'cpf' | 'phone' | 'document'
 }
 
 const textFields: FieldDef[] = [
@@ -61,8 +69,13 @@ const textFields: FieldDef[] = [
   { name: 'contactInfo', label: 'Contato', placeholder: 'E-mail ou Telefone' },
   { name: 'phone', label: 'Telefone', placeholder: '(00) 00000-0000', format: 'phone' },
   { name: 'email', label: 'E-mail', placeholder: 'contato@email.com' },
-  { name: 'cnpj', label: 'CNPJ', placeholder: '00.000.000/0001-00', format: 'cnpj' },
-  { name: 'cpf', label: 'CPF', placeholder: '000.000.000-00', format: 'cpf' },
+  {
+    name: 'document_number',
+    label: 'CPF ou CNPJ',
+    placeholder: '000.000.000-00 ou 00.000.000/0001-00',
+    format: 'document',
+    full: true,
+  },
   { name: 'address', label: 'Endereço', placeholder: 'Rua, número, bairro', full: true },
 ]
 
@@ -75,8 +88,7 @@ export function ClientInfoTab({ client }: { client: any }) {
       energyUnitId: client.energyUnitId || '',
       consumptionProfile: client.consumptionProfile || '',
       contactInfo: client.contactInfo || '',
-      cnpj: client.cnpj || '',
-      cpf: client.cpf || '',
+      document_number: client.document_number || '',
       phone: client.phone || '',
       email: client.email || '',
       address: client.address || '',
@@ -89,6 +101,12 @@ export function ClientInfoTab({ client }: { client: any }) {
   const onSubmit = async (data: FormData) => {
     setSaving(true)
     try {
+      const exists = await checkDocumentExists(data.document_number, client.id)
+      if (exists) {
+        form.setError('document_number', { message: 'Este CPF/CNPJ já está cadastrado' })
+        setSaving(false)
+        return
+      }
       await updateClient(client.id, {
         ...data,
         discount_percentage: data.discount_percentage ? Number(data.discount_percentage) : 0,
@@ -102,8 +120,7 @@ export function ClientInfoTab({ client }: { client: any }) {
   }
 
   const applyFormat = (format: string | undefined, value: string) => {
-    if (format === 'cnpj') return formatCNPJ(value)
-    if (format === 'cpf') return formatCPF(value)
+    if (format === 'document') return formatDocument(value)
     if (format === 'phone') return formatPhone(value)
     return value
   }

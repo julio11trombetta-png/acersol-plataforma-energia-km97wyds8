@@ -21,8 +21,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
-import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
-import { updatePlant } from '@/services/plants'
+import { formatDocument, formatPhone } from '@/lib/formatters'
+import { validateCPF, validateCNPJ } from '@/lib/document-validation'
+import { updatePlant, checkDocumentExists } from '@/services/plants'
 import { toast } from 'sonner'
 import { Save, Loader2 } from 'lucide-react'
 
@@ -33,8 +34,15 @@ const schema = z.object({
   technologyType: z.string().optional(),
   status: z.string().optional(),
   generation_now: z.coerce.number().optional(),
-  cnpj: z.string().optional(),
-  cpf: z.string().optional(),
+  document_number: z
+    .string()
+    .min(1, 'CPF ou CNPJ obrigatório')
+    .refine((val) => {
+      const digits = val.replace(/\D/g, '')
+      if (digits.length === 11) return validateCPF(digits)
+      if (digits.length === 14) return validateCNPJ(digits)
+      return false
+    }, 'Documento inválido'),
   phone: z.string().optional(),
   email: z
     .string()
@@ -58,8 +66,7 @@ export function PlantInfoTab({ plant }: { plant: any }) {
       technologyType: plant.technologyType || '',
       status: plant.status || 'Online',
       generation_now: plant.generation_now || 0,
-      cnpj: plant.cnpj || '',
-      cpf: plant.cpf || '',
+      document_number: plant.document_number || '',
       phone: plant.phone || '',
       email: plant.email || '',
       address: plant.address || '',
@@ -71,6 +78,12 @@ export function PlantInfoTab({ plant }: { plant: any }) {
   const onSubmit = async (data: FormData) => {
     setSaving(true)
     try {
+      const exists = await checkDocumentExists(data.document_number, plant.id)
+      if (exists) {
+        form.setError('document_number', { message: 'Este CPF/CNPJ já está cadastrado' })
+        setSaving(false)
+        return
+      }
       await updatePlant(plant.id, data)
       toast.success('Informações atualizadas!')
     } catch {
@@ -226,32 +239,16 @@ export function PlantInfoTab({ plant }: { plant: any }) {
               />
               <FormField
                 control={form.control}
-                name="cnpj"
+                name="document_number"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CNPJ</FormLabel>
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>CPF ou CNPJ</FormLabel>
                     <FormControl>
                       <Input
+                        placeholder="000.000.000-00 ou 00.000.000/0001-00"
                         className="bg-muted/30"
                         {...field}
-                        onChange={(e) => field.onChange(formatCNPJ(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="cpf"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>CPF</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="bg-muted/30"
-                        {...field}
-                        onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                        onChange={(e) => field.onChange(formatDocument(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
