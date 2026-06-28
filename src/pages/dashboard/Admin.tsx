@@ -19,7 +19,10 @@ import {
   TrendingUp,
   UserPlus,
   FileText,
+  Download,
+  Loader2,
 } from 'lucide-react'
+import { exportDatabase } from '@/services/export'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AdminCRM } from '@/components/dashboard/AdminCRM'
 import {
@@ -37,6 +40,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ clients: 0, plants: 0, activePlants: 0, mrr: 0 })
   const [invoices, setInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   const loadData = async () => {
     try {
@@ -61,6 +65,18 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      await exportDatabase()
+      toast.success('Banco de dados exportado com sucesso')
+    } catch {
+      toast.error('Falha ao exportar banco de dados')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   useEffect(() => {
     loadData()
   }, [])
@@ -81,13 +97,26 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-bold tracking-tight">ERP & CRM Executivo</h2>
           <p className="text-muted-foreground">Visão geral da plataforma ACERSOL.</p>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="outline"
             className="hidden sm:flex rounded-full"
             onClick={() => navigate('/dashboard/admin/clients')}
           >
             <Settings className="mr-2 h-4 w-4" /> Gerenciar Sistema
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {exporting ? 'Gerando...' : 'Exportar Banco de Dados (.sql)'}
           </Button>
         </div>
       </div>
