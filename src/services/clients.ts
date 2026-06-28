@@ -16,8 +16,11 @@ export const checkDocumentExists = async (document: string, excludeId?: string) 
     const filter = excludeId
       ? `document_number = "${document}" && id != "${excludeId}"`
       : `document_number = "${document}"`
-    const results = await pb.collection('clients').getList(1, 1, { filter })
-    return results.items.length > 0
+    const [clientResults, plantResults] = await Promise.all([
+      pb.collection('clients').getList(1, 1, { filter }),
+      pb.collection('plants').getList(1, 1, { filter }),
+    ])
+    return clientResults.items.length > 0 || plantResults.items.length > 0
   } catch {
     return false
   }

@@ -41,7 +41,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
-import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
+import { formatDocument, formatPhone } from '@/lib/formatters'
+import { validateCPF, validateCNPJ } from '@/lib/document-validation'
 import {
   Select,
   SelectContent,
