@@ -1,4 +1,4 @@
-import logoImg from '@/assets/image-8de1e.png'
+import logoImg from '@/assets/image-c444e.png'
 import { cn } from '@/lib/utils'
 
 export function Logo({
