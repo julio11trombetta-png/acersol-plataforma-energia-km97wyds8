@@ -11,6 +11,9 @@ export const deleteClient = (id: string) => pb.collection('clients').delete(id)
 export const getAllClients = () => pb.collection('clients').getFullList({ sort: 'name' })
 export const getClientById = (id: string) => pb.collection('clients').getOne(id)
 
+export const getClientByDocument = (document: string) =>
+  pb.collection('clients').getFirstListItem(`document_number = "${document}"`)
+
 export const checkDocumentExists = async (document: string, excludeId?: string) => {
   try {
     const filter = excludeId
