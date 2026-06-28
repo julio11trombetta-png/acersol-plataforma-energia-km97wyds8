@@ -105,7 +105,10 @@ export function Hero() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-sm font-medium">Usina Solar ACERSOL I</p>
-                    <p className="text-xs text-muted-foreground">Minas Gerais, Brasil</p>
+                    <p className="text-xs text-muted-foreground">Rio Grande do Sul, Brasil</p>
+                    <span className="text-[10px] font-medium text-brand-blue bg-brand-blue/10 px-1.5 py-0.5 rounded mt-1 inline-block">
+                      RGE
+                    </span>
                   </div>
                   <div className="flex items-center gap-1 text-xs font-medium text-brand-green bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
                     <div className="h-2 w-2 rounded-full bg-brand-green animate-pulse"></div>

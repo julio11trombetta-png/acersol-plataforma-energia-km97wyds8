@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { formatCNPJ, formatCPF, formatPhone } from '@/lib/formatters'
+import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
 
 const plantSchema = z.object({
   id: z.string().optional(),
@@ -59,6 +60,8 @@ const plantSchema = z.object({
     .optional()
     .refine((val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), 'E-mail inválido'),
   address: z.string().optional(),
+  utilityProvider: z.string().min(1, 'Concessionária obrigatória'),
+  state: z.string().min(2, 'Estado obrigatório'),
 })
 
 type PlantData = z.infer<typeof plantSchema>
@@ -84,6 +87,8 @@ export default function AdminPlants() {
       phone: '',
       email: '',
       address: '',
+      utilityProvider: 'RGE',
+      state: 'RS',
     },
   })
 
@@ -104,6 +109,8 @@ export default function AdminPlants() {
           phone: d.phone || '',
           email: d.email || '',
           address: d.address || '',
+          utilityProvider: d.utilityProvider || 'RGE',
+          state: d.state || 'RS',
         })),
       )
     } catch (err) {
@@ -143,6 +150,8 @@ export default function AdminPlants() {
         phone: '',
         email: '',
         address: '',
+        utilityProvider: 'RGE',
+        state: 'RS',
       })
     }
     setIsDialogOpen(true)
@@ -391,6 +400,56 @@ export default function AdminPlants() {
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormField
+                    control={form.control}
+                    name="utilityProvider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Concessionária</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-muted/30">
+                              <SelectValue placeholder="Selecione a concessionária" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {UTILITY_PROVIDERS.map((provider) => (
+                              <SelectItem key={provider} value={provider}>
+                                {provider}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="bg-muted/30">
+                              <SelectValue placeholder="Selecione o estado" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {BRAZILIAN_STATES.map((s) => (
+                              <SelectItem key={s.code} value={s.code}>
+                                {s.name} ({s.code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <FormField
                     control={form.control}

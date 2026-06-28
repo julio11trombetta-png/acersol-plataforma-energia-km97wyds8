@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-28T01:54:00.324Z",
+  "generatedAt": "2026-06-28T02:02:09.332Z",
   "collections": [
     {
       "name": "users",
@@ -129,6 +129,18 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "utilityProvider",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "state",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -221,6 +233,18 @@
         },
         {
           "name": "address",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "utilityProvider",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "state",
           "type": "text",
           "required": false,
           "system": false
