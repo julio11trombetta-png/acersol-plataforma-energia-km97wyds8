@@ -80,8 +80,7 @@ export default function Login() {
           </CardContent>
         </Card>
 
-      </div>
-      <div className="space-y-4">
+        <div className="space-y-4">
           <div className="text-center">
             <a
               href="/primeiro-acesso"
