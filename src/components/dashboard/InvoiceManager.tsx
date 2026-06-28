@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DollarSign, Plus, FileText } from 'lucide-react'
+import { DollarSign, Plus, FileText, FileDown } from 'lucide-react'
 import { formatCurrency } from '@/lib/formatters'
 import { getInvoices, createInvoice } from '@/services/invoices'
 import { getAllClients } from '@/services/clients'
@@ -33,13 +33,27 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
+import { generateInvoicePDF } from '@/lib/invoice-pdf'
+
+const statusClass = (s: string) =>
+  s === 'Pago'
+    ? 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20'
+    : s === 'Pendente'
+      ? 'text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
+      : 'text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20'
 
 export function InvoiceManager() {
   const [invoices, setInvoices] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
-  const [form, setForm] = useState({ month: '', clientId: '', amount: '', status: 'Pendente' })
+  const [form, setForm] = useState({
+    month: '',
+    clientId: '',
+    amount: '',
+    status: 'Pendente',
+    due_date: '',
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const loadData = async () => {
@@ -48,7 +62,7 @@ export function InvoiceManager() {
       setInvoices(invs)
       setClients(cls)
     } catch {
-      /* intentionally ignored */
+      /* ignored */
     } finally {
       setLoading(false)
     }
@@ -57,15 +71,13 @@ export function InvoiceManager() {
   useEffect(() => {
     loadData()
   }, [])
-  useRealtime('invoices', () => {
-    loadData()
-  })
+  useRealtime('invoices', () => loadData())
 
   const handleSubmit = async () => {
     const errs: Record<string, string> = {}
-    if (!form.month.trim()) errs.month = 'Mes obrigatorio'
-    if (!form.clientId) errs.clientId = 'Cliente obrigatorio'
-    if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valor invalido'
+    if (!form.month.trim()) errs.month = 'Mês obrigatório'
+    if (!form.clientId) errs.clientId = 'Cliente obrigatório'
+    if (!form.amount || Number(form.amount) <= 0) errs.amount = 'Valor inválido'
     if (Object.keys(errs).length) {
       setErrors(errs)
       return
@@ -76,10 +88,11 @@ export function InvoiceManager() {
         clientId: form.clientId,
         amount: Number(form.amount),
         status: form.status,
+        due_date: form.due_date || null,
       })
       toast.success('Fatura criada com sucesso!')
       setIsOpen(false)
-      setForm({ month: '', clientId: '', amount: '', status: 'Pendente' })
+      setForm({ month: '', clientId: '', amount: '', status: 'Pendente', due_date: '' })
       setErrors({})
     } catch {
       toast.error('Erro ao criar fatura')
@@ -91,8 +104,8 @@ export function InvoiceManager() {
       <CardHeader className="pb-4 border-b bg-muted/10">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Historico e Rateios</CardTitle>
-            <CardDescription>Faturas emitidas e distribuicao de creditos.</CardDescription>
+            <CardTitle>Histórico e Rateios</CardTitle>
+            <CardDescription>Faturas emitidas e distribuição de créditos.</CardDescription>
           </div>
           <Button
             onClick={() => setIsOpen(true)}
@@ -122,10 +135,12 @@ export function InvoiceManager() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableHead className="pl-6">Referencia (Mes)</TableHead>
+                  <TableHead className="pl-6">Referência</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead>Valor (R$)</TableHead>
+                  <TableHead>Vencimento</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -137,21 +152,26 @@ export function InvoiceManager() {
                         {inv.month}
                       </div>
                     </TableCell>
-                    <TableCell>{inv.expand?.clientId?.name || '\u2014'}</TableCell>
+                    <TableCell>{inv.expand?.clientId?.name || '—'}</TableCell>
                     <TableCell>{formatCurrency(inv.amount)}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          inv.status === 'Pago'
-                            ? 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20'
-                            : inv.status === 'Pendente'
-                              ? 'text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
-                              : 'text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20'
-                        }
-                      >
+                      {inv.due_date ? new Date(inv.due_date).toLocaleDateString('pt-BR') : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={statusClass(inv.status)}>
                         {inv.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => generateInvoicePDF(inv)}
+                        className="hover:bg-brand-blue/10"
+                        title="Gerar PDF"
+                      >
+                        <FileDown className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -162,7 +182,7 @@ export function InvoiceManager() {
       </CardContent>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Nova Fatura</DialogTitle>
             <DialogDescription>Registre uma nova fatura para um cliente.</DialogDescription>
@@ -188,7 +208,7 @@ export function InvoiceManager() {
               {errors.clientId && <p className="text-sm text-red-500">{errors.clientId}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Mes de Referencia</Label>
+              <Label>Mês de Referência</Label>
               <Input
                 placeholder="Ex: Abril 2026"
                 value={form.month}
@@ -196,16 +216,26 @@ export function InvoiceManager() {
               />
               {errors.month && <p className="text-sm text-red-500">{errors.month}</p>}
             </div>
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0,00"
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Valor (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={form.amount}
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                />
+                {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Vencimento</Label>
+                <Input
+                  type="date"
+                  value={form.due_date}
+                  onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>

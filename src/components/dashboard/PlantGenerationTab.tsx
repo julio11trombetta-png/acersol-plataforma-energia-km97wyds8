@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Zap } from 'lucide-react'
-import { getPlantGenerationsByPlant, createPlantGeneration } from '@/services/plant-generation'
+import { Plus, Zap, Edit, Trash2 } from 'lucide-react'
+import {
+  getPlantGenerationsByPlant,
+  createPlantGeneration,
+  updatePlantGeneration,
+  deletePlantGeneration,
+} from '@/services/plant-generation'
 import { useRealtime } from '@/hooks/use-realtime'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
@@ -32,12 +37,24 @@ import {
 import { toast } from 'sonner'
 import { MONTHS, filterByMonthYear, getUniqueYears } from '@/lib/date-filters'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatCurrency } from '@/lib/formatters'
+
+const repasseStatusClass = (s: string) =>
+  s === 'Pago'
+    ? 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20'
+    : 'text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
 
 export function PlantGenerationTab({ plantId, plantName }: { plantId: string; plantName: string }) {
   const [records, setRecords] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
-  const [form, setForm] = useState({ month: '', generation: '' })
+  const [editing, setEditing] = useState<any>(null)
+  const [form, setForm] = useState({
+    month: '',
+    generation: '',
+    repasse_amount: '',
+    status: 'Pendente',
+  })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [fMonth, setFMonth] = useState('')
   const [fYear, setFYear] = useState('')
@@ -46,7 +63,7 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
     try {
       setRecords(await getPlantGenerationsByPlant(plantId))
     } catch {
-      /* intentionally ignored */
+      /* ignored */
     } finally {
       setLoading(false)
     }
@@ -60,6 +77,23 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
   const years = getUniqueYears(records)
   const filtered = filterByMonthYear(records, fMonth, fYear)
 
+  const openDialog = (rec?: any) => {
+    if (rec) {
+      setEditing(rec)
+      setForm({
+        month: rec.month,
+        generation: String(rec.generation),
+        repasse_amount: rec.repasse_amount != null ? String(rec.repasse_amount) : '',
+        status: rec.status || 'Pendente',
+      })
+    } else {
+      setEditing(null)
+      setForm({ month: '', generation: '', repasse_amount: '', status: 'Pendente' })
+    }
+    setErrors({})
+    setIsOpen(true)
+  }
+
   const handleSubmit = async () => {
     const errs: Record<string, string> = {}
     if (!form.month.trim()) errs.month = 'Mês obrigatório'
@@ -69,17 +103,32 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
       return
     }
     try {
-      await createPlantGeneration({
+      const data = {
         month: form.month,
         generation: Number(form.generation),
+        repasse_amount: form.repasse_amount ? Number(form.repasse_amount) : 0,
+        status: form.status,
         plantId,
-      })
-      toast.success('Geração registrada!')
+      }
+      if (editing) {
+        await updatePlantGeneration(editing.id, data)
+        toast.success('Registro atualizado!')
+      } else {
+        await createPlantGeneration(data)
+        toast.success('Geração registrada!')
+      }
       setIsOpen(false)
-      setForm({ month: '', generation: '' })
-      setErrors({})
     } catch {
-      toast.error('Erro ao registrar')
+      toast.error('Erro ao salvar')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePlantGeneration(id)
+      toast.success('Registro excluído!')
+    } catch {
+      toast.error('Erro ao excluir')
     }
   }
 
@@ -116,7 +165,7 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
             </Select>
           </div>
           <Button
-            onClick={() => setIsOpen(true)}
+            onClick={() => openDialog()}
             className="bg-brand-green hover:bg-green-700 text-white rounded-full"
           >
             <Plus className="mr-2 h-4 w-4" /> Registrar Geração
@@ -139,16 +188,17 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mês de Referência</TableHead>
-                  <TableHead>Usina</TableHead>
+                  <TableHead>Mês</TableHead>
                   <TableHead>Geração (kWh)</TableHead>
+                  <TableHead>Repasse (R$)</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
                   <TableRow key={r.id} className="hover:bg-muted/30">
                     <TableCell className="font-medium">{r.month}</TableCell>
-                    <TableCell className="text-muted-foreground">{plantName}</TableCell>
                     <TableCell>
                       <Badge
                         variant="secondary"
@@ -156,6 +206,34 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
                       >
                         {Number(r.generation).toLocaleString('pt-BR')} kWh
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {r.repasse_amount != null ? formatCurrency(Number(r.repasse_amount)) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {r.status && (
+                        <Badge variant="outline" className={repasseStatusClass(r.status)}>
+                          {r.status}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openDialog(r)}
+                        className="hover:bg-brand-green/10"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(r.id)}
+                        className="hover:bg-red-500/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -168,8 +246,10 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle>Registrar Geração</DialogTitle>
-            <DialogDescription>Registre a geração mensal da usina.</DialogDescription>
+            <DialogTitle>{editing ? 'Editar Registro' : 'Registrar Geração'}</DialogTitle>
+            <DialogDescription>
+              {editing ? 'Edite os dados do registro.' : 'Registre a geração mensal da usina.'}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -190,6 +270,28 @@ export function PlantGenerationTab({ plantId, plantName }: { plantId: string; pl
                 onChange={(e) => setForm({ ...form, generation: e.target.value })}
               />
               {errors.generation && <p className="text-sm text-red-500">{errors.generation}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Valor de Repasse (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={form.repasse_amount}
+                onChange={(e) => setForm({ ...form, repasse_amount: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status do Repasse</Label>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Pago">Pago</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">

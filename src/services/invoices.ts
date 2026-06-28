@@ -8,11 +8,18 @@ export const createInvoice = (data: {
   amount: number
   status: string
   clientId: string
+  due_date?: string | null
 }) => pb.collection('invoices').create(data)
 
 export const updateInvoice = (
   id: string,
-  data: Partial<{ month: string; amount: number; status: string; clientId: string }>,
+  data: Partial<{
+    month: string
+    amount: number
+    status: string
+    clientId: string
+    due_date: string | null
+  }>,
 ) => pb.collection('invoices').update(id, data)
 
 export const deleteInvoice = (id: string) => pb.collection('invoices').delete(id)

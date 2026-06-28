@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-28T02:38:33.824Z",
+  "generatedAt": "2026-06-28T03:02:25.462Z",
   "collections": [
     {
       "name": "users",
@@ -139,6 +139,12 @@
         {
           "name": "state",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "discount_percentage",
+          "type": "number",
           "required": false,
           "system": false
         }
@@ -355,6 +361,12 @@
           "required": false,
           "system": false,
           "collectionRef": "clients"
+        },
+        {
+          "name": "due_date",
+          "type": "date",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -455,6 +467,19 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "repasse_amount",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Pendente", "Pago"]
         }
       ],
       "indexes": []

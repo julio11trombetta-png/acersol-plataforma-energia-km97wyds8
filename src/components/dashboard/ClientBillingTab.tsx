@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, DollarSign, Edit, FileText } from 'lucide-react'
+import { Plus, DollarSign, Edit, FileText, FileDown, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/formatters'
-import { getInvoicesByClient, createInvoice, updateInvoice } from '@/services/invoices'
+import {
+  getInvoicesByClient,
+  createInvoice,
+  updateInvoice,
+  deleteInvoice,
+} from '@/services/invoices'
 import { useRealtime } from '@/hooks/use-realtime'
 import { EmptyState } from '@/components/ui/empty-state'
 import {
@@ -33,6 +38,7 @@ import {
 import { toast } from 'sonner'
 import { MONTHS, filterByMonthYear, getUniqueYears } from '@/lib/date-filters'
 import { Card, CardContent } from '@/components/ui/card'
+import { generateInvoicePDF } from '@/lib/invoice-pdf'
 
 const statusClass = (s: string) =>
   s === 'Pago'
@@ -46,7 +52,7 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState({ month: '', amount: '', status: 'Pendente' })
+  const [form, setForm] = useState({ month: '', amount: '', status: 'Pendente', due_date: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [fMonth, setFMonth] = useState('')
   const [fYear, setFYear] = useState('')
@@ -56,7 +62,7 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
     try {
       setRecords(await getInvoicesByClient(clientId))
     } catch {
-      /* intentionally ignored */
+      /* ignored */
     } finally {
       setLoading(false)
     }
@@ -74,10 +80,15 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
   const openDialog = (inv?: any) => {
     if (inv) {
       setEditing(inv)
-      setForm({ month: inv.month, amount: String(inv.amount), status: inv.status })
+      setForm({
+        month: inv.month,
+        amount: String(inv.amount),
+        status: inv.status,
+        due_date: inv.due_date ? String(inv.due_date).substring(0, 10) : '',
+      })
     } else {
       setEditing(null)
-      setForm({ month: '', amount: '', status: 'Pendente' })
+      setForm({ month: '', amount: '', status: 'Pendente', due_date: '' })
     }
     setErrors({})
     setIsOpen(true)
@@ -92,7 +103,13 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
       return
     }
     try {
-      const data = { month: form.month, amount: Number(form.amount), status: form.status, clientId }
+      const data = {
+        month: form.month,
+        amount: Number(form.amount),
+        status: form.status,
+        due_date: form.due_date || null,
+        clientId,
+      }
       if (editing) {
         await updateInvoice(editing.id, data)
         toast.success('Fatura atualizada!')
@@ -103,6 +120,15 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
       setIsOpen(false)
     } catch {
       toast.error('Erro ao salvar fatura')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteInvoice(id)
+      toast.success('Fatura excluída!')
+    } catch {
+      toast.error('Erro ao excluir')
     }
   }
 
@@ -178,6 +204,7 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
                 <TableRow>
                   <TableHead>Mês</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -193,6 +220,9 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
                     </TableCell>
                     <TableCell>{formatCurrency(inv.amount)}</TableCell>
                     <TableCell>
+                      {inv.due_date ? new Date(inv.due_date).toLocaleDateString('pt-BR') : '—'}
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className={statusClass(inv.status)}>
                         {inv.status}
                       </Badge>
@@ -201,10 +231,26 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => generateInvoicePDF(inv)}
+                        className="hover:bg-brand-blue/10"
+                      >
+                        <FileDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => openDialog(inv)}
                         className="hover:bg-brand-blue/10"
                       >
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(inv.id)}
+                        className="hover:bg-red-500/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -231,16 +277,26 @@ export function ClientBillingTab({ clientId }: { clientId: string }) {
               />
               {errors.month && <p className="text-sm text-red-500">{errors.month}</p>}
             </div>
-            <div className="space-y-2">
-              <Label>Valor (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0,00"
-                value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })}
-              />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Valor (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={form.amount}
+                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                />
+                {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Vencimento</Label>
+                <Input
+                  type="date"
+                  value={form.due_date}
+                  onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Status</Label>

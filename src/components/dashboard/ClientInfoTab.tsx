@@ -41,6 +41,7 @@ const schema = z.object({
   address: z.string().optional(),
   utilityProvider: z.string().optional(),
   state: z.string().optional(),
+  discount_percentage: z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -81,13 +82,17 @@ export function ClientInfoTab({ client }: { client: any }) {
       address: client.address || '',
       utilityProvider: client.utilityProvider || 'RGE',
       state: client.state || 'RS',
+      discount_percentage: client.discount_percentage ? String(client.discount_percentage) : '',
     },
   })
 
   const onSubmit = async (data: FormData) => {
     setSaving(true)
     try {
-      await updateClient(client.id, data)
+      await updateClient(client.id, {
+        ...data,
+        discount_percentage: data.discount_percentage ? Number(data.discount_percentage) : 0,
+      })
       toast.success('Informações atualizadas!')
     } catch {
       toast.error('Erro ao atualizar')
@@ -177,6 +182,27 @@ export function ClientInfoTab({ client }: { client: any }) {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="discount_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Desconto (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="0"
+                        className="bg-muted/30"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
