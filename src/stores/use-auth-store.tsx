@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { ClientResponseError } from 'pocketbase'
 import pb from '@/lib/pocketbase/client'
 
 export type UserRole = 'client' | 'owner' | 'admin'
@@ -73,11 +74,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         pb.authStore.clear()
         setUser(null)
         setIsAuthenticated(false)
-        return { error: 'Papel de usuário não autorizado para este portal' }
+        const roleLabels: Record<UserRole, string> = {
+          admin: 'administrador',
+          owner: 'proprietário de usina',
+          client: 'cliente',
+        }
+        return {
+          error: `Acesso negado. Este portal é exclusivo para usuários com perfil de ${roleLabels[expectedRole]}.`,
+        }
       }
       return { error: null }
-    } catch {
-      return { error: 'Email ou senha inválidos' }
+    } catch (err) {
+      if (err instanceof ClientResponseError && (err.status === 400 || err.status === 404)) {
+        return { error: 'Credenciais inválidas. Verifique seu e-mail e senha.' }
+      }
+      return { error: 'Erro ao tentar autenticar. Tente novamente.' }
     }
   }
 
