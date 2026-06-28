@@ -62,6 +62,26 @@ onRecordCreateRequest(
       })
     }
 
+    let docConflict = false
+    try {
+      $app.findFirstRecordByData('clients', 'document_number', digits)
+      docConflict = true
+    } catch (_) {}
+    if (!docConflict) {
+      try {
+        $app.findFirstRecordByData('plants', 'document_number', digits)
+        docConflict = true
+      } catch (_) {}
+    }
+    if (docConflict) {
+      throw new BadRequestError('Documento já cadastrado', {
+        document_number: new ValidationError(
+          'not_unique',
+          'Este documento já está cadastrado no sistema',
+        ),
+      })
+    }
+
     e.next()
   },
   'clients',

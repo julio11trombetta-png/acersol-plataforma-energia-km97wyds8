@@ -20,3 +20,6 @@ export const adminForcePasswordChange = (documentNumber: string, value = true) =
     body: JSON.stringify({ document_number: documentNumber, value }),
     headers: { 'Content-Type': 'application/json' },
   })
+
+export const getUserByDocument = (documentNumber: string) =>
+  pb.send(`/backend/v1/user-status/${documentNumber.replace(/\D/g, '')}`, { method: 'GET' })
