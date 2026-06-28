@@ -5,7 +5,11 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
+import LoginCliente from './pages/LoginCliente'
+import LoginUsina from './pages/LoginUsina'
+import LoginAdmin from './pages/LoginAdmin'
 import Layout from './components/Layout'
+import { Loader2 } from 'lucide-react'
 import { DashboardLayout } from './components/DashboardLayout'
 import ClientDashboard from './pages/dashboard/Client'
 import OwnerDashboard from './pages/dashboard/Owner'
@@ -27,9 +31,17 @@ import { AuthProvider, useAuth } from './stores/use-auth-store'
 
 // Protected Route Wrapper
 function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
-  const { user } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
-  if (user.role !== role) return <Navigate to={`/dashboard/${user.role}`} replace />
+  const { user, isAuthenticated, loading } = useAuth()
+  const loginRoute = role === 'admin' ? '/admin' : role === 'owner' ? '/usina' : '/cliente'
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+  if (!isAuthenticated) return <Navigate to={loginRoute} replace />
+  if (user?.role !== role) return <Navigate to={`/dashboard/${user?.role ?? 'client'}`} replace />
   return <>{children}</>
 }
 
@@ -50,9 +62,12 @@ const AppContent = () => (
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/cliente" element={<LoginCliente />} />
+        <Route path="/usina" element={<LoginUsina />} />
+        <Route path="/admin" element={<LoginAdmin />} />
 
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/login" replace />} />
+          <Route index element={<Navigate to="/" replace />} />
           <Route
             path="client"
             element={

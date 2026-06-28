@@ -1,135 +1,72 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/stores/use-auth-store'
+import { Link } from 'react-router-dom'
+import { User, Building, ShieldAlert, ArrowRight } from 'lucide-react'
 import { Logo } from '@/components/Logo'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building, User, ShieldAlert } from 'lucide-react'
+import { Card } from '@/components/ui/card'
+
+const portals = [
+  {
+    to: '/cliente',
+    title: 'Cliente',
+    description: 'Acompanhe seu consumo e economia com energia solar',
+    icon: User,
+    color: 'from-green-500 to-emerald-600',
+  },
+  {
+    to: '/usina',
+    title: 'Usina',
+    description: 'Gestão de produção para proprietários de usinas',
+    icon: Building,
+    color: 'from-blue-500 to-indigo-600',
+  },
+  {
+    to: '/admin',
+    title: 'Administrador',
+    description: 'Back-office para gestão completa da plataforma',
+    icon: ShieldAlert,
+    color: 'from-slate-600 to-slate-800',
+  },
+]
 
 export default function Login() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleLogin = (role: 'client' | 'owner' | 'admin') => {
-    setIsLoading(true)
-    setTimeout(() => {
-      login(role)
-      navigate(`/dashboard/${role}`)
-      setIsLoading(false)
-    }, 800)
-  }
-
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
-      <div className="hidden md:flex md:w-1/2 bg-brand-dark p-12 flex-col justify-between relative overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://img.usecurling.com/p/800/1200?q=modern%20solar%20panel&color=black"
-            alt="Solar Energy"
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/80 to-transparent"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-blue/30 to-transparent"></div>
-        </div>
-        <div className="relative z-10">
-          <Logo className="text-white [&>span]:text-white" />
-        </div>
-        <div className="relative z-10 space-y-6">
-          <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white backdrop-blur-md mb-4 animate-fade-in shadow-lg">
-            <ShieldAlert className="mr-2 h-4 w-4" /> Acesso Protegido
-          </div>
-          <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight animate-fade-in-up">
-            Gestão inteligente para o futuro da energia.
-          </h1>
-          <p
-            className="text-lg text-white/70 animate-fade-in-up"
-            style={{ animationDelay: '100ms' }}
-          >
-            Acesse seu painel executivo para acompanhar sua economia e produção em tempo real, com a
-            tecnologia mais avançada do setor.
-          </p>
-        </div>
-        <div
-          className="relative z-10 text-sm text-white/50 animate-fade-in"
-          style={{ animationDelay: '200ms' }}
-        >
-          © {new Date().getFullYear()} ACERSOL Plataforma Energia
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12">
-        <div className="w-full max-w-[400px] space-y-8">
-          <div className="md:hidden flex justify-center mb-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-muted/50 to-background p-6">
+      <div className="w-full max-w-4xl space-y-10">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
             <Logo />
           </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight">Bem-vindo</h2>
-            <p className="text-muted-foreground">Escolha seu perfil para acessar a plataforma</p>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Escolha seu portal de acesso</h1>
+            <p className="text-muted-foreground">
+              Selecione o perfil correspondente para entrar na plataforma
+            </p>
           </div>
-
-          <Tabs defaultValue="client" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8 h-12">
-              <TabsTrigger value="client" className="h-full">
-                <User className="mr-2 h-4 w-4 hidden sm:block" /> Cliente
-              </TabsTrigger>
-              <TabsTrigger value="owner" className="h-full">
-                <Building className="mr-2 h-4 w-4 hidden sm:block" /> Usina
-              </TabsTrigger>
-              <TabsTrigger value="admin" className="h-full">
-                <ShieldAlert className="mr-2 h-4 w-4 hidden sm:block" /> Admin
-              </TabsTrigger>
-            </TabsList>
-
-            {(['client', 'owner', 'admin'] as const).map((role) => (
-              <TabsContent key={role} value={role}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      Login {role === 'admin' ? 'Admin' : role === 'owner' ? 'Usina' : 'Cliente'}
-                    </CardTitle>
-                    <CardDescription>
-                      Insira suas credenciais para acessar sua conta.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>E-mail ou Documento</Label>
-                      <Input placeholder="Seu acesso..." />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Senha</Label>
-                        <a href="#" className="text-sm font-medium text-brand-blue hover:underline">
-                          Esqueceu?
-                        </a>
-                      </div>
-                      <Input type="password" />
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      className="w-full bg-brand-blue hover:bg-blue-800 text-white rounded-full transition-transform active:scale-[0.98] shadow-md"
-                      onClick={() => handleLogin(role)}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Autenticando...' : 'Entrar na Plataforma'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </TabsContent>
-            ))}
-          </Tabs>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {portals.map((portal) => (
+            <Link key={portal.to} to={portal.to}>
+              <Card className="group h-full p-6 cursor-pointer border-border/60 hover:border-primary/40 hover:shadow-xl transition-all duration-300">
+                <div
+                  className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${portal.color} mb-4 shadow-lg transition-transform duration-300 group-hover:scale-110`}
+                >
+                  <portal.icon className="h-6 w-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-1">{portal.title}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{portal.description}</p>
+                <div className="inline-flex items-center text-sm font-medium text-primary gap-1 group-hover:gap-2 transition-all">
+                  Acessar <ArrowRight className="h-4 w-4" />
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+        <div className="text-center">
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ← Voltar para o site
+          </Link>
         </div>
       </div>
     </div>
