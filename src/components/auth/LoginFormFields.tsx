@@ -99,7 +99,10 @@ export function LoginFormFields({
         <div className="flex items-center justify-between">
           <Label htmlFor="password">Senha</Label>
           {showForgotLink && (
-            <a href="#" className="text-sm font-medium text-brand-blue hover:underline">
+            <a
+              href="/recuperar-senha"
+              className="text-sm font-medium text-brand-blue hover:underline"
+            >
               Esqueceu?
             </a>
           )}

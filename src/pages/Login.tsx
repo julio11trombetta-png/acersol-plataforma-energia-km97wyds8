@@ -76,11 +76,20 @@ export default function Login() {
             <CardDescription>Use suas credenciais para acessar o portal</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginFormFields submitLabel="Acessar Portal" showForgotLink={false} />
+            <LoginFormFields submitLabel="Acessar Portal" showForgotLink />
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
+      </div>
+      <div className="space-y-4">
+          <div className="text-center">
+            <a
+              href="/primeiro-acesso"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Primeiro acesso? <span className="font-medium text-brand-blue">Cadastre-se aqui</span>
+            </a>
+          </div>
           <p className="text-center text-sm text-muted-foreground">
             Ou acesse pelo seu perfil específico:
           </p>

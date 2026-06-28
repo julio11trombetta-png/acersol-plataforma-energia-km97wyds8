@@ -7,6 +7,8 @@ import Login from './pages/Login'
 import LoginCliente from './pages/LoginCliente'
 import LoginUsina from './pages/LoginUsina'
 import LoginAdmin from './pages/LoginAdmin'
+import PasswordRecovery from './pages/PasswordRecovery'
+import FirstAccess from './pages/FirstAccess'
 import { Loader2 } from 'lucide-react'
 import { DashboardLayout } from './components/DashboardLayout'
 import ClientDashboard from './pages/dashboard/Client'
@@ -85,6 +87,8 @@ const AppContent = () => (
             </GuestRoute>
           }
         />
+        <Route path="/recuperar-senha" element={<PasswordRecovery />} />
+        <Route path="/primeiro-acesso" element={<FirstAccess />} />
         <Route
           path="/cliente"
           element={

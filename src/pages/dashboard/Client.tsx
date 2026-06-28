@@ -21,6 +21,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
 import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/formatters'
+import { PixPaymentDialog } from '@/components/dashboard/PixPaymentDialog'
 
 export default function ClientDashboard() {
   const { user } = useAuth()
@@ -28,6 +29,8 @@ export default function ClientDashboard() {
   const [consumeData, setConsumeData] = useState<any[]>([])
   const [clientInfo, setClientInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [pixInvoice, setPixInvoice] = useState<any>(null)
+  const [pixOpen, setPixOpen] = useState(false)
 
   const loadData = async () => {
     try {
@@ -283,14 +286,23 @@ export default function ClientDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold">{formatCurrency(fatura.amount)}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full"
-                          onClick={() => toast.info('Pagamento via PIX em breve disponível')}
-                        >
-                          PIX
-                        </Button>
+                        {fatura.status === 'Pendente' || fatura.status === 'Atrasado' ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full border-brand-green/30 text-brand-green hover:bg-brand-green/10"
+                            onClick={() => {
+                              setPixInvoice(fatura)
+                              setPixOpen(true)
+                            }}
+                          >
+                            Pagar PIX
+                          </Button>
+                        ) : (
+                          <span className="text-xs font-medium text-brand-green bg-brand-green/10 px-3 py-1 rounded-full">
+                            Pago
+                          </span>
+                        )}
                       </div>
                     </div>
                   )
@@ -306,6 +318,7 @@ export default function ClientDashboard() {
           </CardContent>
         </Card>
       </div>
+      <PixPaymentDialog invoice={pixInvoice} open={pixOpen} onOpenChange={setPixOpen} />
     </div>
   )
 }
