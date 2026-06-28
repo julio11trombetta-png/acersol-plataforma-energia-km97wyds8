@@ -9,6 +9,10 @@ export const updatePlant = (id: string, data: any) => pb.collection('plants').up
 export const deletePlant = (id: string) => pb.collection('plants').delete(id)
 
 export const getAllPlants = () => pb.collection('plants').getFullList({ sort: 'name' })
+export const getPlantsByDocument = (document: string) =>
+  pb
+    .collection('plants')
+    .getFullList({ filter: `document_number = "${document}"`, sort: '-created' })
 export const getPlantById = (id: string) => pb.collection('plants').getOne(id)
 
 export const checkDocumentExists = async (document: string, excludeId?: string) => {

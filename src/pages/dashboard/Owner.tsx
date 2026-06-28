@@ -1,32 +1,30 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getPlants } from '@/services/plants'
+import { getPlantsByDocument } from '@/services/plants'
+import { useAuth } from '@/stores/use-auth-store'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
-import {
-  Sun,
-  Activity,
-  Users,
-  BatteryCharging,
-  Wrench,
-  ArrowUpRight,
-  Plus,
-  MapPin,
-} from 'lucide-react'
+import { Sun, Activity, Users, BatteryCharging, Wrench, ArrowUpRight, MapPin } from 'lucide-react'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export default function OwnerDashboard() {
+  const { user } = useAuth()
   const [plants, setPlants] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
     try {
-      const data = await getPlants(1, '')
-      setPlants(data.items)
+      const doc = user?.username || ''
+      if (!doc) {
+        setLoading(false)
+        return
+      }
+      const data = await getPlantsByDocument(doc)
+      setPlants(data)
     } catch {
       /* intentionally ignored */
     } finally {
@@ -66,7 +64,8 @@ export default function OwnerDashboard() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Central da Usina</h2>
           <p className="text-muted-foreground">
-            Monitoramento em tempo real de geração, telemetria e faturamento.
+            {user?.name ? `${user.name} • ` : ''}Monitoramento em tempo real de geração, telemetria
+            e faturamento.
           </p>
         </div>
         <div className="flex items-center gap-6">
@@ -77,14 +76,6 @@ export default function OwnerDashboard() {
               onClick={() => toast.info('Relatório técnico em preparação')}
             >
               <Wrench className="mr-2 h-4 w-4" /> Relatório Técnico
-            </Button>
-            <Button
-              className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md shadow-brand-blue/20 px-6"
-              onClick={() =>
-                toast.info('Entre em contato com o administrador para cadastrar novas usinas')
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> Adicionar Usina
             </Button>
           </div>
         </div>

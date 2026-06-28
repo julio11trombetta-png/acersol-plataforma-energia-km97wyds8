@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { getInvoices } from '@/services/invoices'
-import { getConsumptions } from '@/services/consumptions'
+import { getInvoicesByClient } from '@/services/invoices'
+import { getConsumptionsByClient } from '@/services/consumptions'
+import { getClientByDocument } from '@/services/clients'
+import { useAuth } from '@/stores/use-auth-store'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -21,13 +23,25 @@ import { toast } from 'sonner'
 import { formatCurrency } from '@/lib/formatters'
 
 export default function ClientDashboard() {
+  const { user } = useAuth()
   const [invoices, setInvoices] = useState<any[]>([])
   const [consumeData, setConsumeData] = useState<any[]>([])
+  const [clientInfo, setClientInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   const loadData = async () => {
     try {
-      const [inv, cons] = await Promise.all([getInvoices(), getConsumptions()])
+      const doc = user?.username || ''
+      if (!doc) {
+        setLoading(false)
+        return
+      }
+      const client = await getClientByDocument(doc)
+      setClientInfo(client)
+      const [inv, cons] = await Promise.all([
+        getInvoicesByClient(client.id),
+        getConsumptionsByClient(client.id),
+      ])
       setInvoices(inv)
       setConsumeData(cons)
     } catch {
@@ -58,7 +72,9 @@ export default function ClientDashboard() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Meu Painel de Energia</h2>
           <p className="text-muted-foreground">
-            Acompanhe seu consumo, economia e faturas com transparência.
+            {clientInfo
+              ? `${clientInfo.name} • UC: ${clientInfo.energyUnitId}${clientInfo.utilityProvider ? ` • ${clientInfo.utilityProvider}` : ''}`
+              : 'Acompanhe seu consumo, economia e faturas com transparência.'}
           </p>
         </div>
         <div className="flex items-center gap-6">

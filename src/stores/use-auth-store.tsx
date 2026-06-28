@@ -8,6 +8,7 @@ export type User = {
   id: string
   name: string
   email: string
+  username: string
   role: UserRole
   avatar?: string
   force_password_change: boolean
@@ -35,6 +36,7 @@ function mapRecord(record: any): User | null {
     id: record.id,
     name: record.name || record.email || '',
     email: record.email || '',
+    username: record.username || '',
     role: (record.role as UserRole) || 'client',
     avatar: record.avatar ? pb.files.getUrl(record, record.avatar) : undefined,
     force_password_change: record.force_password_change ?? false,
