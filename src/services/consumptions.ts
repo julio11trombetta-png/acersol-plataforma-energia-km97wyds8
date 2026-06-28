@@ -16,3 +16,7 @@ export const updateConsumption = (
 ) => pb.collection('consumptions').update(id, data)
 
 export const deleteConsumption = (id: string) => pb.collection('consumptions').delete(id)
+export const getConsumptionsByClient = (clientId: string) =>
+  pb
+    .collection('consumptions')
+    .getFullList({ sort: '-created', expand: 'clientId', filter: `clientId = "${clientId}"` })

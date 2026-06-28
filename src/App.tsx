@@ -17,7 +17,8 @@ import AdminDashboard from './pages/dashboard/Admin'
 import AdminClients from './pages/dashboard/AdminClients'
 import AdminPlants from './pages/dashboard/AdminPlants'
 import AdminFinance from './pages/dashboard/AdminFinance'
-import AdminSystemData from './pages/dashboard/AdminSystemData'
+import ClientProfile from './pages/dashboard/ClientProfile'
+import PlantProfile from './pages/dashboard/PlantProfile'
 import {
   AboutPage,
   ClientsPage,
@@ -140,7 +141,8 @@ const AppContent = () => (
             <Route path="clients" element={<AdminClients />} />
             <Route path="plants" element={<AdminPlants />} />
             <Route path="finance" element={<AdminFinance />} />
-            <Route path="system-data" element={<AdminSystemData />} />
+            <Route path="clientes/:id" element={<ClientProfile />} />
+            <Route path="usinas/:id" element={<PlantProfile />} />
           </Route>
         </Route>
 

@@ -9,3 +9,4 @@ export const updateClient = (id: string, data: any) => pb.collection('clients').
 export const deleteClient = (id: string) => pb.collection('clients').delete(id)
 
 export const getAllClients = () => pb.collection('clients').getFullList({ sort: 'name' })
+export const getClientById = (id: string) => pb.collection('clients').getOne(id)

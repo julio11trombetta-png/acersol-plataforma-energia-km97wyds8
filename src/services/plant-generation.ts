@@ -15,3 +15,7 @@ export const updatePlantGeneration = (
 ) => pb.collection('plant_generation').update(id, data)
 
 export const deletePlantGeneration = (id: string) => pb.collection('plant_generation').delete(id)
+export const getPlantGenerationsByPlant = (plantId: string) =>
+  pb
+    .collection('plant_generation')
+    .getFullList({ sort: '-created', expand: 'plantId', filter: `plantId = "${plantId}"` })

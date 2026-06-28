@@ -85,9 +85,9 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             className="hidden sm:flex rounded-full"
-            onClick={() => navigate('/dashboard/admin/system-data')}
+            onClick={() => navigate('/dashboard/admin/clients')}
           >
-            <Settings className="mr-2 h-4 w-4" /> Configurações
+            <Settings className="mr-2 h-4 w-4" /> Gerenciar Sistema
           </Button>
         </div>
       </div>

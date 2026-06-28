@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClients, createClient, updateClient, deleteClient } from '@/services/clients'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -69,6 +70,7 @@ export default function AdminClients() {
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<ClientData | null>(null)
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
 
   const form = useForm<ClientData>({
@@ -244,12 +246,17 @@ export default function AdminClients() {
                   {clients.map((client) => (
                     <TableRow key={client.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium pl-6">
-                        <div className="flex items-center gap-3">
+                        <button
+                          onClick={() =>
+                            client.id && navigate(`/dashboard/admin/clientes/${client.id}`)
+                          }
+                          className="flex items-center gap-3 hover:text-brand-blue transition-colors text-left"
+                        >
                           <div className="h-8 w-8 rounded-full bg-brand-blue/10 flex items-center justify-center">
                             <Building className="h-4 w-4 text-brand-blue" />
                           </div>
                           {client.name}
-                        </div>
+                        </button>
                       </TableCell>
                       <TableCell className="text-muted-foreground font-medium">
                         {client.energyUnitId}

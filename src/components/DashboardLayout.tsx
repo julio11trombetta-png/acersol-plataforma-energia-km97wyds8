@@ -14,7 +14,6 @@ import {
   Users,
   Zap,
   DollarSign,
-  Database,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -52,7 +51,6 @@ export function DashboardLayout() {
     { name: 'Clientes', path: '/dashboard/admin/clients', icon: Users },
     { name: 'Usinas', path: '/dashboard/admin/plants', icon: Zap },
     { name: 'Financeiro', path: '/dashboard/admin/finance', icon: DollarSign },
-    { name: 'Dados do Sistema', path: '/dashboard/admin/system-data', icon: Database },
   ]
 
   const isDesktopAdmin = user.role === 'admin'
@@ -134,13 +132,7 @@ export function DashboardLayout() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  isDesktopAdmin
-                    ? navigate('/dashboard/admin/system-data')
-                    : toast.info('Configurações de conta em breve')
-                }
-              >
+              <DropdownMenuItem onClick={() => toast.info('Configurações de conta em breve')}>
                 <UserCircle className="mr-2 h-4 w-4" /> Conta
               </DropdownMenuItem>
               <DropdownMenuItem

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getPlants, createPlant, updatePlant, deletePlant } from '@/services/plants'
 import { useRealtime } from '@/hooks/use-realtime'
@@ -71,6 +72,7 @@ export default function AdminPlants() {
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPlant, setEditingPlant] = useState<PlantData | null>(null)
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
 
   const form = useForm<PlantData>({
@@ -250,12 +252,17 @@ export default function AdminPlants() {
                   {plants.map((plant) => (
                     <TableRow key={plant.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="font-medium pl-6">
-                        <div className="flex items-center gap-3">
+                        <button
+                          onClick={() =>
+                            plant.id && navigate(`/dashboard/admin/usinas/${plant.id}`)
+                          }
+                          className="flex items-center gap-3 hover:text-brand-green transition-colors text-left"
+                        >
                           <div className="h-8 w-8 rounded-full bg-yellow-500/10 flex items-center justify-center">
                             <Zap className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
                           </div>
                           {plant.name}
-                        </div>
+                        </button>
                       </TableCell>
                       <TableCell>
                         <Badge

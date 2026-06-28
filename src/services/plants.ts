@@ -9,3 +9,4 @@ export const updatePlant = (id: string, data: any) => pb.collection('plants').up
 export const deletePlant = (id: string) => pb.collection('plants').delete(id)
 
 export const getAllPlants = () => pb.collection('plants').getFullList({ sort: 'name' })
+export const getPlantById = (id: string) => pb.collection('plants').getOne(id)

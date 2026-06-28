@@ -16,3 +16,7 @@ export const updateInvoice = (
 ) => pb.collection('invoices').update(id, data)
 
 export const deleteInvoice = (id: string) => pb.collection('invoices').delete(id)
+export const getInvoicesByClient = (clientId: string) =>
+  pb
+    .collection('invoices')
+    .getFullList({ sort: '-created', expand: 'clientId', filter: `clientId = "${clientId}"` })
