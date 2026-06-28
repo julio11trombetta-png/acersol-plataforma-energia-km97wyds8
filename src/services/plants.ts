@@ -7,3 +7,5 @@ export const getPlants = (page = 1, search = '') => {
 export const createPlant = (data: any) => pb.collection('plants').create(data)
 export const updatePlant = (id: string, data: any) => pb.collection('plants').update(id, data)
 export const deletePlant = (id: string) => pb.collection('plants').delete(id)
+
+export const getAllPlants = () => pb.collection('plants').getFullList({ sort: 'name' })
