@@ -26,20 +26,6 @@ migrate(
       )
       .execute()
 
-    const clientsCol2 = app.findCollectionByNameOrId('clients')
-    const clientCpf = clientsCol2.fields.getByName('cpf')
-    if (clientCpf) clientsCol2.fields.remove(clientCpf)
-    const clientCnpj = clientsCol2.fields.getByName('cnpj')
-    if (clientCnpj) clientsCol2.fields.remove(clientCnpj)
-    app.save(clientsCol2)
-
-    const plantsCol2 = app.findCollectionByNameOrId('plants')
-    const plantCpf = plantsCol2.fields.getByName('cpf')
-    if (plantCpf) plantsCol2.fields.remove(plantCpf)
-    const plantCnpj = plantsCol2.fields.getByName('cnpj')
-    if (plantCnpj) plantsCol2.fields.remove(plantCnpj)
-    app.save(plantsCol2)
-
     app
       .db()
       .newQuery(
@@ -74,26 +60,10 @@ migrate(
   },
   (app) => {
     const clientsCol = app.findCollectionByNameOrId('clients')
-    if (!clientsCol.fields.getByName('cpf')) {
-      clientsCol.fields.add(new TextField({ name: 'cpf' }))
-    }
-    if (!clientsCol.fields.getByName('cnpj')) {
-      clientsCol.fields.add(new TextField({ name: 'cnpj' }))
-    }
-    const cdn = clientsCol.fields.getByName('document_number')
-    if (cdn) clientsCol.fields.remove(cdn)
     clientsCol.removeIndex('idx_clients_document_number')
     app.save(clientsCol)
 
     const plantsCol = app.findCollectionByNameOrId('plants')
-    if (!plantsCol.fields.getByName('cpf')) {
-      plantsCol.fields.add(new TextField({ name: 'cpf' }))
-    }
-    if (!plantsCol.fields.getByName('cnpj')) {
-      plantsCol.fields.add(new TextField({ name: 'cnpj' }))
-    }
-    const pdn = plantsCol.fields.getByName('document_number')
-    if (pdn) plantsCol.fields.remove(pdn)
     plantsCol.removeIndex('idx_plants_document_number')
     app.save(plantsCol)
   },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-28T03:13:35.906Z",
+  "generatedAt": "2026-06-28T03:21:59.803Z",
   "collections": [
     {
       "name": "users",
@@ -147,9 +147,17 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "document_number",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_clients_document_number` ON `clients` (document_number) WHERE document_number IS NOT NULL AND document_number != ''"
+      ]
     },
     {
       "name": "plants",
@@ -254,9 +262,17 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "document_number",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE UNIQUE INDEX `idx_plants_document_number` ON `plants` (document_number) WHERE document_number IS NOT NULL AND document_number != ''"
+      ]
     },
     {
       "name": "crm_leads",
