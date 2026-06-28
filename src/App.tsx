@@ -29,6 +29,7 @@ import {
 } from './pages/marketing/Pages'
 import { ThemeProvider } from './stores/use-theme-store'
 import { AuthProvider, useAuth } from './stores/use-auth-store'
+import ForcePasswordChange from './pages/ForcePasswordChange'
 
 // Protected Route Wrapper
 function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
@@ -43,6 +44,7 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: s
   }
   if (!isAuthenticated) return <Navigate to={loginRoute} replace />
   if (user?.role !== role) return <Navigate to={`/dashboard/${user?.role ?? 'client'}`} replace />
+  if (user?.force_password_change) return <Navigate to="/force-password-change" replace />
   return <>{children}</>
 }
 
@@ -57,9 +59,26 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
     )
   }
   if (isAuthenticated && user) {
+    if (user.force_password_change) {
+      return <Navigate to="/force-password-change" replace />
+    }
     return <Navigate to={`/dashboard/${user.role}`} replace />
   }
   return <>{children}</>
+}
+
+function ForcePasswordRoute() {
+  const { user, isAuthenticated, loading } = useAuth()
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+  if (!isAuthenticated) return <Navigate to="/" replace />
+  if (!user?.force_password_change) return <Navigate to={`/dashboard/${user.role}`} replace />
+  return <ForcePasswordChange />
 }
 
 const AppContent = () => (
@@ -146,6 +165,7 @@ const AppContent = () => (
           </Route>
         </Route>
 
+        <Route path="/force-password-change" element={<ForcePasswordRoute />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>

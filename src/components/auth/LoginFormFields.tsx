@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatDocument } from '@/lib/formatters'
 
 interface LoginFormFieldsProps {
   submitLabel?: string
@@ -28,13 +29,25 @@ export function LoginFormFields({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const useDocumentLogin = expectedRole === 'client' || expectedRole === 'owner'
 
   const validate = (): boolean => {
     const errors: { email?: string; password?: string } = {}
-    if (!email.trim()) {
-      errors.email = 'E-mail é obrigatório'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Formato de e-mail inválido'
+    if (useDocumentLogin) {
+      if (!email.trim()) {
+        errors.email = 'CPF ou CNPJ é obrigatório'
+      } else {
+        const digits = email.replace(/\D/g, '')
+        if (digits.length !== 11 && digits.length !== 14) {
+          errors.email = 'Documento deve ter 11 (CPF) ou 14 (CNPJ) dígitos'
+        }
+      }
+    } else {
+      if (!email.trim()) {
+        errors.email = 'E-mail é obrigatório'
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = 'Formato de e-mail inválido'
+      }
     }
     if (!password) {
       errors.password = 'Senha é obrigatória'
@@ -49,7 +62,8 @@ export function LoginFormFields({
     e.preventDefault()
     if (!validate()) return
     setIsSubmitting(true)
-    const { error } = await signIn(email, password, expectedRole)
+    const identity = useDocumentLogin ? email.replace(/\D/g, '') : email
+    const { error } = await signIn(identity, password, expectedRole)
     if (error) {
       toast.error(error)
       setIsSubmitting(false)
@@ -61,20 +75,25 @@ export function LoginFormFields({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
+        <Label htmlFor="email">{useDocumentLogin ? 'CPF ou CNPJ' : 'E-mail'}</Label>
         <Input
           id="email"
-          type="email"
-          placeholder="seu@email.com"
+          type={useDocumentLogin ? 'text' : 'email'}
+          placeholder={useDocumentLogin ? '000.000.000-00 ou 00.000.000/0001-00' : 'seu@email.com'}
           value={email}
           onChange={(e) => {
-            setEmail(e.target.value)
+            setEmail(useDocumentLogin ? formatDocument(e.target.value) : e.target.value)
             if (fieldErrors.email) setFieldErrors((p) => ({ ...p, email: undefined }))
           }}
           disabled={isSubmitting}
           required
         />
         {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
+        {useDocumentLogin && (
+          <p className="text-xs text-muted-foreground">
+            Use seu CPF (11 dígitos) ou CNPJ (14 dígitos) como usuário.
+          </p>
+        )}
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">

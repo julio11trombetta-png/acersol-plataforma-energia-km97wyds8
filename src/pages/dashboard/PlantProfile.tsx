@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { getPlantById } from '@/services/plants'
 import { PlantInfoTab } from '@/components/dashboard/PlantInfoTab'
 import { PlantGenerationTab } from '@/components/dashboard/PlantGenerationTab'
+import { AdminPasswordManagement } from '@/components/dashboard/AdminPasswordManagement'
 import { useRealtime } from '@/hooks/use-realtime'
 
 export default function PlantProfile() {
@@ -94,12 +95,21 @@ export default function PlantProfile() {
           <TabsTrigger value="generation" className="rounded-lg">
             Geração Mensal
           </TabsTrigger>
+          <TabsTrigger value="security" className="rounded-lg">
+            Segurança
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="info">
           <PlantInfoTab plant={plant} />
         </TabsContent>
         <TabsContent value="generation">
           <PlantGenerationTab plantId={plant.id} plantName={plant.name} />
+        </TabsContent>
+        <TabsContent value="security">
+          <AdminPasswordManagement
+            documentNumber={plant.document_number || ''}
+            entityName={plant.name}
+          />
         </TabsContent>
       </Tabs>
     </div>

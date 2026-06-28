@@ -10,6 +10,7 @@ export type User = {
   email: string
   role: UserRole
   avatar?: string
+  force_password_change: boolean
 }
 
 type AuthContextType = {
@@ -23,6 +24,7 @@ type AuthContextType = {
   ) => Promise<{ error: string | null }>
   signOut: () => void
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,6 +37,7 @@ function mapRecord(record: any): User | null {
     email: record.email || '',
     role: (record.role as UserRole) || 'client',
     avatar: record.avatar ? pb.files.getUrl(record, record.avatar) : undefined,
+    force_password_change: record.force_password_change ?? false,
   }
 }
 
@@ -86,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: null }
     } catch (err) {
       if (err instanceof ClientResponseError && (err.status === 400 || err.status === 404)) {
-        return { error: 'Credenciais inválidas. Verifique seu e-mail e senha.' }
+        return { error: 'Credenciais inválidas. Verifique seus dados e senha.' }
       }
       return { error: 'Erro ao tentar autenticar. Tente novamente.' }
     }
@@ -98,9 +101,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(false)
   }
 
+  const refreshUser = async () => {
+    try {
+      await pb.collection('users').authRefresh()
+    } catch {
+      // ignore refresh errors
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, loading, signIn, signOut, logout: signOut }}
+      value={{ user, isAuthenticated, loading, signIn, signOut, logout: signOut, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

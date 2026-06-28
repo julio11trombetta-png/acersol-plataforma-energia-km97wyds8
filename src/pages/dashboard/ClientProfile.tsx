@@ -8,6 +8,7 @@ import { getClientById } from '@/services/clients'
 import { ClientInfoTab } from '@/components/dashboard/ClientInfoTab'
 import { ClientConsumptionTab } from '@/components/dashboard/ClientConsumptionTab'
 import { ClientBillingTab } from '@/components/dashboard/ClientBillingTab'
+import { AdminPasswordManagement } from '@/components/dashboard/AdminPasswordManagement'
 import { useRealtime } from '@/hooks/use-realtime'
 
 export default function ClientProfile() {
@@ -89,6 +90,9 @@ export default function ClientProfile() {
           <TabsTrigger value="billing" className="rounded-lg">
             Faturamento (Rateio)
           </TabsTrigger>
+          <TabsTrigger value="security" className="rounded-lg">
+            Segurança
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="info">
           <ClientInfoTab client={client} />
@@ -98,6 +102,12 @@ export default function ClientProfile() {
         </TabsContent>
         <TabsContent value="billing">
           <ClientBillingTab clientId={client.id} />
+        </TabsContent>
+        <TabsContent value="security">
+          <AdminPasswordManagement
+            documentNumber={client.document_number || ''}
+            entityName={client.name}
+          />
         </TabsContent>
       </Tabs>
     </div>

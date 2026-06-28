@@ -39,7 +39,11 @@ export function LoginPortal({
 
   useEffect(() => {
     if (!loading && user) {
-      navigate(`/dashboard/${user.role}`, { replace: true })
+      if (user.force_password_change) {
+        navigate('/force-password-change', { replace: true })
+      } else {
+        navigate(`/dashboard/${user.role}`, { replace: true })
+      }
     }
   }, [loading, user, navigate])
 
