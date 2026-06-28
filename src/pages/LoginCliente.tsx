@@ -14,6 +14,7 @@ export default function LoginCliente() {
       heroDescription="Acompanhe em tempo real o quanto você economiza com energia solar compartilhada."
       submitLabel="Entrar na Plataforma"
       buttonClassName="bg-brand-blue hover:bg-blue-800 text-white"
+      expectedRole="client"
     />
   )
 }

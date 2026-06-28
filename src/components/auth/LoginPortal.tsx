@@ -18,6 +18,7 @@ interface LoginPortalProps {
   heroDescription?: string
   submitLabel?: string
   buttonClassName?: string
+  expectedRole?: 'client' | 'owner' | 'admin'
 }
 
 export function LoginPortal({
@@ -31,6 +32,7 @@ export function LoginPortal({
   heroDescription,
   submitLabel,
   buttonClassName,
+  expectedRole,
 }: LoginPortalProps) {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
@@ -72,7 +74,11 @@ export function LoginPortal({
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                <LoginFormFields submitLabel={submitLabel} showForgotLink={false} />
+                <LoginFormFields
+                  submitLabel={submitLabel}
+                  showForgotLink={false}
+                  expectedRole={expectedRole}
+                />
                 <Link
                   to="/"
                   className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -141,6 +147,7 @@ export function LoginPortal({
                 <LoginFormFields
                   submitLabel={submitLabel ?? 'Entrar na Plataforma'}
                   buttonClassName={buttonClassName}
+                  expectedRole={expectedRole}
                 />
                 <Link
                   to="/"

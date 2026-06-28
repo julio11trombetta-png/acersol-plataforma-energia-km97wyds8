@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import pb from '@/lib/pocketbase/client'
 
-type UserRole = 'client' | 'owner' | 'admin'
+export type UserRole = 'client' | 'owner' | 'admin'
 
 export type User = {
   id: string
@@ -15,7 +15,11 @@ type AuthContextType = {
   user: User | null
   isAuthenticated: boolean
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  signIn: (
+    email: string,
+    password: string,
+    expectedRole?: UserRole,
+  ) => Promise<{ error: string | null }>
   signOut: () => void
   logout: () => void
 }
@@ -61,9 +65,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, expectedRole?: UserRole) => {
     try {
       await pb.collection('users').authWithPassword(email, password)
+      const record = pb.authStore.record
+      if (expectedRole && (record?.role as UserRole) !== expectedRole) {
+        pb.authStore.clear()
+        setUser(null)
+        setIsAuthenticated(false)
+        return { error: 'Papel de usuário não autorizado para este portal' }
+      }
       return { error: null }
     } catch {
       return { error: 'Email ou senha inválidos' }

@@ -1,151 +1,115 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Logo } from './Logo'
-import { Button } from './ui/button'
-import { ThemeToggle } from './ThemeToggle'
-import { Menu } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from './ui/sheet'
-import { useEffect } from 'react'
+import { useState } from 'react'
+import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
+import { Logo } from '@/components/Logo'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { cn } from '@/lib/utils'
 
-export default function Layout() {
-  const { pathname } = useLocation()
+const navLinks = [
+  { to: '/', label: 'Início' },
+  { to: '/sobre', label: 'Sobre' },
+  { to: '/clientes', label: 'Para Clientes' },
+  { to: '/usinas', label: 'Para Usinas' },
+  { to: '/faq', label: 'FAQ' },
+  { to: '/blog', label: 'Blog' },
+  { to: '/contato', label: 'Contato' },
+]
 
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
-
-  const links = [
-    { label: 'Início', href: '/' },
-    { label: 'Para Clientes', href: '/clientes' },
-    { label: 'Para Usinas', href: '/usinas' },
-    { label: 'Sobre Nós', href: '/sobre' },
-    { label: 'FAQ', href: '/faq' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Contato', href: '/contato' },
-  ]
+export function Layout() {
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation()
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+    <div className="flex min-h-screen flex-col">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link to="/">
             <Logo />
           </Link>
 
-          <nav className="hidden lg:flex gap-6 items-center">
-            {links.map((link) => (
+          <nav className="hidden lg:flex items-center gap-6">
+            {navLinks.map((link) => (
               <Link
-                key={link.label}
-                to={link.href}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                key={link.to}
+                to={link.to}
+                className={cn(
+                  'text-sm font-medium transition-colors hover:text-primary',
+                  location.pathname === link.to ? 'text-primary' : 'text-muted-foreground',
+                )}
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <Button
-              asChild
-              className="hidden sm:flex bg-brand-blue hover:bg-blue-800 text-white rounded-full transition-transform active:scale-95 shadow-md shadow-brand-blue/20"
-            >
-              <Link to="/login">Área do Cliente</Link>
-            </Button>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetTitle className="sr-only">Menu</SheetTitle>
-                <div className="flex flex-col gap-6 mt-6">
-                  {links.map((link) => (
-                    <Link key={link.label} to={link.href} className="text-sm font-medium">
-                      {link.label}
-                    </Link>
-                  ))}
-                  <Button asChild className="w-full bg-brand-blue text-white rounded-full">
-                    <Link to="/login">Área do Cliente</Link>
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
           </div>
+
+          <button
+            className="lg:hidden p-2"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Menu"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
+
+        {mobileOpen && (
+          <nav className="lg:hidden border-t bg-background">
+            <div className="container mx-auto px-4 py-4 space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'block py-2.5 px-3 rounded-lg text-sm font-medium transition-colors',
+                    location.pathname === link.to
+                      ? 'text-primary bg-primary/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted',
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <div className="pt-3 border-t mt-3">
+                <ThemeToggle />
+              </div>
+            </div>
+          </nav>
+        )}
       </header>
+
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t bg-brand-dark py-12 text-white/80 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-blue/20 to-transparent pointer-events-none"></div>
-        <div className="container relative z-10 grid gap-8 md:grid-cols-4">
-          <div className="space-y-4">
-            <Logo className="[&_span]:text-white" />
-            <p className="text-sm text-white/60">
-              Conectando você às melhores usinas de energia renovável com tecnologia premium.
+
+      <footer className="border-t bg-muted/30">
+        <div className="container mx-auto px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <Logo />
+              <p className="text-xs text-muted-foreground">
+                Plataforma de gestão de energia solar compartilhada
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+              {navLinks.slice(1).map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="mt-8 pt-6 border-t text-center">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} ACERSOL Plataforma Energia. Todos os direitos reservados.
             </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Plataforma</h4>
-            <ul className="space-y-2 text-sm text-white/60">
-              <li>
-                <Link to="/" className="hover:text-white transition-colors">
-                  Início
-                </Link>
-              </li>
-              <li>
-                <Link to="/clientes" className="hover:text-white transition-colors">
-                  Para Clientes
-                </Link>
-              </li>
-              <li>
-                <Link to="/usinas" className="hover:text-white transition-colors">
-                  Para Usinas
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Empresa</h4>
-            <ul className="space-y-2 text-sm text-white/60">
-              <li>
-                <Link to="/sobre" className="hover:text-white transition-colors">
-                  Sobre Nós
-                </Link>
-              </li>
-              <li>
-                <Link to="/blog" className="hover:text-white transition-colors">
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className="hover:text-white transition-colors">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link to="/contato" className="hover:text-white transition-colors">
-                  Contato
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm text-white/60">
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Termos de Uso
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition-colors">
-                  Política de Privacidade
-                </a>
-              </li>
-            </ul>
           </div>
         </div>
       </footer>

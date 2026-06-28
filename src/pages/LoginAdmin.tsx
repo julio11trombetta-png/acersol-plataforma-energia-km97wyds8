@@ -10,6 +10,7 @@ export default function LoginAdmin() {
       badgeText="Acesso Protegido"
       badgeIcon={ShieldAlert}
       submitLabel="Acessar Painel"
+      expectedRole="admin"
     />
   )
 }

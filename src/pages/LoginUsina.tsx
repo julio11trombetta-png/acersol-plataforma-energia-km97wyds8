@@ -14,6 +14,7 @@ export default function LoginUsina() {
       heroDescription="Acompanhe a produção, capacidade e status das suas usinas em tempo real."
       submitLabel="Entrar na Plataforma"
       buttonClassName="bg-brand-blue hover:bg-blue-800 text-white"
+      expectedRole="owner"
     />
   )
 }
