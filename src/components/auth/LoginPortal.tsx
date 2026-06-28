@@ -83,11 +83,11 @@ export function LoginPortal({
                 expectedRole={expectedRole}
                 footer={
                   <Link
-                    to="/"
+                    to="/login"
                     className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <span className="inline-flex items-center gap-1">
-                      <ArrowLeft className="h-3 w-3" /> Voltar para o site
+                      <ArrowLeft className="h-3 w-3" /> Todas as opções de acesso
                     </span>
                   </Link>
                 }
@@ -153,11 +153,11 @@ export function LoginPortal({
                 expectedRole={expectedRole}
                 footer={
                   <Link
-                    to="/"
+                    to="/login"
                     className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <span className="inline-flex items-center gap-1">
-                      <ArrowLeft className="h-3 w-3" /> Voltar para o site
+                      <ArrowLeft className="h-3 w-3" /> Todas as opções de acesso
                     </span>
                   </Link>
                 }

@@ -76,18 +76,7 @@ export default function Login() {
             <CardDescription>Use suas credenciais para acessar o portal</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginFormFields
-              submitLabel="Acessar Portal"
-              showForgotLink={false}
-              footer={
-                <Link
-                  to="/"
-                  className="block text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  ← Voltar para o site
-                </Link>
-              }
-            />
+            <LoginFormFields submitLabel="Acessar Portal" showForgotLink={false} />
           </CardContent>
         </Card>
 

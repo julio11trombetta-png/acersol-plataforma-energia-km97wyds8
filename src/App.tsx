@@ -1,14 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import Index from './pages/Index'
 import NotFound from './pages/NotFound'
 import Login from './pages/Login'
 import LoginCliente from './pages/LoginCliente'
 import LoginUsina from './pages/LoginUsina'
 import LoginAdmin from './pages/LoginAdmin'
-import { Layout } from './components/Layout'
 import { Loader2 } from 'lucide-react'
 import { DashboardLayout } from './components/DashboardLayout'
 import ClientDashboard from './pages/dashboard/Client'
@@ -19,19 +17,10 @@ import AdminPlants from './pages/dashboard/AdminPlants'
 import AdminFinance from './pages/dashboard/AdminFinance'
 import ClientProfile from './pages/dashboard/ClientProfile'
 import PlantProfile from './pages/dashboard/PlantProfile'
-import {
-  AboutPage,
-  ClientsPage,
-  OwnersPage,
-  FaqPage,
-  BlogPage,
-  ContactPage,
-} from './pages/marketing/Pages'
 import { ThemeProvider } from './stores/use-theme-store'
 import { AuthProvider, useAuth } from './stores/use-auth-store'
 import ForcePasswordChange from './pages/ForcePasswordChange'
 
-// Protected Route Wrapper
 function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
   const { user, isAuthenticated, loading } = useAuth()
   const loginRoute = role === 'admin' ? '/admin' : role === 'owner' ? '/usina' : '/cliente'
@@ -48,7 +37,6 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: s
   return <>{children}</>
 }
 
-// Guest Route Wrapper — redirects authenticated users away from login pages
 function GuestRoute({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, loading } = useAuth()
   if (loading) {
@@ -76,7 +64,7 @@ function ForcePasswordRoute() {
       </div>
     )
   }
-  if (!isAuthenticated) return <Navigate to="/" replace />
+  if (!isAuthenticated) return <Navigate to="/login" replace />
   if (!user?.force_password_change) return <Navigate to={`/dashboard/${user.role}`} replace />
   return <ForcePasswordChange />
 }
@@ -87,15 +75,7 @@ const AppContent = () => (
       <Toaster />
       <Sonner />
       <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Index />} />
-          <Route path="/sobre" element={<AboutPage />} />
-          <Route path="/clientes" element={<ClientsPage />} />
-          <Route path="/usinas" element={<OwnersPage />} />
-          <Route path="/faq" element={<FaqPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/contato" element={<ContactPage />} />
-        </Route>
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route
           path="/login"
@@ -131,7 +111,7 @@ const AppContent = () => (
         />
 
         <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/" replace />} />
+          <Route index element={<Navigate to="/login" replace />} />
           <Route
             path="client"
             element={

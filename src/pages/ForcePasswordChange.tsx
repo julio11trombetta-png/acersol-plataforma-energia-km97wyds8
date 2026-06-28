@@ -121,11 +121,11 @@ export default function ForcePasswordChange() {
                 type="button"
                 onClick={() => {
                   signOut()
-                  navigate('/')
+                  navigate('/login')
                 }}
                 className="block w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Sair e voltar para o site
+                Sair
               </button>
             </form>
           </CardContent>

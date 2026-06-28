@@ -92,9 +92,7 @@ export function DashboardLayout() {
             </div>
           ) : (
             <>
-              <Link to="/" className="hidden md:block">
-                <Logo />
-              </Link>
+              <Logo className="hidden md:block" />
               <div className="hidden md:flex ml-8 items-center rounded-md bg-muted px-3 py-1 text-sm font-medium border">
                 Portal {user.role === 'owner' ? 'Usina' : 'Cliente'}
               </div>
@@ -158,9 +156,7 @@ export function DashboardLayout() {
       <SidebarProvider>
         <Sidebar>
           <SidebarHeader className="p-4 pt-6 border-b">
-            <Link to="/">
-              <Logo />
-            </Link>
+            <Logo />
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
