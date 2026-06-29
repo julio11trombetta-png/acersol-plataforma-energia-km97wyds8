@@ -18,6 +18,10 @@ import {
   Smartphone,
   Shield,
   Settings,
+  History,
+  AlertTriangle,
+  MessageSquare,
+  UserCheck,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -25,6 +29,7 @@ export interface SidebarItem {
   name: string
   path: string
   icon: LucideIcon
+  children?: SidebarItem[]
 }
 
 export interface SidebarGroupConfig {
@@ -40,7 +45,34 @@ export const sidebarGroups: SidebarGroupConfig[] = [
   {
     label: 'Gestão',
     items: [
-      { name: 'Associação', path: '/dashboard/admin/clients', icon: Users },
+      {
+        name: 'Associação',
+        path: '/dashboard/admin/associacao',
+        icon: Users,
+        children: [
+          { name: 'Dashboard', path: '/dashboard/admin/associacao', icon: LayoutDashboard },
+          { name: 'Associados', path: '/dashboard/admin/associacao/associados', icon: UserCheck },
+          {
+            name: 'Unidades Consumidoras',
+            path: '/dashboard/admin/associacao/unidades-consumidoras',
+            icon: Zap,
+          },
+          { name: 'Documentos', path: '/dashboard/admin/associacao/documentos', icon: FileText },
+          { name: 'Contratos', path: '/dashboard/admin/associacao/contratos', icon: FileSignature },
+          { name: 'Dependentes', path: '/dashboard/admin/associacao/dependentes', icon: Users },
+          { name: 'Histórico', path: '/dashboard/admin/associacao/historico', icon: History },
+          {
+            name: 'Pendências',
+            path: '/dashboard/admin/associacao/pendencias',
+            icon: AlertTriangle,
+          },
+          {
+            name: 'Ocorrências',
+            path: '/dashboard/admin/associacao/ocorrencias',
+            icon: MessageSquare,
+          },
+        ],
+      },
       { name: 'Usinas', path: '/dashboard/admin/plants', icon: Zap },
       { name: 'Distribuidoras', path: '/dashboard/admin/distribuidoras', icon: Building2 },
       { name: 'Operações', path: '/dashboard/admin/operacoes', icon: Activity },

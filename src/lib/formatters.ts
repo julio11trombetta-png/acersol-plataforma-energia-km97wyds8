@@ -27,6 +27,11 @@ export function formatPhone(value: string): string {
   return digits.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d)/, '$1-$2')
 }
 
+export function formatCEP(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8)
+  return digits.replace(/(\d{5})(\d)/, '$1-$2')
+}
+
 export function formatDocument(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 14)
   if (digits.length <= 11) {
