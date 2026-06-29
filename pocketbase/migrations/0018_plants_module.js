@@ -16,7 +16,7 @@ migrate(
     } catch (_) {}
 
     const oldStatus = plantsCol.fields.getByName('status')
-    if (oldStatus) plantsCol.fields.remove(oldStatus)
+    if (oldStatus) plantsCol.fields.removeById(oldStatus.getId())
     plantsCol.fields.add(
       new SelectField({
         name: 'status',
@@ -217,7 +217,7 @@ migrate(
       const pgCol = app.findCollectionByNameOrId('plant_generation')
       for (const fn of ['injetada', 'consumo_proprio', 'perdas', 'observacoes']) {
         const f = pgCol.fields.getByName(fn)
-        if (f) pgCol.fields.remove(f)
+        if (f) pgCol.fields.removeById(f.getId())
       }
       app.save(pgCol)
     } catch (_) {}
@@ -225,7 +225,7 @@ migrate(
     try {
       const plantsCol = app.findCollectionByNameOrId('plants')
       const os = plantsCol.fields.getByName('status')
-      if (os) plantsCol.fields.remove(os)
+      if (os) plantsCol.fields.removeById(os.getId())
       plantsCol.fields.add(
         new SelectField({
           name: 'status',
@@ -255,7 +255,7 @@ migrate(
       ]
       for (const fn of removeFields) {
         const f = plantsCol.fields.getByName(fn)
-        if (f) plantsCol.fields.remove(f)
+        if (f) plantsCol.fields.removeById(f.getId())
       }
       app.save(plantsCol)
     } catch (_) {}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-29T12:07:19.041Z",
+  "generatedAt": "2026-06-29T12:23:16.290Z",
   "collections": [
     {
       "name": "users",
@@ -290,13 +290,6 @@
           "system": false
         },
         {
-          "name": "status",
-          "type": "select",
-          "required": false,
-          "system": false,
-          "selectValues": ["Online", "Em obras", "Inativo"]
-        },
-        {
           "name": "generation_now",
           "type": "number",
           "required": false,
@@ -363,6 +356,129 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Em Projeto",
+            "Em Homologação",
+            "Ativa",
+            "Manutenção",
+            "Suspensa",
+            "Inativa"
+          ]
+        },
+        {
+          "name": "codigo_interno",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "latitude",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "longitude",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "uc_geradora",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "responsavel_tecnico",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "crea",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "classe",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "grupo_tarifario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "subgrupo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacoes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "city",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "zipCode",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "neighborhood",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "potencia_instalada",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "potencia_homologada",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_instalacao",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_homologacao",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "clientId",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "clients"
         }
       ],
       "indexes": [
@@ -591,6 +707,30 @@
           "required": false,
           "system": false,
           "selectValues": ["Pendente", "Pago"]
+        },
+        {
+          "name": "injetada",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "consumo_proprio",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "perdas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "observacoes",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -1560,6 +1700,251 @@
           "required": false,
           "system": false,
           "selectValues": ["Aberta", "Em Andamento", "Resolvida", "Fechada"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "plant_equipments",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "plantId",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "plants"
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Modulo", "Inversor", "Transformador", "Outro"]
+        },
+        {
+          "name": "manufacturer",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "model",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "serial",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "quantity",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "power",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "warranty",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "firmware",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "installation_date",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Ativo", "Inativo", "Em Manutenção"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "plant_maintenances",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "plantId",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "plants"
+        },
+        {
+          "name": "date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "type",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["Preventiva", "Corretiva", "Limpeza", "Substituição de Equipamento"]
+        },
+        {
+          "name": "responsible",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "photos",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Agendada", "Em Andamento", "Concluída", "Cancelada"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "plant_documents",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "plantId",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "plants"
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": [
+            "Projeto",
+            "ART",
+            "Homologação",
+            "Licenças",
+            "Fotos",
+            "Contratos",
+            "Outros"
+          ]
+        },
+        {
+          "name": "fileName",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "uploadedBy",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
         },
         {
           "name": "created",
