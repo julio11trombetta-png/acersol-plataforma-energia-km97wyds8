@@ -184,7 +184,10 @@ const AppContent = () => (
                 />
               }
             />
-            <ModulePlaceholder
+            <Route
+              path="contratos"
+              element={
+                <ModulePlaceholder
                   title="Contratos"
                   description="Gestão de contratos e assinaturas"
                   icon={FileSignature}
