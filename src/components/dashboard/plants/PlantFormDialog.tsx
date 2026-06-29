@@ -21,6 +21,7 @@ import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
 import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
+import { RelationshipField } from '@/components/dashboard/relationship/RelationshipField'
 import { createPlant, updatePlant, checkDocumentExists } from '@/services/plants'
 import { getAllClients, updateClient } from '@/services/clients'
 import { toast } from 'sonner'
@@ -98,11 +99,12 @@ export function PlantFormDialog({
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }))
 
-  const handleOwnerSelect = (clientId: string) => {
-    set('clientId', clientId)
-    if (!clientId) return
-    const client = clients.find((c) => c.id === clientId)
-    if (!client) return
+  const handleOwnerSelect = (client: any | null) => {
+    if (!client) {
+      set('clientId', '')
+      return
+    }
+    set('clientId', client.id)
     if (client.document_number) set('document_number', client.document_number)
     if (client.phone) set('phone', client.phone)
     if (client.email) set('email', client.email)
@@ -248,24 +250,18 @@ export function PlantFormDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1">
-            <Label>Proprietário</Label>
-            <Select
-              value={form.clientId || 'none'}
-              onValueChange={(v) => handleOwnerSelect(v === 'none' ? '' : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">—</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="md:col-span-2">
+            <RelationshipField
+              collection="clients"
+              searchFields={['name', 'document_number', 'phone', 'email', 'friendly_code']}
+              displayField="name"
+              secondaryFields={['document_number', 'friendly_code']}
+              value={form.clientId || null}
+              onChange={(r) => handleOwnerSelect(r)}
+              label="Proprietário"
+              entityName="Associado"
+              placeholder="Buscar associado..."
+            />
           </div>
           <div className="space-y-1">
             <Label>CPF/CNPJ *</Label>

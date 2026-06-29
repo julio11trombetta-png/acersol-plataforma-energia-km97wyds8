@@ -23,6 +23,7 @@ import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
 import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP, lookupCNPJ } from '@/lib/lookups'
+import { ProfileMultiSelect } from '@/components/dashboard/relationship/ProfileMultiSelect'
 import { createClient, updateClient, checkDocumentExists } from '@/services/clients'
 import { toast } from 'sonner'
 import { Search, Loader2 } from 'lucide-react'
@@ -62,6 +63,7 @@ const schema = z.object({
   consumptionProfile: z.string().optional(),
   contactInfo: z.string().optional(),
   discount_percentage: z.string().optional(),
+  profiles: z.array(z.string()).optional(),
 })
 type FormData = z.infer<typeof schema>
 
@@ -95,9 +97,21 @@ export function AssociateFormDialog({
 
   const handleOpen = (o: boolean) => {
     if (o && editing) {
-      reset(editing)
+      let parsedProfiles: string[] = []
+      try {
+        const p = editing.profiles
+        parsedProfiles = typeof p === 'string' ? JSON.parse(p || '[]') : Array.isArray(p) ? p : []
+      } catch {
+        parsedProfiles = []
+      }
+      reset({ ...editing, profiles: parsedProfiles })
     } else if (o) {
-      reset({ utilityProvider: 'RGE', associateStatus: 'Ativo', associateType: 'Pessoa Física' })
+      reset({
+        utilityProvider: 'RGE',
+        associateStatus: 'Ativo',
+        associateType: 'Pessoa Física',
+        profiles: ['Associado'],
+      })
     }
     onOpenChange(o)
   }
@@ -147,6 +161,7 @@ export function AssociateFormDialog({
       }
       const payload = {
         ...data,
+        profiles: JSON.stringify(data.profiles || []),
         discount_percentage: data.discount_percentage ? Number(data.discount_percentage) : 0,
       }
       if (editing?.id) {
@@ -392,6 +407,12 @@ export function AssociateFormDialog({
             <div className="space-y-1">
               <Label>Data de Saída</Label>
               <Input type="date" {...register('exitDate')} />
+            </div>
+            <div className="md:col-span-2">
+              <ProfileMultiSelect
+                value={watch('profiles') || []}
+                onChange={(v) => setValue('profiles', v)}
+              />
             </div>
             <div className="md:col-span-2 space-y-1">
               <Label>Observações</Label>
