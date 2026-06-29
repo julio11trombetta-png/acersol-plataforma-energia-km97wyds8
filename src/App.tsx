@@ -15,7 +15,20 @@ import ClientDashboard from './pages/dashboard/Client'
 import OwnerDashboard from './pages/dashboard/Owner'
 import AdminDashboard from './pages/dashboard/Admin'
 import AdminClients from './pages/dashboard/AdminClients'
-import AdminPlants from './pages/dashboard/AdminPlants'
+import { PlantsModuleLayout } from './components/dashboard/plants/PlantsModuleLayout'
+import PlantsDashboard from './pages/dashboard/plants/PlantsDashboard'
+import PlantsRegistry from './pages/dashboard/plants/PlantsRegistry'
+import PlantsEquipments from './pages/dashboard/plants/PlantsEquipments'
+import PlantsModules from './pages/dashboard/plants/PlantsModules'
+import PlantsInverters from './pages/dashboard/plants/PlantsInverters'
+import PlantsTransformers from './pages/dashboard/plants/PlantsTransformers'
+import PlantsGeneration from './pages/dashboard/plants/PlantsGeneration'
+import PlantsCredits from './pages/dashboard/plants/PlantsCredits'
+import PlantsRateios from './pages/dashboard/plants/PlantsRateios'
+import PlantsMaintenances from './pages/dashboard/plants/PlantsMaintenances'
+import PlantsDocuments from './pages/dashboard/plants/PlantsDocuments'
+import PlantsHistory from './pages/dashboard/plants/PlantsHistory'
+import PlantsMonitoring from './pages/dashboard/plants/PlantsMonitoring'
 import AdminFinance from './pages/dashboard/AdminFinance'
 import ClientProfile from './pages/dashboard/ClientProfile'
 import PlantProfile from './pages/dashboard/PlantProfile'
@@ -163,7 +176,21 @@ const AppContent = () => (
           >
             <Route index element={<AdminDashboard />} />
             <Route path="clients" element={<AdminClients />} />
-            <Route path="plants" element={<AdminPlants />} />
+            <Route path="plants" element={<PlantsModuleLayout />}>
+              <Route index element={<PlantsDashboard />} />
+              <Route path="registro" element={<PlantsRegistry />} />
+              <Route path="equipamentos" element={<PlantsEquipments />} />
+              <Route path="modulos-fotovoltaicos" element={<PlantsModules />} />
+              <Route path="inversores" element={<PlantsInverters />} />
+              <Route path="transformadores" element={<PlantsTransformers />} />
+              <Route path="geracao" element={<PlantsGeneration />} />
+              <Route path="creditos" element={<PlantsCredits />} />
+              <Route path="rateios" element={<PlantsRateios />} />
+              <Route path="manutencoes" element={<PlantsMaintenances />} />
+              <Route path="documentos" element={<PlantsDocuments />} />
+              <Route path="historico" element={<PlantsHistory />} />
+              <Route path="monitoramento" element={<PlantsMonitoring />} />
+            </Route>
             <Route path="finance" element={<AdminFinance />} />
             <Route path="crm" element={<CRMPage />} />
             <Route path="suporte" element={<SupportPage />} />

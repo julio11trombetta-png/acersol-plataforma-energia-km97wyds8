@@ -9,6 +9,10 @@ export const createPlantGeneration = (data: {
   plantId: string
   repasse_amount?: number
   status?: string
+  injetada?: number
+  consumo_proprio?: number
+  perdas?: number
+  observacoes?: string
 }) => pb.collection('plant_generation').create(data)
 
 export const updatePlantGeneration = (
@@ -19,6 +23,10 @@ export const updatePlantGeneration = (
     plantId: string
     repasse_amount: number
     status: string
+    injetada: number
+    consumo_proprio: number
+    perdas: number
+    observacoes: string
   }>,
 ) => pb.collection('plant_generation').update(id, data)
 

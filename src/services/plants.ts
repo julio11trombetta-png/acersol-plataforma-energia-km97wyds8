@@ -29,3 +29,26 @@ export const checkDocumentExists = async (document: string, excludeId?: string) 
     return false
   }
 }
+
+export const getPlantsAdvanced = async (opts: {
+  search?: string
+  status?: string
+  utility?: string
+  state?: string
+  perPage?: number
+}) => {
+  const filters: string[] = []
+  if (opts.search) {
+    filters.push(
+      `(name ~ "${opts.search}" || location ~ "${opts.search}" || city ~ "${opts.search}" || codigo_interno ~ "${opts.search}")`,
+    )
+  }
+  if (opts.status && opts.status !== 'all') filters.push(`status = "${opts.status}"`)
+  if (opts.utility && opts.utility !== 'all') filters.push(`utilityProvider = "${opts.utility}"`)
+  if (opts.state && opts.state !== 'all') filters.push(`state = "${opts.state}"`)
+  const filter = filters.join(' && ')
+  return pb.collection('plants').getList(1, opts.perPage || 50, {
+    sort: '-created',
+    filter: filter || undefined,
+  })
+}
