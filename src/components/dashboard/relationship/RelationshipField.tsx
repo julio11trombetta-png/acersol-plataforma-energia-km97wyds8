@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { searchRecords, getRecordById } from '@/services/relationship-search'
 import { logAuditAction } from '@/services/audit-actions'
 import { EntityQuickModal } from './EntityQuickModal'
 import { HistoryModal } from './HistoryModal'
+import { FieldLabel, DEFAULT_SEARCH_FIELDS } from './FormFields'
 import { Search, Plus, Eye, Edit, History, Loader2, X, RefreshCw } from 'lucide-react'
 
 export interface SmartRelationFieldProps {
   collection: string
-  searchFields: string[]
+  searchFields?: string[]
   displayField: string
   secondaryFields?: string[]
   value: string | null
@@ -24,13 +24,13 @@ export type RelationshipFieldProps = SmartRelationFieldProps
 
 export function SmartRelationField({
   collection,
-  searchFields,
+  searchFields = DEFAULT_SEARCH_FIELDS,
   displayField,
   secondaryFields = [],
   value,
   onChange,
   label,
-  placeholder = 'Buscar...',
+  placeholder,
   entityName = 'Registro',
 }: SmartRelationFieldProps) {
   const [search, setSearch] = useState('')
@@ -42,6 +42,8 @@ export function SmartRelationField({
   const [historyOpen, setHistoryOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
+
+  const dynamicPlaceholder = placeholder || `Buscar ${entityName} por código, nome, CPF ou CNPJ...`
 
   useEffect(() => {
     if (value) {
@@ -69,7 +71,7 @@ export function SmartRelationField({
       }
     }, 300)
     return () => clearTimeout(t)
-  }, [search, open, refreshKey])
+  }, [search, open, refreshKey, collection, searchFields])
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -107,6 +109,15 @@ export function SmartRelationField({
     setOpen(true)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && open && results.length > 0) {
+      e.preventDefault()
+      selectRecord(results[0])
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
   const secondaryText = (r: any) =>
     secondaryFields
       .map((f) => r[f])
@@ -115,9 +126,9 @@ export function SmartRelationField({
 
   return (
     <div className="space-y-1" ref={ref}>
-      <Label>{label}</Label>
-      <div className="flex gap-1.5 flex-wrap">
-        <div className="relative flex-1 min-w-[180px]">
+      <FieldLabel label={label} />
+      <div className="flex gap-1 items-start">
+        <div className="relative flex-1 min-w-0">
           <Input
             value={record ? record[displayField] : search}
             onChange={(e) => {
@@ -131,7 +142,8 @@ export function SmartRelationField({
               setOpen(true)
               e.target.select()
             }}
-            placeholder={placeholder}
+            onKeyDown={handleKeyDown}
+            placeholder={dynamicPlaceholder}
           />
           {record && (
             <button
@@ -148,12 +160,12 @@ export function SmartRelationField({
           {open && (
             <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
               {loading ? (
-                <div className="p-3 text-center text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin inline" />
+                <div className="p-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Pesquisando...
                 </div>
               ) : results.length === 0 ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
-                  Nenhum resultado
+                  Nenhum registro encontrado
                 </div>
               ) : (
                 results.map((r) => (
@@ -181,7 +193,7 @@ export function SmartRelationField({
                   handleAction('create')
                 }}
               >
-                <Plus className="h-3.5 w-3.5 inline mr-1" /> Cadastrar Novo {entityName}
+                <Plus className="h-3.5 w-3.5 inline mr-1" /> Cadastrar novo {entityName}
               </button>
             </div>
           )}
@@ -250,6 +262,7 @@ export function SmartRelationField({
         collection={collection}
         editing={modalMode === 'edit' || modalMode === 'view' ? record : null}
         readOnly={modalMode === 'view'}
+        entityName={entityName}
         onSaved={(r) => {
           selectRecord(r)
           setModalMode(null)

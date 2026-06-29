@@ -14,6 +14,7 @@ export interface EntityQuickModalProps {
   onOpenChange: (v: boolean) => void
   editing?: any | null
   readOnly?: boolean
+  entityName?: string
   onSaved: (record: any) => void
 }
 
@@ -23,6 +24,7 @@ export function EntityQuickModal({
   onOpenChange,
   editing,
   readOnly,
+  entityName,
   onSaved,
 }: EntityQuickModalProps) {
   const Modal = MODAL_MAP[collection]
@@ -33,6 +35,7 @@ export function EntityQuickModal({
       onOpenChange={onOpenChange}
       editing={editing}
       readOnly={readOnly}
+      entityName={entityName}
       onSaved={onSaved}
     />
   )

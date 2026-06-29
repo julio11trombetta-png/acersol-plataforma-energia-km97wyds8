@@ -24,6 +24,7 @@ import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP, lookupCNPJ } from '@/lib/lookups'
 import { ProfileMultiSelect } from '@/components/dashboard/relationship/ProfileMultiSelect'
+import { FieldLabel, handleModalAutoFocus } from '@/components/dashboard/relationship/FormFields'
 import { createClient, updateClient, checkDocumentExists } from '@/services/clients'
 import { toast } from 'sonner'
 import { Search, Loader2 } from 'lucide-react'
@@ -189,7 +190,10 @@ export function AssociateFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={handleModalAutoFocus}
+      >
         <DialogHeader>
           <DialogTitle>{editing ? 'Editar Associado' : 'Novo Associado'}</DialogTitle>
           <DialogDescription>Preencha os dados do associado.</DialogDescription>
@@ -197,13 +201,13 @@ export function AssociateFormDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2 space-y-1">
-              <Label>Nome / Razão Social *</Label>
+              <FieldLabel label="Nome / Razão Social" required />
               <L e={errors.name?.message}>
                 <Input {...register('name')} placeholder="Nome completo" />
               </L>
             </div>
             <div className="space-y-1">
-              <Label>CPF / CNPJ *</Label>
+              <FieldLabel label="CPF / CNPJ" required />
               <div className="flex gap-2">
                 <Input
                   {...register('document_number')}
@@ -346,7 +350,7 @@ export function AssociateFormDialog({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Concessionária *</Label>
+              <FieldLabel label="Concessionária" required />
               <Select
                 value={watch('utilityProvider')}
                 onValueChange={(v) => setValue('utilityProvider', v)}
@@ -364,7 +368,7 @@ export function AssociateFormDialog({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Status *</Label>
+              <FieldLabel label="Status" required />
               <Select
                 value={watch('associateStatus')}
                 onValueChange={(v) => setValue('associateStatus', v)}

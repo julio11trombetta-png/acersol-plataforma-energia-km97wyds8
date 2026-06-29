@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { createCrmLead, updateCrmLead } from '@/services/crm'
+import { FieldLabel, handleModalAutoFocus } from './FormFields'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
@@ -29,6 +30,7 @@ export interface LeadQuickModalProps {
   onSaved: (record: any) => void
   editing?: any | null
   readOnly?: boolean
+  entityName?: string
 }
 
 export function LeadQuickModal({
@@ -37,6 +39,7 @@ export function LeadQuickModal({
   onSaved,
   editing,
   readOnly,
+  entityName = 'Lead',
 }: LeadQuickModalProps) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<any>(EMPTY)
@@ -54,12 +57,12 @@ export function LeadQuickModal({
     try {
       if (editing?.id) {
         const updated = await updateCrmLead(editing.id, form)
-        toast.success('Lead atualizado!')
+        toast.success('Atualizado com sucesso')
         onOpenChange(false)
         onSaved(updated)
       } else {
         const created = await createCrmLead(form)
-        toast.success('Lead cadastrado!')
+        toast.success('Registro salvo')
         onOpenChange(false)
         onSaved(created)
       }
@@ -72,16 +75,18 @@ export function LeadQuickModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" onOpenAutoFocus={handleModalAutoFocus}>
         <DialogHeader>
-          <DialogTitle>{ro ? 'Visualizar' : editing ? 'Editar' : 'Novo'} Lead</DialogTitle>
+          <DialogTitle>
+            {ro ? 'Visualizar' : editing ? 'Editar' : 'Novo'} {entityName}
+          </DialogTitle>
           <DialogDescription>
             {ro ? 'Visualização dos dados do lead.' : 'Preencha os dados do lead.'}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label>Empresa *</Label>
+            <FieldLabel label="Empresa" required />
             <Input
               value={form.company}
               onChange={(e) => set('company', e.target.value)}

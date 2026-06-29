@@ -22,6 +22,7 @@ import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
 import { SmartRelationField } from '@/components/dashboard/relationship/RelationshipField'
+import { handleModalAutoFocus } from '@/components/dashboard/relationship/FormFields'
 import { createPlant, updatePlant, checkDocumentExists } from '@/services/plants'
 import { getAllClients, updateClient } from '@/services/clients'
 import { toast } from 'sonner'
@@ -192,7 +193,10 @@ export function PlantFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={handleModalAutoFocus}
+      >
         <DialogHeader>
           <DialogTitle>
             {editing
@@ -270,8 +274,7 @@ export function PlantFormDialog({
               value={form.clientId || null}
               onChange={(r) => handleOwnerSelect(r)}
               label="Proprietário"
-              entityName="Associado"
-              placeholder="Buscar associado..."
+              entityName="Proprietário"
             />
           </div>
           <div className="space-y-1">

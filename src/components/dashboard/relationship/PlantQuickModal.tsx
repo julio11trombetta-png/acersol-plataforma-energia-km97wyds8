@@ -21,6 +21,7 @@ import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
 import { createPlant, updatePlant } from '@/services/plants'
+import { FieldLabel, handleModalAutoFocus } from './FormFields'
 import { toast } from 'sonner'
 import { Loader2, Search } from 'lucide-react'
 
@@ -63,6 +64,7 @@ export interface PlantQuickModalProps {
   onSaved: (record: any) => void
   editing?: any | null
   readOnly?: boolean
+  entityName?: string
 }
 
 export function PlantQuickModal({
@@ -71,6 +73,7 @@ export function PlantQuickModal({
   onSaved,
   editing,
   readOnly,
+  entityName = 'Usina',
 }: PlantQuickModalProps) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<any>(EMPTY)
@@ -106,12 +109,12 @@ export function PlantQuickModal({
       const payload = { ...form, capacity: form.capacity ? Number(form.capacity) : 0 }
       if (editing?.id) {
         const updated = await updatePlant(editing.id, payload)
-        toast.success('Usina atualizada!')
+        toast.success('Atualizado com sucesso')
         onOpenChange(false)
         onSaved(updated)
       } else {
         const created = await createPlant(payload)
-        toast.success('Usina cadastrada!')
+        toast.success('Registro salvo')
         onOpenChange(false)
         onSaved(created)
       }
@@ -124,20 +127,25 @@ export function PlantQuickModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-lg max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={handleModalAutoFocus}
+      >
         <DialogHeader>
-          <DialogTitle>{ro ? 'Visualizar' : editing ? 'Editar' : 'Nova'} Usina</DialogTitle>
+          <DialogTitle>
+            {ro ? 'Visualizar' : editing ? 'Editar' : 'Novo'} {entityName}
+          </DialogTitle>
           <DialogDescription>
             {ro ? 'Visualização dos dados da usina.' : 'Preencha os dados da usina.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="md:col-span-2 space-y-1">
-            <Label>Nome da Usina *</Label>
+            <FieldLabel label="Nome da Usina" required />
             <Input value={form.name} onChange={(e) => set('name', e.target.value)} disabled={ro} />
           </div>
           <div className="space-y-1">
-            <Label>CPF/CNPJ *</Label>
+            <FieldLabel label="CPF/CNPJ" required />
             <Input
               value={form.document_number}
               onChange={(e) => set('document_number', formatDocument(e.target.value))}

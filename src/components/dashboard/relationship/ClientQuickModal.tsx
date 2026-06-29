@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ProfileMultiSelect } from './ProfileMultiSelect'
+import { FieldLabel, handleModalAutoFocus } from './FormFields'
 import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
@@ -42,6 +43,7 @@ export interface ClientQuickModalProps {
   onSaved: (record: any) => void
   editing?: any | null
   readOnly?: boolean
+  entityName?: string
 }
 
 const STATES = ['Ativo', 'Suspenso', 'Pendente', 'Bloqueado', 'Em Análise', 'Inativo']
@@ -60,6 +62,7 @@ export function ClientQuickModal({
   onSaved,
   editing,
   readOnly,
+  entityName = 'Associado',
 }: ClientQuickModalProps) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<any>({
@@ -147,12 +150,12 @@ export function ClientQuickModal({
       }
       if (editing?.id) {
         const updated = await updateClient(editing.id, payload)
-        toast.success('Registro atualizado!')
+        toast.success('Atualizado com sucesso')
         onOpenChange(false)
         onSaved(updated)
       } else {
         const created = await createClient(payload)
-        toast.success('Registro cadastrado!')
+        toast.success('Registro salvo')
         onOpenChange(false)
         onSaved(created)
       }
@@ -173,9 +176,14 @@ export function ClientQuickModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          className="max-w-lg max-h-[90vh] overflow-y-auto"
+          onOpenAutoFocus={handleModalAutoFocus}
+        >
           <DialogHeader>
-            <DialogTitle>{ro ? 'Visualizar' : editing ? 'Editar' : 'Novo'} Associado</DialogTitle>
+            <DialogTitle>
+              {ro ? 'Visualizar' : editing ? 'Editar' : 'Novo'} {entityName}
+            </DialogTitle>
             <DialogDescription>
               {ro
                 ? 'Visualização dos dados do registro.'
@@ -184,7 +192,7 @@ export function ClientQuickModal({
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="md:col-span-2 space-y-1">
-              <Label>Nome / Razão Social *</Label>
+              <FieldLabel label="Nome / Razão Social" required />
               <Input
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
@@ -192,7 +200,7 @@ export function ClientQuickModal({
               />
             </div>
             <div className="space-y-1">
-              <Label>CPF/CNPJ *</Label>
+              <FieldLabel label="CPF/CNPJ" required />
               <Input
                 value={form.document_number}
                 onChange={(e) => set('document_number', formatDocument(e.target.value))}
