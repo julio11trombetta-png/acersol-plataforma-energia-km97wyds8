@@ -23,3 +23,27 @@ export async function exportDatabase(): Promise<void> {
   document.body.removeChild(a)
   URL.revokeObjectURL(downloadUrl)
 }
+
+export async function exportDatabaseMySQL(): Promise<void> {
+  const url = `${import.meta.env.VITE_POCKETBASE_URL}/backend/v1/export-mysql`
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: pb.authStore.token,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error('Falha ao exportar banco de dados (MySQL)')
+  }
+
+  const blob = await res.blob()
+  const downloadUrl = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = downloadUrl
+  a.download = `acersol_export_mysql_${new Date().toISOString().split('T')[0]}.sql`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(downloadUrl)
+}

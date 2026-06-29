@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Download, Loader2, Bot } from 'lucide-react'
-import { exportDatabase } from '@/services/export'
+import { Download, Loader2, Bot, Database } from 'lucide-react'
+import { exportDatabase, exportDatabaseMySQL } from '@/services/export'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Shield } from 'lucide-react'
 import { DashboardStatsCard } from '@/components/dashboard/DashboardStatsCard'
@@ -57,6 +57,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [exportingMySQL, setExportingMySQL] = useState(false)
   const [tickets, setTickets] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
 
@@ -116,6 +117,18 @@ export default function AdminDashboard() {
       toast.error('Falha ao exportar')
     } finally {
       setExporting(false)
+    }
+  }
+
+  const handleExportMySQL = async () => {
+    setExportingMySQL(true)
+    try {
+      await exportDatabaseMySQL()
+      toast.success('Exportação MySQL concluída com sucesso')
+    } catch {
+      toast.error('Falha ao exportar para MySQL')
+    } finally {
+      setExportingMySQL(false)
     }
   }
 
@@ -179,6 +192,19 @@ export default function AdminDashboard() {
               <Download className="mr-2 h-4 w-4" />
             )}{' '}
             {exporting ? 'Gerando...' : 'Exportar SQL'}
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full"
+            onClick={handleExportMySQL}
+            disabled={exportingMySQL}
+          >
+            {exportingMySQL ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Database className="mr-2 h-4 w-4" />
+            )}{' '}
+            {exportingMySQL ? 'Gerando arquivo SQL...' : 'Exportar para MySQL'}
           </Button>
         </div>
       </div>
