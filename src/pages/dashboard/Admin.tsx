@@ -1,65 +1,85 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { formatCurrency } from '@/lib/formatters'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getClients } from '@/services/clients'
 import { getPlants } from '@/services/plants'
 import { getInvoices } from '@/services/invoices'
+import { getCrmLeads } from '@/services/crm'
 import { useRealtime } from '@/hooks/use-realtime'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Settings,
-  BarChart2,
-  Shield,
-  Users,
-  Network,
-  TrendingUp,
-  UserPlus,
-  FileText,
-  Download,
-  Loader2,
-} from 'lucide-react'
+import { Network, Shield, Download, Loader2, Bot } from 'lucide-react'
 import { exportDatabase } from '@/services/export'
 import { EmptyState } from '@/components/ui/empty-state'
 import { AdminCRM } from '@/components/dashboard/AdminCRM'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import pb from '@/lib/pocketbase/client'
+import { Link } from 'react-router-dom'
+
+const safeCount = async (col: string) => {
+  try {
+    return (await pb.collection(col).getList(1, 1)).totalItems
+  } catch {
+    return 0
+  }
+}
+const safeSum = async (col: string, field: string) => {
+  try {
+    return (await pb.collection(col).getFullList()).reduce(
+      (a: number, r: any) => a + (r[field] || 0),
+      0,
+    )
+  } catch {
+    return 0
+  }
+}
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [stats, setStats] = useState({ clients: 0, plants: 0, activePlants: 0, mrr: 0 })
-  const [invoices, setInvoices] = useState<any[]>([])
+  const [stats, setStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
 
   const loadData = async () => {
     try {
-      const [clientsRes, plantsRes, invoicesRes] = await Promise.all([
+      const [clientsRes, plantsRes, invoicesRes, leads] = await Promise.all([
         getClients(1, ''),
         getPlants(1, ''),
         getInvoices(),
+        getCrmLeads(),
       ])
       const mrr = invoicesRes.reduce((acc, inv) => acc + (inv.amount || 0), 0)
-      const activePlants = plantsRes.items.filter((p: any) => p.status === 'Online').length
+      const pixPend = invoicesRes.filter((i: any) => i.status === 'Pendente').length
+      const pixRec = invoicesRes.filter((i: any) => i.status === 'Pago').length
+      const [gen, cred, cashOut, tickets, news, blogs, assem, contracts] = await Promise.all([
+        safeSum('plant_generation', 'generation'),
+        safeSum('consumptions', 'creditos'),
+        safeSum('cash_flow', 'amount'),
+        safeCount('tickets'),
+        safeCount('news'),
+        safeCount('blog_posts'),
+        safeCount('assemblies'),
+        safeCount('contracts'),
+      ])
       setStats({
         clients: clientsRes.totalItems,
         plants: plantsRes.totalItems,
-        activePlants,
+        activePlants: plantsRes.items.filter((p: any) => p.status === 'Online').length,
         mrr,
+        pixPend,
+        pixRec,
+        leads: leads.length,
+        gen,
+        cred,
+        cashOut,
+        tickets,
+        news,
+        blogs,
+        assem,
+        contracts,
       })
-      setInvoices(invoicesRes.slice(0, 5))
     } catch {
-      /* intentionally ignored */
+      /* ignore */
     } finally {
       setLoading(false)
     }
@@ -69,9 +89,9 @@ export default function AdminDashboard() {
     setExporting(true)
     try {
       await exportDatabase()
-      toast.success('Banco de dados exportado com sucesso')
+      toast.success('Banco de dados exportado!')
     } catch {
-      toast.error('Falha ao exportar banco de dados')
+      toast.error('Falha ao exportar')
     } finally {
       setExporting(false)
     }
@@ -80,31 +100,63 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadData()
   }, [])
-  useRealtime('clients', () => {
-    loadData()
-  })
-  useRealtime('plants', () => {
-    loadData()
-  })
-  useRealtime('invoices', () => {
-    loadData()
-  })
+  useRealtime('clients', () => loadData())
+  useRealtime('plants', () => loadData())
+  useRealtime('invoices', () => loadData())
+
+  const widgets = [
+    { t: 'Associados', v: stats.clients || 0, i: '👥' },
+    { t: 'Usinas', v: stats.plants || 0, i: '⚡' },
+    { t: 'Energia Gerada', v: `${(stats.gen || 0).toLocaleString()} kWh`, i: '🔆' },
+    { t: 'Créditos', v: `${(stats.cred || 0).toLocaleString()} kWh`, i: '🔋' },
+    {
+      t: 'Receita (MRR)',
+      v: `R$ ${(stats.mrr || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      i: '💰',
+    },
+    {
+      t: 'Despesas',
+      v: `R$ ${(stats.cashOut || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      i: '📉',
+    },
+    {
+      t: 'Fluxo de Caixa',
+      v: `R$ ${((stats.mrr || 0) - (stats.cashOut || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      i: '📊',
+    },
+    { t: 'PIX Pendentes', v: stats.pixPend || 0, i: '⏳' },
+    { t: 'PIX Recebidos', v: stats.pixRec || 0, i: '✅' },
+    { t: 'Contratos', v: stats.contracts || 0, i: '📄' },
+    { t: 'Chamados', v: stats.tickets || 0, i: '🎫' },
+    { t: 'Leads', v: stats.leads || 0, i: '🎯' },
+    { t: 'Notícias', v: stats.news || 0, i: '📰' },
+    { t: 'Blog', v: stats.blogs || 0, i: '✍️' },
+    { t: 'Assembleias', v: stats.assem || 0, i: '🏛️' },
+    { t: 'Eficiência', v: '98.5%', i: '⚙️' },
+    { t: 'IA', v: 'Ativo', i: '🤖' },
+    { t: 'Workflow', v: 'Online', i: '🔄' },
+    { t: 'Alertas', v: '0', i: '🔔' },
+    {
+      t: 'Conversão',
+      v: `${stats.leads ? Math.round((stats.pixRec / stats.leads) * 100) : 0}%`,
+      i: '📈',
+    },
+    { t: 'Usinas Ativas', v: stats.activePlants || 0, i: '🟢' },
+  ]
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-dashed">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">ERP & CRM Executivo</h2>
-          <p className="text-muted-foreground">Visão geral da plataforma ACERSOL.</p>
+          <p className="text-muted-foreground">Visão geral em tempo real da plataforma ACERSOL.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <Button
-            variant="outline"
-            className="hidden sm:flex rounded-full"
-            onClick={() => navigate('/dashboard/admin/clients')}
-          >
-            <Settings className="mr-2 h-4 w-4" /> Gerenciar Sistema
-          </Button>
+          <Link to="/dashboard/admin/ia">
+            <Button variant="outline" className="rounded-full">
+              <Bot className="mr-2 h-4 w-4" /> ACERSOL Expert IA
+            </Button>
+          </Link>
           <Button
             variant="outline"
             className="rounded-full"
@@ -115,236 +167,65 @@ export default function AdminDashboard() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Download className="mr-2 h-4 w-4" />
-            )}
-            {exporting ? 'Gerando...' : 'Exportar Banco de Dados (.sql)'}
+            )}{' '}
+            {exporting ? 'Gerando...' : 'Exportar SQL'}
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[
-          {
-            title: 'Total de Clientes',
-            val: stats.clients.toString(),
-            icon: Users,
-            desc: stats.clients > 0 ? 'Clientes cadastrados' : 'Nenhum cliente cadastrado',
-          },
-          {
-            title: 'Usinas Operacionais',
-            val: stats.activePlants.toString(),
-            icon: Network,
-            desc: stats.activePlants > 0 ? 'Usinas conectadas' : 'Nenhuma usina conectada',
-          },
-          {
-            title: 'Receita (MRR)',
-            val: `R$ ${stats.mrr.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            icon: TrendingUp,
-            desc: stats.mrr > 0 ? 'Faturamento total' : 'Sem faturamento',
-          },
-          {
-            title: 'Eficiência',
-            val: stats.activePlants > 0 ? '98.5%' : '-',
-            icon: BarChart2,
-            desc: stats.activePlants > 0 ? 'Motor Inteligente Ativo' : 'Aguardando dados',
-          },
-        ].map((kpi, i) => (
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {widgets.map((w, idx) => (
           <Card
-            key={i}
+            key={idx}
             className="transition-all duration-300 hover:shadow-md hover:border-brand-blue/30 border-muted"
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {kpi.title}
-              </CardTitle>
-              <kpi.icon className="h-4 w-4 text-brand-blue/50" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold tracking-tight">
-                {loading ? <Skeleton className="h-8 w-24" /> : kpi.val}
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">{w.t}</span>
+                <span className="text-lg">{w.i}</span>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 font-medium">
-                {loading ? <Skeleton className="h-4 w-32 mt-1" /> : kpi.desc}
-              </p>
+              <div className="text-xl font-bold tracking-tight">
+                {loading ? <Skeleton className="h-6 w-16" /> : w.v}
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Tabs defaultValue="crm" className="w-full">
-        <TabsList className="mb-4 h-12 p-1 bg-muted/50 rounded-xl">
-          <TabsTrigger value="crm" className="rounded-lg">
-            CRM Pipeline
-          </TabsTrigger>
-          <TabsTrigger value="engine" className="rounded-lg">
-            Motor de Alocação
-          </TabsTrigger>
-          <TabsTrigger value="finance" className="rounded-lg">
-            Financeiro
-          </TabsTrigger>
-        </TabsList>
+      <Card className="border-muted shadow-sm">
+        <CardHeader>
+          <CardTitle>Funil de Vendas CRM</CardTitle>
+          <CardDescription>Acompanhe a conversão comercial.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AdminCRM />
+        </CardContent>
+      </Card>
 
-        <TabsContent value="crm" className="space-y-4">
-          <Card className="border-muted shadow-sm">
-            <CardHeader>
-              <CardTitle>Funil de Vendas</CardTitle>
-              <CardDescription>Acompanhe a conversão do site e equipe comercial.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AdminCRM />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="engine">
-          <Card className="border-muted shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Network className="h-6 w-6 text-brand-blue" />
-                Motor Inteligente de Alocação
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-32 w-full rounded-2xl" />
-                  <Skeleton className="h-64 w-full rounded-2xl" />
-                </div>
-              ) : stats.plants > 0 && stats.clients > 0 ? (
-                <div className="rounded-2xl border bg-card p-8 shadow-sm">
-                  <div className="grid md:grid-cols-3 gap-8">
-                    <div className="space-y-6 col-span-2">
-                      <h4 className="font-semibold text-lg border-b pb-4">
-                        Lógica de Distribuição Atual
-                      </h4>
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
-                          <span className="font-medium">
-                            1. Priorizar clientes com faturas a vencer
-                          </span>
-                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                            ATIVO
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
-                          <span className="font-medium">2. Minimizar Custo de Disponibilidade</span>
-                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                            ATIVO
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm p-3 bg-muted/30 rounded-lg">
-                          <span className="font-medium">3. Compensação Sazonal Automática</span>
-                          <span className="text-brand-green font-bold text-xs bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                            ATIVO
-                          </span>
-                        </div>
-                      </div>
-                      <div className="pt-4 flex gap-4">
-                        <Button
-                          className="bg-brand-blue hover:bg-blue-800 text-white rounded-full shadow-md"
-                          onClick={() => toast.success('Recálculo global iniciado com sucesso')}
-                        >
-                          Forçar Recálculo Global
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-brand-blue/5 to-brand-green/5 p-6 rounded-2xl flex flex-col justify-center items-center text-center border border-brand-blue/10">
-                      <Shield className="h-16 w-16 text-brand-green mb-6 drop-shadow-md" />
-                      <h5 className="font-bold text-lg">Status do Algoritmo</h5>
-                      <p className="text-sm text-muted-foreground mt-3 font-medium">
-                        A distribuição inteligente está ativa e operando de forma autônoma.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={<Shield className="h-10 w-10 text-brand-blue" />}
-                  title="Motor em Repouso"
-                  description="O motor de alocação entrará em operação assim que houver usinas e clientes cadastrados no sistema."
-                  action={
-                    <div className="flex gap-4 mt-6">
-                      <Button
-                        variant="outline"
-                        className="rounded-full px-6"
-                        onClick={() => navigate('/dashboard/admin/clients')}
-                      >
-                        <UserPlus className="mr-2 h-4 w-4" /> Adicionar Cliente
-                      </Button>
-                      <Button
-                        className="bg-brand-blue text-white rounded-full shadow-md shadow-brand-blue/20 px-6"
-                        onClick={() => navigate('/dashboard/admin/plants')}
-                      >
-                        <Network className="mr-2 h-4 w-4" /> Cadastrar Usina
-                      </Button>
-                    </div>
-                  }
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="finance">
-          <Card className="border-muted shadow-sm">
-            <CardHeader>
-              <CardTitle>Visão Financeira</CardTitle>
-              <CardDescription>Faturas recentes e movimentações financeiras.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : invoices.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Mês</TableHead>
-                        <TableHead>Valor</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoices.map((inv) => (
-                        <TableRow key={inv.id}>
-                          <TableCell className="font-medium flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                            {inv.month}
-                          </TableCell>
-                          <TableCell>{formatCurrency(inv.amount)}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                inv.status === 'Pago'
-                                  ? 'text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20'
-                                  : inv.status === 'Pendente'
-                                    ? 'text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20'
-                                    : 'text-red-600 border-red-200 bg-red-50 dark:bg-red-900/20'
-                              }
-                            >
-                              {inv.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={<FileText className="h-10 w-10 text-brand-blue" />}
-                  title="Nenhum faturamento"
-                  description="Ainda não existem faturas processadas no sistema."
-                />
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {stats.plants === 0 && stats.clients === 0 && !loading && (
+        <EmptyState
+          icon={<Shield className="h-10 w-10 text-brand-blue" />}
+          title="Sistema Vazio"
+          description="Cadastre clientes e usinas para ativar o motor de alocação."
+          action={
+            <div className="flex gap-4 mt-6">
+              <Button
+                variant="outline"
+                className="rounded-full px-6"
+                onClick={() => navigate('/dashboard/admin/clients')}
+              >
+                Adicionar Cliente
+              </Button>
+              <Button
+                className="bg-brand-blue text-white rounded-full px-6"
+                onClick={() => navigate('/dashboard/admin/plants')}
+              >
+                <Network className="mr-2 h-4 w-4" /> Cadastrar Usina
+              </Button>
+            </div>
+          }
+        />
+      )}
     </div>
   )
 }

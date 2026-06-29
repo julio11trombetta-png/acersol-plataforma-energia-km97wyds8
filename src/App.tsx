@@ -22,17 +22,33 @@ import PlantProfile from './pages/dashboard/PlantProfile'
 import { ThemeProvider } from './stores/use-theme-store'
 import { AuthProvider, useAuth } from './stores/use-auth-store'
 import ForcePasswordChange from './pages/ForcePasswordChange'
+import { ModulePlaceholder } from './components/dashboard/ModulePlaceholder'
+import IAPage from './pages/dashboard/IAPage'
+import GovernancePage from './pages/dashboard/GovernancePage'
+import SupportPage from './pages/dashboard/SupportPage'
+import CMSPage from './pages/dashboard/CMSPage'
+import CRMPage from './pages/dashboard/CRMPage'
+import SettingsPage from './pages/dashboard/SettingsPage'
+import {
+  Building2,
+  Activity,
+  FileText,
+  BarChart2,
+  GitBranch,
+  Plug,
+  Smartphone,
+  Shield,
+} from 'lucide-react'
 
 function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
   const { user, isAuthenticated, loading } = useAuth()
   const loginRoute = role === 'admin' ? '/admin' : role === 'owner' ? '/usina' : '/cliente'
-  if (loading) {
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
-  }
   if (!isAuthenticated) return <Navigate to={loginRoute} replace />
   if (user?.role !== role) return <Navigate to={`/dashboard/${user?.role ?? 'client'}`} replace />
   if (user?.force_password_change) return <Navigate to="/force-password-change" replace />
@@ -41,17 +57,14 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role: s
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, loading } = useAuth()
-  if (loading) {
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
-  }
   if (isAuthenticated && user) {
-    if (user.force_password_change) {
-      return <Navigate to="/force-password-change" replace />
-    }
+    if (user.force_password_change) return <Navigate to="/force-password-change" replace />
     return <Navigate to={`/dashboard/${user.role}`} replace />
   }
   return <>{children}</>
@@ -59,13 +72,12 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
 
 function ForcePasswordRoute() {
   const { user, isAuthenticated, loading } = useAuth()
-  if (loading) {
+  if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
-  }
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (!user?.force_password_change) return <Navigate to={`/dashboard/${user.role}`} replace />
   return <ForcePasswordChange />
@@ -78,7 +90,6 @@ const AppContent = () => (
       <Sonner />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
-
         <Route
           path="/login"
           element={
@@ -144,6 +155,100 @@ const AppContent = () => (
             <Route path="clients" element={<AdminClients />} />
             <Route path="plants" element={<AdminPlants />} />
             <Route path="finance" element={<AdminFinance />} />
+            <Route path="crm" element={<CRMPage />} />
+            <Route path="suporte" element={<SupportPage />} />
+            <Route path="cms" element={<CMSPage />} />
+            <Route path="governanca" element={<GovernancePage />} />
+            <Route path="ia" element={<IAPage />} />
+            <Route path="configuracoes" element={<SettingsPage />} />
+            <Route
+              path="distribuidoras"
+              element={
+                <ModulePlaceholder
+                  title="Distribuidoras"
+                  description="Gestão de concessionárias de energia"
+                  icon={Building2}
+                  features={['CRUD', 'Busca', 'Exportação']}
+                />
+              }
+            />
+            <Route
+              path="operacoes"
+              element={
+                <ModulePlaceholder
+                  title="Operações"
+                  description="Monitoramento operacional em tempo real"
+                  icon={Activity}
+                  features={['Telemetria', 'Alertas', 'Status']}
+                />
+              }
+            />
+            <Route
+              path="contratos"
+              element={
+                <ModulePlaceholder
+                  title="Contratos"
+                  description="Gestão de contratos e assinaturas"
+                  icon={FileText}
+                  features={['CRUD', 'Upload', 'Assinatura']}
+                />
+              }
+            />
+            <Route
+              path="bi"
+              element={
+                <ModulePlaceholder
+                  title="Business Intelligence"
+                  description="Dashboards e relatórios analíticos"
+                  icon={BarChart2}
+                  features={['Gráficos', 'KPIs', 'Exportação']}
+                />
+              }
+            />
+            <Route
+              path="workflow"
+              element={
+                <ModulePlaceholder
+                  title="Workflow"
+                  description="Automação de processos e fluxos"
+                  icon={GitBranch}
+                  features={['Automação', 'Aprovações', 'Status']}
+                />
+              }
+            />
+            <Route
+              path="integracoes"
+              element={
+                <ModulePlaceholder
+                  title="Integrações"
+                  description="APIs e webhooks externos"
+                  icon={Plug}
+                  features={['APIs', 'Webhooks', 'Config']}
+                />
+              }
+            />
+            <Route
+              path="app"
+              element={
+                <ModulePlaceholder
+                  title="Aplicativo Mobile"
+                  description="Configuração do app ACERSOL"
+                  icon={Smartphone}
+                  features={['Config', 'Push', 'Version']}
+                />
+              }
+            />
+            <Route
+              path="seguranca"
+              element={
+                <ModulePlaceholder
+                  title="Segurança"
+                  description="Auditoria, permissões e logs"
+                  icon={Shield}
+                  features={['RBAC', 'Logs', 'Auditoria']}
+                />
+              }
+            />
             <Route path="clientes/:id" element={<ClientProfile />} />
             <Route path="usinas/:id" element={<PlantProfile />} />
           </Route>

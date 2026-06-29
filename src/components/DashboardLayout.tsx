@@ -1,20 +1,13 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
+import { GlobalSearch } from './GlobalSearch'
+import { IAFloatingWidget } from './IAFloatingWidget'
 import { useAuth } from '@/stores/use-auth-store'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  LogOut,
-  Bell,
-  Menu,
-  UserCircle,
-  LayoutDashboard,
-  Users,
-  Zap,
-  DollarSign,
-} from 'lucide-react'
+import { LogOut, Bell, Menu, UserCircle, Search } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +23,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -37,29 +31,38 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { cn } from '@/lib/utils'
+import { sidebarGroups } from '@/lib/sidebar-config'
 
 export function DashboardLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-
   if (!user) return null
 
-  const adminLinks = [
-    { name: 'Dashboard', path: '/dashboard/admin', icon: LayoutDashboard },
-    { name: 'Clientes', path: '/dashboard/admin/clients', icon: Users },
-    { name: 'Usinas', path: '/dashboard/admin/plants', icon: Zap },
-    { name: 'Financeiro', path: '/dashboard/admin/finance', icon: DollarSign },
-  ]
-
   const isDesktopAdmin = user.role === 'admin'
+  const isAdminActive = (path: string) =>
+    path === '/dashboard/admin' ? location.pathname === path : location.pathname.startsWith(path)
 
-  const content = (
-    <>
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur flex h-16 items-center justify-between px-4 lg:px-8">
-        <div className="flex items-center gap-4">
-          {!isDesktopAdmin && (
+  const header = (
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur flex h-16 items-center justify-between px-4 lg:px-8">
+      <div className="flex items-center gap-4">
+        {isDesktopAdmin ? (
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-2" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="hidden md:flex gap-2 text-muted-foreground"
+              onClick={() => {
+                const el = document.querySelector('[cmdk-input]') as HTMLInputElement
+                el?.focus()
+              }}
+            >
+              <Search className="h-4 w-4" /> <span className="text-xs">Buscar... ⌘K</span>
+            </Button>
+          </div>
+        ) : (
+          <>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -67,7 +70,7 @@ export function DashboardLayout() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-[240px]">
-                <SheetTitle className="sr-only">Menu Dashboard</SheetTitle>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="py-4">
                   <Logo />
                 </div>
@@ -81,112 +84,113 @@ export function DashboardLayout() {
                 </nav>
               </SheetContent>
             </Sheet>
-          )}
-
-          {isDesktopAdmin ? (
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-2" />
-              <div className="hidden md:flex ml-2 items-center rounded-md bg-muted px-3 py-1 text-sm font-medium border">
-                Portal Admin
-              </div>
+            <Logo className="hidden md:block" />
+            <div className="hidden md:flex ml-8 items-center rounded-md bg-muted px-3 py-1 text-sm font-medium border">
+              Portal {user.role === 'owner' ? 'Usina' : 'Cliente'}
             </div>
-          ) : (
-            <>
-              <Logo className="hidden md:block" />
-              <div className="hidden md:flex ml-8 items-center rounded-md bg-muted px-3 py-1 text-sm font-medium border">
-                Portal {user.role === 'owner' ? 'Usina' : 'Cliente'}
+          </>
+        )}
+      </div>
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={() => toast.info('Você não tem novas notificações')}
+        >
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600"></span>
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative h-9 w-9 rounded-full overflow-hidden border">
+              <Avatar className="h-full w-full">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
-            </>
-          )}
-        </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => toast.info('Configurações em breve')}>
+              <UserCircle className="mr-2 h-4 w-4" /> Conta
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                logout()
+                navigate('/')
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" /> Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  )
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative"
-            onClick={() => toast.info('Você não tem novas notificações')}
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600"></span>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="relative h-9 w-9 rounded-full overflow-hidden border">
-                <Avatar className="h-full w-full">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => toast.info('Configurações de conta em breve')}>
-                <UserCircle className="mr-2 h-4 w-4" /> Conta
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  logout()
-                  navigate('/')
-                }}
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-      <main className={cn('flex-1 container py-8', isDesktopAdmin ? 'max-w-6xl mx-auto' : '')}>
-        <Outlet />
-      </main>
-    </>
+  const main = (
+    <main className="flex-1 container py-8 max-w-7xl mx-auto">
+      <Outlet />
+    </main>
   )
 
   if (isDesktopAdmin) {
     return (
       <SidebarProvider>
+        <GlobalSearch />
         <Sidebar>
           <SidebarHeader className="p-4 pt-6 border-b">
             <Logo />
           </SidebarHeader>
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminLinks.map((link) => {
-                    const isActive =
-                      link.path === '/dashboard/admin'
-                        ? location.pathname === link.path
-                        : location.pathname.startsWith(link.path)
-                    return (
-                      <SidebarMenuItem key={link.path}>
-                        <SidebarMenuButton asChild isActive={isActive} tooltip={link.name}>
-                          <Link to={link.path}>
-                            <link.icon className="w-5 h-5" />
-                            <span>{link.name}</span>
+            {sidebarGroups.map((group) => (
+              <SidebarGroup key={group.label}>
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => (
+                      <SidebarMenuItem key={item.path}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isAdminActive(item.path)}
+                          tooltip={item.name}
+                        >
+                          <Link to={item.path}>
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.name}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    )
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
           </SidebarContent>
         </Sidebar>
-        <SidebarInset className="min-h-screen bg-muted/20">{content}</SidebarInset>
+        <SidebarInset className="min-h-screen bg-muted/20">
+          {header}
+          {main}
+        </SidebarInset>
+        <IAFloatingWidget />
       </SidebarProvider>
     )
   }
 
-  return <div className="min-h-screen bg-muted/20 flex flex-col">{content}</div>
+  return (
+    <div className="min-h-screen bg-muted/20 flex flex-col">
+      {header}
+      {main}
+    </div>
+  )
 }
