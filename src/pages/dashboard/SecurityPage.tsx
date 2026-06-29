@@ -3,15 +3,31 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Shield, Lock, Users, Activity, KeyRound, FileText, AlertTriangle } from 'lucide-react'
+import {
+  Shield,
+  Lock,
+  Users,
+  Activity,
+  KeyRound,
+  FileText,
+  AlertTriangle,
+  Search,
+  ClipboardCheck,
+} from 'lucide-react'
 import { getLoginHistory, getActiveSessions } from '@/services/sessions'
 import { getPermissionGroups } from '@/services/permissions'
+import { getSecurityAlerts } from '@/services/security-alerts'
+import { getApprovals } from '@/services/approvals'
 import { Skeleton } from '@/components/ui/skeleton'
+import { SecurityAlertsPanel } from '@/components/dashboard/SecurityAlertsPanel'
+import { ApprovalQueue } from '@/components/dashboard/ApprovalQueue'
 
 export default function SecurityPage() {
   const [recentLogins, setRecentLogins] = useState<any[]>([])
   const [activeSessions, setActiveSessions] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
+  const [alertCount, setAlertCount] = useState(0)
+  const [approvalCount, setApprovalCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -19,10 +35,14 @@ export default function SecurityPage() {
       getLoginHistory(1, 10).catch(() => ({ items: [] })),
       getActiveSessions().catch(() => []),
       getPermissionGroups().catch(() => []),
-    ]).then(([logins, sessions, grps]) => {
+      getSecurityAlerts('open').catch(() => []),
+      getApprovals('pending').catch(() => ({ items: [] })),
+    ]).then(([logins, sessions, grps, alerts, approvals]) => {
       setRecentLogins(logins.items || [])
       setActiveSessions(sessions)
       setGroups(grps)
+      setAlertCount((alerts as any[]).length)
+      setApprovalCount((approvals as any).items?.length || 0)
       setLoading(false)
     })
   }, [])
@@ -106,6 +126,21 @@ export default function SecurityPage() {
                 <KeyRound className="mr-2 h-4 w-4" /> Grupos de Permissão
               </Button>
             </Link>
+            <Link to="/dashboard/admin/seguranca/investigacao">
+              <Button variant="outline" className="w-full justify-start rounded-full">
+                <Search className="mr-2 h-4 w-4" /> Modo de Investigação
+              </Button>
+            </Link>
+            <Link to="/dashboard/admin/seguranca/aprovacoes">
+              <Button variant="outline" className="w-full justify-start rounded-full">
+                <ClipboardCheck className="mr-2 h-4 w-4" /> Aprovações e Alertas
+                {approvalCount > 0 && (
+                  <Badge variant="destructive" className="ml-auto text-xs">
+                    {approvalCount}
+                  </Badge>
+                )}
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 
@@ -125,6 +160,11 @@ export default function SecurityPage() {
             <p>• Whitelist para acesso à Auditoria Global</p>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <SecurityAlertsPanel />
+        <ApprovalQueue />
       </div>
 
       <Card>

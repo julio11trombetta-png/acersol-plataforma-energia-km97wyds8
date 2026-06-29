@@ -4,13 +4,13 @@ onRecordCreate(
     var colName = record.collectionName
 
     var prefixMap = {
-      clients: 'CAD',
+      clients: 'AS',
       plants: 'US',
       contracts: 'CT',
       invoices: 'FT',
       crm_leads: 'LD',
       tickets: 'CH',
-      plant_generation: 'PG',
+      plant_generation: 'RT',
       consumptions: 'CR',
       associate_documents: 'DOC',
       plant_documents: 'DOC',

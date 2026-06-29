@@ -8,9 +8,13 @@ export async function logAuditAction(params: {
   record_id: string
   record_uuid?: string
   record_friendly_code?: string
+  justification?: string
+  classification_level?: string
 }) {
   const user = pb.authStore.record
   if (!user) return
+  const { classifyOperation } = await import('@/lib/audit-classification')
+  const level = params.classification_level || classifyOperation(params.operation_type)
   const now = new Date()
   const ds = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
   const ts = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`
@@ -38,6 +42,8 @@ export async function logAuditAction(params: {
       record_friendly_code: params.record_friendly_code || '',
       operation_type: params.operation_type,
       field_changes: JSON.stringify({}),
+      justification: params.justification || '',
+      classification_level: level,
     })
   } catch {
     /* intentionally ignored */

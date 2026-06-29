@@ -15,6 +15,8 @@ import {
   GitBranch,
   Bot,
   Plug,
+  Search,
+  ClipboardCheck,
   Smartphone,
   Shield,
   Settings,
@@ -113,7 +115,23 @@ export const sidebarGroups: SidebarGroupConfig[] = [
     items: [
       { name: 'Integrações', path: '/dashboard/admin/integracoes', icon: Plug },
       { name: 'App', path: '/dashboard/admin/app', icon: Smartphone },
-      { name: 'Segurança', path: '/dashboard/admin/seguranca', icon: Shield },
+      {
+        name: 'Segurança',
+        path: '/dashboard/admin/seguranca',
+        icon: Shield,
+        children: [
+          { name: 'Painel', path: '/dashboard/admin/seguranca', icon: Shield },
+          { name: 'Investigação', path: '/dashboard/admin/seguranca/investigacao', icon: Search },
+          { name: 'Auditoria', path: '/dashboard/admin/seguranca/auditoria', icon: FileText },
+          { name: 'Usuários', path: '/dashboard/admin/seguranca/usuarios', icon: UserCheck },
+          { name: 'Permissões', path: '/dashboard/admin/seguranca/permissoes', icon: KeyRound },
+          {
+            name: 'Aprovações',
+            path: '/dashboard/admin/seguranca/aprovacoes',
+            icon: ClipboardCheck,
+          },
+        ],
+      },
       { name: 'Configurações', path: '/dashboard/admin/configuracoes', icon: Settings },
     ],
   },

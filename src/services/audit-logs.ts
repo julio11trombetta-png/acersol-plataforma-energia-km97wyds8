@@ -37,6 +37,8 @@ export const createAuditLog = (data: {
   browser?: string
   os?: string
   device?: string
+  justification?: string
+  classification_level?: string
 }) => {
   const user = pb.authStore.record
   return pb.collection('audit_logs').create({
@@ -44,5 +46,6 @@ export const createAuditLog = (data: {
     userId: user?.id || '',
     user_name: user?.name || user?.email || '',
     user_profile: (user as any)?.role || '',
+    classification_level: data.classification_level || '3',
   })
 }

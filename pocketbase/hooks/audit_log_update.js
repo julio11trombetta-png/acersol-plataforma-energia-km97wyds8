@@ -121,6 +121,7 @@ onRecordUpdateRequest(
       log.set('device', device)
       log.set('session_id', auth.id)
       log.set('operation_hash', hash)
+      log.set('classification_level', '3')
       $app.saveNoValidate(log)
     } catch (err) {
       console.log('audit log update error: ' + err.message)

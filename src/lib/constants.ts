@@ -13,17 +13,25 @@ export const PROFILE_OPTIONS = [
 ] as const
 
 export const FRIENDLY_CODE_PREFIXES: Record<string, string> = {
-  clients: 'CAD',
+  clients: 'AS',
   plants: 'US',
   contracts: 'CT',
   invoices: 'FT',
   crm_leads: 'LD',
   tickets: 'CH',
-  plant_generation: 'PG',
+  plant_generation: 'RT',
   consumptions: 'CR',
   associate_documents: 'DOC',
   plant_documents: 'DOC',
 }
+
+export const PROTOCOL_PREFIXES = {
+  general: 'LOG',
+  financial: 'FIN',
+  contracts: 'CTR',
+  pix: 'PIX',
+  audit: 'AUD',
+} as const
 
 export const PLANT_TYPES = [
   'Própria da ACERSOL',

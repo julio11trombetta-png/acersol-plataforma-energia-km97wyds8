@@ -25,6 +25,10 @@ export const ALL_PERMISSIONS = [
   'GERENCIAR_CONFIGURACOES',
   'GERENCIAR_BACKUPS',
   'GERENCIAR_INTEGRACOES',
+  'INVESTIGACAO',
+  'APROVACAO_DUPLA',
+  'VERSAO_DOCUMENTOS',
+  'ALERTAS_SEGURANCA',
 ] as const
 
 export type Permission = (typeof ALL_PERMISSIONS)[number]
@@ -56,6 +60,10 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   GERENCIAR_CONFIGURACOES: 'Gerenciar Configurações',
   GERENCIAR_BACKUPS: 'Gerenciar Backups',
   GERENCIAR_INTEGRACOES: 'Gerenciar Integrações',
+  INVESTIGACAO: 'Modo de Investigação',
+  APROVACAO_DUPLA: 'Aprovação Dupla',
+  VERSAO_DOCUMENTOS: 'Versionamento de Documentos',
+  ALERTAS_SEGURANCA: 'Alertas de Segurança',
 }
 
 export const AUDIT_WHITELIST = ['juliotrombetta@acersol.com.br']
@@ -70,4 +78,11 @@ export function hasAnyPermission(userPerms: string[], perms: string[]): boolean 
 
 export function canAccessAudit(email: string, userPerms: string[]): boolean {
   return AUDIT_WHITELIST.includes(email) && userPerms.includes('AUDITORIA_GLOBAL')
+}
+
+export function canAccessInvestigation(email: string, userPerms: string[]): boolean {
+  return (
+    AUDIT_WHITELIST.includes(email) &&
+    (userPerms.includes('AUDITORIA_GLOBAL') || userPerms.includes('INVESTIGACAO'))
+  )
 }

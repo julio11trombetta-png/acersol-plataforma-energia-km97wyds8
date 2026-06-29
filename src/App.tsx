@@ -43,6 +43,8 @@ import SecurityPage from './pages/dashboard/SecurityPage'
 import AuditModulePage from './pages/dashboard/AuditModulePage'
 import UserManagementPage from './pages/dashboard/UserManagementPage'
 import PermissionGroupsPage from './pages/dashboard/PermissionGroupsPage'
+import InvestigationPage from './pages/dashboard/InvestigationPage'
+import ApprovalsPage from './pages/dashboard/ApprovalsPage'
 import SupportPage from './pages/dashboard/SupportPage'
 import CMSPage from './pages/dashboard/CMSPage'
 import CRMPage from './pages/dashboard/CRMPage'
@@ -303,6 +305,8 @@ const AppContent = () => (
             <Route path="seguranca/auditoria" element={<AuditModulePage />} />
             <Route path="seguranca/usuarios" element={<UserManagementPage />} />
             <Route path="seguranca/permissoes" element={<PermissionGroupsPage />} />
+            <Route path="seguranca/investigacao" element={<InvestigationPage />} />
+            <Route path="seguranca/aprovacoes" element={<ApprovalsPage />} />
             <Route path="clientes/:id" element={<ClientProfile />} />
             <Route path="usinas/:id" element={<PlantProfile />} />
           </Route>
