@@ -38,6 +38,7 @@ import {
   Plug,
   Smartphone,
   Shield,
+  FileSignature,
 } from 'lucide-react'
 
 function ProtectedRoute({ children, role }: { children: React.ReactNode; role: string }) {
@@ -183,13 +184,10 @@ const AppContent = () => (
                 />
               }
             />
-            <Route
-              path="contratos"
-              element={
-                <ModulePlaceholder
+            <ModulePlaceholder
                   title="Contratos"
                   description="Gestão de contratos e assinaturas"
-                  icon={FileText}
+                  icon={FileSignature}
                   features={['CRUD', 'Upload', 'Assinatura']}
                 />
               }

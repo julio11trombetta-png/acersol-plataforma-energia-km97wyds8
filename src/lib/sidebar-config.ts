@@ -49,7 +49,7 @@ export const sidebarGroups: SidebarGroupConfig[] = [
     label: 'Financeiro',
     items: [
       { name: 'Financeiro', path: '/dashboard/admin/finance', icon: DollarSign },
-      { name: 'Contratos', path: '/dashboard/admin/contratos', icon: FileText },
+      { name: 'Contratos', path: '/dashboard/admin/contratos', icon: FileSignature },
     ],
   },
   {
