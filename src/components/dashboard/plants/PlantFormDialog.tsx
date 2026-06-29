@@ -21,7 +21,7 @@ import { UTILITY_PROVIDERS, BRAZILIAN_STATES } from '@/lib/regional-data'
 import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
-import { RelationshipField } from '@/components/dashboard/relationship/RelationshipField'
+import { SmartRelationField } from '@/components/dashboard/relationship/RelationshipField'
 import { createPlant, updatePlant, checkDocumentExists } from '@/services/plants'
 import { getAllClients, updateClient } from '@/services/clients'
 import { toast } from 'sonner'
@@ -251,9 +251,20 @@ export function PlantFormDialog({
             </Select>
           </div>
           <div className="md:col-span-2">
-            <RelationshipField
+            <SmartRelationField
               collection="clients"
-              searchFields={['name', 'document_number', 'phone', 'email', 'friendly_code']}
+              searchFields={[
+                'name',
+                'document_number',
+                'phone',
+                'email',
+                'friendly_code',
+                'uuid',
+                'whatsapp',
+                'city',
+                'state',
+                'associateStatus',
+              ]}
               displayField="name"
               secondaryFields={['document_number', 'friendly_code']}
               value={form.clientId || null}

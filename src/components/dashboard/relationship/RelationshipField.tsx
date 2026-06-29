@@ -4,11 +4,11 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { searchRecords, getRecordById } from '@/services/relationship-search'
 import { logAuditAction } from '@/services/audit-actions'
-import { ClientQuickModal } from './ClientQuickModal'
+import { EntityQuickModal } from './EntityQuickModal'
 import { HistoryModal } from './HistoryModal'
-import { Search, Plus, Eye, Edit, History, Loader2, X } from 'lucide-react'
+import { Search, Plus, Eye, Edit, History, Loader2, X, RefreshCw } from 'lucide-react'
 
-export interface RelationshipFieldProps {
+export interface SmartRelationFieldProps {
   collection: string
   searchFields: string[]
   displayField: string
@@ -20,7 +20,9 @@ export interface RelationshipFieldProps {
   entityName?: string
 }
 
-export function RelationshipField({
+export type RelationshipFieldProps = SmartRelationFieldProps
+
+export function SmartRelationField({
   collection,
   searchFields,
   displayField,
@@ -30,7 +32,7 @@ export function RelationshipField({
   label,
   placeholder = 'Buscar...',
   entityName = 'Registro',
-}: RelationshipFieldProps) {
+}: SmartRelationFieldProps) {
   const [search, setSearch] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [open, setOpen] = useState(false)
@@ -38,8 +40,8 @@ export function RelationshipField({
   const [loading, setLoading] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
-  const isClient = collection === 'clients'
 
   useEffect(() => {
     if (value) {
@@ -67,7 +69,7 @@ export function RelationshipField({
       }
     }, 300)
     return () => clearTimeout(t)
-  }, [search, open])
+  }, [search, open, refreshKey])
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
@@ -85,9 +87,6 @@ export function RelationshipField({
   }
 
   const handleAction = async (mode: 'create' | 'edit' | 'view') => {
-    if (!isClient) {
-      return
-    }
     if ((mode === 'edit' || mode === 'view') && record) {
       await logAuditAction({
         operation_type: 'View',
@@ -97,14 +96,15 @@ export function RelationshipField({
         record_id: record.id,
         record_uuid: record.uuid,
         record_friendly_code: record.friendly_code,
+        classification_level: '2',
       })
     }
     setModalMode(mode)
   }
 
-  const handleHistory = () => {
-    if (!record) return
-    setHistoryOpen(true)
+  const handleRefresh = () => {
+    setRefreshKey((k) => k + 1)
+    setOpen(true)
   }
 
   const secondaryText = (r: any) =>
@@ -116,8 +116,8 @@ export function RelationshipField({
   return (
     <div className="space-y-1" ref={ref}>
       <Label>{label}</Label>
-      <div className="flex gap-1.5">
-        <div className="relative flex-1">
+      <div className="flex gap-1.5 flex-wrap">
+        <div className="relative flex-1 min-w-[180px]">
           <Input
             value={record ? record[displayField] : search}
             onChange={(e) => {
@@ -229,24 +229,32 @@ export function RelationshipField({
           size="icon"
           variant="outline"
           disabled={!record}
-          onClick={handleHistory}
+          onClick={() => setHistoryOpen(true)}
           title="Histórico"
         >
           <History className="h-4 w-4" />
         </Button>
+        <Button
+          type="button"
+          size="icon"
+          variant="outline"
+          onClick={handleRefresh}
+          title="Atualizar lista"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </div>
-      {isClient && (
-        <ClientQuickModal
-          open={modalMode !== null}
-          onOpenChange={(v) => !v && setModalMode(null)}
-          editing={modalMode === 'edit' || modalMode === 'view' ? record : null}
-          readOnly={modalMode === 'view'}
-          onSaved={(r) => {
-            selectRecord(r)
-            setModalMode(null)
-          }}
-        />
-      )}
+      <EntityQuickModal
+        open={modalMode !== null}
+        onOpenChange={(v) => !v && setModalMode(null)}
+        collection={collection}
+        editing={modalMode === 'edit' || modalMode === 'view' ? record : null}
+        readOnly={modalMode === 'view'}
+        onSaved={(r) => {
+          selectRecord(r)
+          setModalMode(null)
+        }}
+      />
       <HistoryModal
         open={historyOpen}
         onOpenChange={setHistoryOpen}
@@ -256,3 +264,5 @@ export function RelationshipField({
     </div>
   )
 }
+
+export { SmartRelationField as RelationshipField }

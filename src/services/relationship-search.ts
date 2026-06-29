@@ -3,11 +3,14 @@ import pb from '@/lib/pocketbase/client'
 function prioritySort(a: any, b: any, query: string) {
   const q = query.toLowerCase()
   const score = (r: any) => {
-    if (r.friendly_code?.toLowerCase().includes(q)) return 5
-    if (r.name?.toLowerCase().includes(q)) return 4
-    if (r.document_number?.toLowerCase().includes(q)) return 3
-    if (r.city?.toLowerCase().includes(q)) return 2
-    if (r.company?.toLowerCase().includes(q)) return 1
+    if (r.friendly_code?.toLowerCase().includes(q)) return 7
+    if (r.uuid?.toLowerCase().includes(q)) return 6
+    if (r.name?.toLowerCase().includes(q)) return 5
+    if (r.company?.toLowerCase().includes(q)) return 5
+    if (r.document_number?.toLowerCase().includes(q)) return 4
+    if (r.city?.toLowerCase().includes(q)) return 3
+    if (r.phone?.toLowerCase().includes(q)) return 2
+    if (r.email?.toLowerCase().includes(q)) return 1
     return 0
   }
   return score(b) - score(a)
