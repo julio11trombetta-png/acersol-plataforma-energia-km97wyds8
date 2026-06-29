@@ -18,46 +18,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Plus, FileText, Trash2, Download } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import {
-  getAssociateDocuments,
-  createAssociateDocument,
-  deleteAssociateDocument,
-} from '@/services/associate-documents'
+import { Badge } from '@/components/ui/badge'
+import { Plus, MessageSquare } from 'lucide-react'
+import pb from '@/lib/pocketbase/client'
 import { getAllClients } from '@/services/clients'
 import { useRealtime } from '@/hooks/use-realtime'
 import { useAuth } from '@/stores/use-auth-store'
-import { ConfirmDialog } from '@/components/dashboard/association/ConfirmDialog'
-import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 
-const CATEGORIES = [
-  'RG',
-  'CPF',
-  'CNH',
-  'Contrato',
-  'Comprovante de Residência',
-  'Fatura',
-  'Procuração',
-  'Outros',
-]
+const TYPES = ['Contato', 'Pendência', 'Alteração', 'Reclamação', 'Solicitação']
+const STATUSES = ['Aberta', 'Em Andamento', 'Resolvida', 'Fechada']
 
-export default function DocumentsPage() {
+export default function OcorrenciasPage() {
   const { user } = useAuth()
   const [records, setRecords] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filterClient, setFilterClient] = useState('all')
   const [isOpen, setIsOpen] = useState(false)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [form, setForm] = useState({ clientId: '', category: 'RG', file: null as File | null })
+  const [form, setForm] = useState({
+    clientId: '',
+    type: 'Contato',
+    description: '',
+    date: new Date().toISOString().slice(0, 10),
+    status: 'Aberta',
+  })
 
   const loadData = async () => {
     try {
-      const [d, c] = await Promise.all([getAssociateDocuments(), getAllClients()])
+      const [d, c] = await Promise.all([
+        pb.collection('occurrences').getFullList({ sort: '-created', expand: 'clientId' }),
+        getAllClients(),
+      ])
       setRecords(d)
       setClients(c)
     } catch {
@@ -66,59 +61,54 @@ export default function DocumentsPage() {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     loadData()
   }, [])
-  useRealtime('associate_documents', () => loadData())
+  useRealtime('occurrences', () => loadData())
 
   const filtered =
     filterClient === 'all' ? records : records.filter((r) => r.clientId === filterClient)
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name || '—'
 
   const handleSubmit = async () => {
-    if (!form.clientId || !form.file) return toast.error('Selecione um associado e um arquivo')
+    if (!form.clientId || !form.description)
+      return toast.error('Associado e descrição são obrigatórios')
     try {
-      const fd = new FormData()
-      fd.append('clientId', form.clientId)
-      fd.append('category', form.category)
-      fd.append('file', form.file)
-      fd.append('fileName', form.file.name)
-      fd.append('uploadedBy', user?.id || '')
-      await createAssociateDocument(fd)
-      toast.success('Documento enviado!')
+      await pb.collection('occurrences').create({ ...form, userId: user?.id || '' })
+      toast.success('Ocorrência registrada!')
       setIsOpen(false)
-      setForm({ clientId: '', category: 'RG', file: null })
+      setForm({
+        clientId: '',
+        type: 'Contato',
+        description: '',
+        date: new Date().toISOString().slice(0, 10),
+        status: 'Aberta',
+      })
     } catch {
-      toast.error('Erro ao enviar')
+      toast.error('Erro ao registrar')
     }
   }
 
-  const handleDelete = async () => {
-    if (!deleteId) return
-    try {
-      await deleteAssociateDocument(deleteId)
-      toast.success('Documento excluído')
-    } catch {
-      toast.error('Erro')
-    } finally {
-      setDeleteId(null)
-    }
-  }
-
-  const fileUrl = (r: any) => (r.file ? pb.files.getUrl(r, r.file) : '#')
+  const statusCls = (s: string) =>
+    s === 'Resolvida' || s === 'Fechada'
+      ? 'text-green-600 bg-green-50 border-green-200 dark:bg-green-900/20'
+      : s === 'Em Andamento'
+        ? 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20'
+        : 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20'
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold">Documentos</h2>
-          <p className="text-muted-foreground">Central de documentos dos associados.</p>
+          <h2 className="text-3xl font-bold">Ocorrências</h2>
+          <p className="text-muted-foreground">Registro de ocorrências dos associados.</p>
         </div>
         <Button
           onClick={() => setIsOpen(true)}
           className="bg-brand-blue hover:bg-blue-800 text-white rounded-full"
         >
-          <Plus className="mr-2 h-4 w-4" /> Enviar Documento
+          <Plus className="mr-2 h-4 w-4" /> Nova Ocorrência
         </Button>
       </div>
       <Card>
@@ -147,9 +137,9 @@ export default function DocumentsPage() {
           ) : filtered.length === 0 ? (
             <div className="p-8">
               <EmptyState
-                icon={<FileText className="h-10 w-10 text-brand-blue opacity-80" />}
-                title="Nenhum documento"
-                description="Envie documentos para os associados."
+                icon={<MessageSquare className="h-10 w-10 text-brand-blue opacity-80" />}
+                title="Nenhuma ocorrência"
+                description="Registre ocorrências para os associados."
               />
             </div>
           ) : (
@@ -158,40 +148,33 @@ export default function DocumentsPage() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="pl-6">Associado</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Arquivo</TableHead>
-                    <TableHead>Enviado por</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Descrição</TableHead>
                     <TableHead>Data</TableHead>
-                    <TableHead className="text-right pr-6">Ações</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((r) => (
                     <TableRow key={r.id} className="hover:bg-muted/30">
-                      <TableCell className="pl-6 font-medium">{clientName(r.clientId)}</TableCell>
+                      <TableCell className="pl-6 font-medium">
+                        {r.expand?.clientId?.name || clientName(r.clientId)}
+                      </TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded-full bg-brand-blue/10 text-brand-blue">
-                          {r.category}
+                          {r.type}
                         </span>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {r.fileName || r.file || '—'}
+                      <TableCell className="text-muted-foreground max-w-xs truncate">
+                        {r.description}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {r.expand?.uploadedBy?.name || '—'}
+                        {r.date ? new Date(r.date).toLocaleDateString('pt-BR') : '—'}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {new Date(r.created).toLocaleDateString('pt-BR')}
-                      </TableCell>
-                      <TableCell className="text-right pr-6">
-                        <a href={fileUrl(r)} target="_blank" rel="noopener noreferrer">
-                          <Button variant="ghost" size="icon">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </a>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
+                      <TableCell>
+                        <Badge variant="outline" className={statusCls(r.status)}>
+                          {r.status}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -204,7 +187,7 @@ export default function DocumentsPage() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Enviar Documento</DialogTitle>
+            <DialogTitle>Nova Ocorrência</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1">
@@ -225,57 +208,67 @@ export default function DocumentsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <Label>Categoria *</Label>
-              <Select
-                value={form.category}
-                onValueChange={(v) => setForm({ ...form, category: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Tipo</Label>
+                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label>Status</Label>
+                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1">
-              <Label>Arquivo *</Label>
+              <Label>Data</Label>
               <Input
-                type="file"
-                accept="image/jpeg,image/png,application/pdf"
-                onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Descrição *</Label>
+              <Input
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              variant="outline"
-              className="rounded-full px-6"
-              onClick={() => setIsOpen(false)}
-            >
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="outline" className="rounded-full" onClick={() => setIsOpen(false)}>
               Cancelar
             </Button>
             <Button
-              className="bg-brand-blue hover:bg-blue-800 text-white rounded-full px-8"
+              className="bg-brand-blue hover:bg-blue-800 text-white rounded-full"
               onClick={handleSubmit}
             >
-              Enviar
+              Salvar
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-      <ConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(v) => !v && setDeleteId(null)}
-        onConfirm={handleDelete}
-        title="Excluir Documento"
-        description="Confirma a exclusão deste documento?"
-      />
     </div>
   )
 }

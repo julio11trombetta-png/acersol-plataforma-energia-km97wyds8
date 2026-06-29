@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
+import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
 import { ThemeToggle } from './ThemeToggle'
 import { GlobalSearch } from './GlobalSearch'
@@ -22,26 +22,18 @@ import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { SidebarNav } from './SidebarNav'
 import { sidebarGroups } from '@/lib/sidebar-config'
 
 export function DashboardLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   if (!user) return null
 
   const isDesktopAdmin = user.role === 'admin'
-  const isAdminActive = (path: string) =>
-    path === '/dashboard/admin' ? location.pathname === path : location.pathname.startsWith(path)
 
   const header = (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur flex h-16 items-center justify-between px-4 lg:px-8">
@@ -153,29 +145,7 @@ export function DashboardLayout() {
             <Logo />
           </SidebarHeader>
           <SidebarContent>
-            {sidebarGroups.map((group) => (
-              <SidebarGroup key={group.label}>
-                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {group.items.map((item) => (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={isAdminActive(item.path)}
-                          tooltip={item.name}
-                        >
-                          <Link to={item.path}>
-                            <item.icon className="w-4 h-4" />
-                            <span>{item.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            ))}
+            <SidebarNav groups={sidebarGroups} />
           </SidebarContent>
         </Sidebar>
         <SidebarInset className="min-h-screen bg-muted/20">

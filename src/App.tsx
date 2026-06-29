@@ -29,6 +29,15 @@ import SupportPage from './pages/dashboard/SupportPage'
 import CMSPage from './pages/dashboard/CMSPage'
 import CRMPage from './pages/dashboard/CRMPage'
 import SettingsPage from './pages/dashboard/SettingsPage'
+import AssociationDashboard from './pages/dashboard/association/AssociationDashboard'
+import Associados from './pages/dashboard/association/Associados'
+import ConsumerUnitsPage from './pages/dashboard/association/ConsumerUnitsPage'
+import DocumentsPage from './pages/dashboard/association/DocumentsPage'
+import ContractsPage from './pages/dashboard/association/ContractsPage'
+import DependentesPage from './pages/dashboard/association/DependentesPage'
+import HistoricoPage from './pages/dashboard/association/HistoricoPage'
+import PendenciasPage from './pages/dashboard/association/PendenciasPage'
+import OcorrenciasPage from './pages/dashboard/association/OcorrenciasPage'
 import {
   Building2,
   Activity,
@@ -162,6 +171,15 @@ const AppContent = () => (
             <Route path="governanca" element={<GovernancePage />} />
             <Route path="ia" element={<IAPage />} />
             <Route path="configuracoes" element={<SettingsPage />} />
+            <Route path="associacao" element={<AssociationDashboard />} />
+            <Route path="associacao/associados" element={<Associados />} />
+            <Route path="associacao/unidades-consumidoras" element={<ConsumerUnitsPage />} />
+            <Route path="associacao/documentos" element={<DocumentsPage />} />
+            <Route path="associacao/contratos" element={<ContractsPage />} />
+            <Route path="associacao/dependentes" element={<DependentesPage />} />
+            <Route path="associacao/historico" element={<HistoricoPage />} />
+            <Route path="associacao/pendencias" element={<PendenciasPage />} />
+            <Route path="associacao/ocorrencias" element={<OcorrenciasPage />} />
             <Route
               path="distribuidoras"
               element={

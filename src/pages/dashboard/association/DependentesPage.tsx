@@ -18,46 +18,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
-import { Plus, FileText, Trash2, Download } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import {
-  getAssociateDocuments,
-  createAssociateDocument,
-  deleteAssociateDocument,
-} from '@/services/associate-documents'
+import { Plus, Users, Edit, Trash2 } from 'lucide-react'
+import pb from '@/lib/pocketbase/client'
 import { getAllClients } from '@/services/clients'
 import { useRealtime } from '@/hooks/use-realtime'
-import { useAuth } from '@/stores/use-auth-store'
 import { ConfirmDialog } from '@/components/dashboard/association/ConfirmDialog'
-import pb from '@/lib/pocketbase/client'
 import { toast } from 'sonner'
 
-const CATEGORIES = [
-  'RG',
-  'CPF',
-  'CNH',
-  'Contrato',
-  'Comprovante de Residência',
-  'Fatura',
-  'Procuração',
-  'Outros',
-]
+const RELATIONSHIPS = ['Cônjuge', 'Filho(a)', 'Pai/Mãe', 'Irmão(ã)', 'Outro']
 
-export default function DocumentsPage() {
-  const { user } = useAuth()
+export default function DependentesPage() {
   const [records, setRecords] = useState<any[]>([])
   const [clients, setClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filterClient, setFilterClient] = useState('all')
   const [isOpen, setIsOpen] = useState(false)
+  const [editing, setEditing] = useState<any>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [form, setForm] = useState({ clientId: '', category: 'RG', file: null as File | null })
+  const [form, setForm] = useState({
+    clientId: '',
+    name: '',
+    relationship: 'Cônjuge',
+    phone: '',
+    email: '',
+    birthDate: '',
+  })
 
   const loadData = async () => {
     try {
-      const [d, c] = await Promise.all([getAssociateDocuments(), getAllClients()])
+      const [d, c] = await Promise.all([
+        pb.collection('dependents').getFullList({ sort: '-created' }),
+        getAllClients(),
+      ])
       setRecords(d)
       setClients(c)
     } catch {
@@ -66,38 +61,62 @@ export default function DocumentsPage() {
       setLoading(false)
     }
   }
+
   useEffect(() => {
     loadData()
   }, [])
-  useRealtime('associate_documents', () => loadData())
+  useRealtime('dependents', () => loadData())
 
   const filtered =
     filterClient === 'all' ? records : records.filter((r) => r.clientId === filterClient)
   const clientName = (id: string) => clients.find((c) => c.id === id)?.name || '—'
 
+  const openDialog = (r?: any) => {
+    if (r) {
+      setEditing(r)
+      setForm({
+        clientId: r.clientId,
+        name: r.name,
+        relationship: r.relationship || 'Cônjuge',
+        phone: r.phone || '',
+        email: r.email || '',
+        birthDate: r.birthDate || '',
+      })
+    } else {
+      setEditing(null)
+      setForm({
+        clientId: '',
+        name: '',
+        relationship: 'Cônjuge',
+        phone: '',
+        email: '',
+        birthDate: '',
+      })
+    }
+    setIsOpen(true)
+  }
+
   const handleSubmit = async () => {
-    if (!form.clientId || !form.file) return toast.error('Selecione um associado e um arquivo')
+    if (!form.clientId || !form.name) return toast.error('Associado e nome são obrigatórios')
     try {
-      const fd = new FormData()
-      fd.append('clientId', form.clientId)
-      fd.append('category', form.category)
-      fd.append('file', form.file)
-      fd.append('fileName', form.file.name)
-      fd.append('uploadedBy', user?.id || '')
-      await createAssociateDocument(fd)
-      toast.success('Documento enviado!')
+      if (editing) {
+        await pb.collection('dependents').update(editing.id, form)
+        toast.success('Dependente atualizado!')
+      } else {
+        await pb.collection('dependents').create(form)
+        toast.success('Dependente criado!')
+      }
       setIsOpen(false)
-      setForm({ clientId: '', category: 'RG', file: null })
     } catch {
-      toast.error('Erro ao enviar')
+      toast.error('Erro ao salvar')
     }
   }
 
   const handleDelete = async () => {
     if (!deleteId) return
     try {
-      await deleteAssociateDocument(deleteId)
-      toast.success('Documento excluído')
+      await pb.collection('dependents').delete(deleteId)
+      toast.success('Dependente excluído')
     } catch {
       toast.error('Erro')
     } finally {
@@ -105,20 +124,18 @@ export default function DocumentsPage() {
     }
   }
 
-  const fileUrl = (r: any) => (r.file ? pb.files.getUrl(r, r.file) : '#')
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-3xl font-bold">Documentos</h2>
-          <p className="text-muted-foreground">Central de documentos dos associados.</p>
+          <h2 className="text-3xl font-bold">Dependentes</h2>
+          <p className="text-muted-foreground">Gestão de dependentes dos associados.</p>
         </div>
         <Button
-          onClick={() => setIsOpen(true)}
+          onClick={() => openDialog()}
           className="bg-brand-blue hover:bg-blue-800 text-white rounded-full"
         >
-          <Plus className="mr-2 h-4 w-4" /> Enviar Documento
+          <Plus className="mr-2 h-4 w-4" /> Novo Dependente
         </Button>
       </div>
       <Card>
@@ -147,9 +164,9 @@ export default function DocumentsPage() {
           ) : filtered.length === 0 ? (
             <div className="p-8">
               <EmptyState
-                icon={<FileText className="h-10 w-10 text-brand-blue opacity-80" />}
-                title="Nenhum documento"
-                description="Envie documentos para os associados."
+                icon={<Users className="h-10 w-10 text-brand-blue opacity-80" />}
+                title="Nenhum dependente"
+                description="Cadastre dependentes para os associados."
               />
             </div>
           ) : (
@@ -158,10 +175,10 @@ export default function DocumentsPage() {
                 <TableHeader className="bg-muted/30">
                   <TableRow>
                     <TableHead className="pl-6">Associado</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Arquivo</TableHead>
-                    <TableHead>Enviado por</TableHead>
-                    <TableHead>Data</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Parentesco</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Nascimento</TableHead>
                     <TableHead className="text-right pr-6">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -169,26 +186,22 @@ export default function DocumentsPage() {
                   {filtered.map((r) => (
                     <TableRow key={r.id} className="hover:bg-muted/30">
                       <TableCell className="pl-6 font-medium">{clientName(r.clientId)}</TableCell>
+                      <TableCell>{r.name}</TableCell>
                       <TableCell>
                         <span className="text-xs px-2 py-1 rounded-full bg-brand-blue/10 text-brand-blue">
-                          {r.category}
+                          {r.relationship || '—'}
                         </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {r.fileName || r.file || '—'}
+                        {r.phone || r.email || '—'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {r.expand?.uploadedBy?.name || '—'}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {new Date(r.created).toLocaleDateString('pt-BR')}
+                        {r.birthDate ? new Date(r.birthDate).toLocaleDateString('pt-BR') : '—'}
                       </TableCell>
                       <TableCell className="text-right pr-6">
-                        <a href={fileUrl(r)} target="_blank" rel="noopener noreferrer">
-                          <Button variant="ghost" size="icon">
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </a>
+                        <Button variant="ghost" size="icon" onClick={() => openDialog(r)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
@@ -204,10 +217,10 @@ export default function DocumentsPage() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Enviar Documento</DialogTitle>
+            <DialogTitle>{editing ? 'Editar Dependente' : 'Novo Dependente'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2 space-y-1">
               <Label>Associado *</Label>
               <Select
                 value={form.clientId}
@@ -225,30 +238,51 @@ export default function DocumentsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="col-span-2 space-y-1">
+              <Label>Nome *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
             <div className="space-y-1">
-              <Label>Categoria *</Label>
+              <Label>Parentesco</Label>
               <Select
-                value={form.category}
-                onValueChange={(v) => setForm({ ...form, category: v })}
+                value={form.relationship}
+                onValueChange={(v) => setForm({ ...form, relationship: v })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                  {RELATIONSHIPS.map((r) => (
+                    <SelectItem key={r} value={r}>
+                      {r}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Arquivo *</Label>
+              <Label>Telefone</Label>
               <Input
-                type="file"
-                accept="image/jpeg,image/png,application/pdf"
-                onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>E-mail</Label>
+              <Input
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Nascimento</Label>
+              <Input
+                type="date"
+                value={form.birthDate}
+                onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
               />
             </div>
           </div>
@@ -264,7 +298,7 @@ export default function DocumentsPage() {
               className="bg-brand-blue hover:bg-blue-800 text-white rounded-full px-8"
               onClick={handleSubmit}
             >
-              Enviar
+              Salvar
             </Button>
           </div>
         </DialogContent>
@@ -273,8 +307,8 @@ export default function DocumentsPage() {
         open={!!deleteId}
         onOpenChange={(v) => !v && setDeleteId(null)}
         onConfirm={handleDelete}
-        title="Excluir Documento"
-        description="Confirma a exclusão deste documento?"
+        title="Excluir Dependente"
+        description="Confirma a exclusão deste dependente?"
       />
     </div>
   )
