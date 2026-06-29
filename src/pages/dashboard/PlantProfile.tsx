@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Zap } from 'lucide-react'
+import { ArrowLeft, Zap, History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,6 +9,9 @@ import { getPlantById } from '@/services/plants'
 import { PlantInfoTab } from '@/components/dashboard/PlantInfoTab'
 import { PlantGenerationTab } from '@/components/dashboard/PlantGenerationTab'
 import { AdminPasswordManagement } from '@/components/dashboard/AdminPasswordManagement'
+import { AuditHistory } from '@/components/dashboard/AuditHistory'
+import { RelatedRecordsTab } from '@/components/dashboard/relationship/RelatedRecordsTab'
+import { HistoryModal } from '@/components/dashboard/relationship/HistoryModal'
 import { useRealtime } from '@/hooks/use-realtime'
 
 export default function PlantProfile() {
@@ -16,13 +19,14 @@ export default function PlantProfile() {
   const navigate = useNavigate()
   const [plant, setPlant] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const loadData = async () => {
     if (!id) return
     try {
       setPlant(await getPlantById(id))
     } catch {
-      /* intentionally ignored */
+      /* */
     } finally {
       setLoading(false)
     }
@@ -77,23 +81,49 @@ export default function PlantProfile() {
             <div className="flex items-center gap-2 mt-1">
               <Badge
                 variant="secondary"
-                className="font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900"
+                className="font-bold bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
               >
                 {plant.capacity} kW
               </Badge>
               <span className="text-sm text-muted-foreground">{plant.location}</span>
+              {plant.friendly_code && (
+                <span className="text-xs font-mono text-brand-blue">{plant.friendly_code}</span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setHistoryOpen(true)}
+                className="h-7 gap-1"
+              >
+                <History className="h-3.5 w-3.5" /> Histórico
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="info" className="w-full">
-        <TabsList className="mb-4 h-12 p-1 bg-muted/50 rounded-xl">
+        <TabsList className="mb-4 h-12 p-1 bg-muted/50 rounded-xl flex flex-wrap overflow-x-auto">
           <TabsTrigger value="info" className="rounded-lg">
             Informações
           </TabsTrigger>
           <TabsTrigger value="generation" className="rounded-lg">
-            Geração Mensal
+            Geração
+          </TabsTrigger>
+          <TabsTrigger value="equipments" className="rounded-lg">
+            Equipamentos
+          </TabsTrigger>
+          <TabsTrigger value="maintenances" className="rounded-lg">
+            Manutenções
+          </TabsTrigger>
+          <TabsTrigger value="documents" className="rounded-lg">
+            Documentos
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="rounded-lg">
+            Contratos
+          </TabsTrigger>
+          <TabsTrigger value="audit" className="rounded-lg">
+            Auditoria
           </TabsTrigger>
           <TabsTrigger value="security" className="rounded-lg">
             Segurança
@@ -105,6 +135,57 @@ export default function PlantProfile() {
         <TabsContent value="generation">
           <PlantGenerationTab plantId={plant.id} plantName={plant.name} />
         </TabsContent>
+        <TabsContent value="equipments">
+          <RelatedRecordsTab
+            collection="plant_equipments"
+            filterField="plantId"
+            filterValue={plant.id}
+            columns={[
+              { field: 'type', label: 'Tipo' },
+              { field: 'manufacturer', label: 'Fabricante' },
+              { field: 'model', label: 'Modelo' },
+              { field: 'status', label: 'Status' },
+            ]}
+          />
+        </TabsContent>
+        <TabsContent value="maintenances">
+          <RelatedRecordsTab
+            collection="plant_maintenances"
+            filterField="plantId"
+            filterValue={plant.id}
+            columns={[
+              { field: 'type', label: 'Tipo' },
+              { field: 'date', label: 'Data' },
+              { field: 'status', label: 'Status' },
+            ]}
+          />
+        </TabsContent>
+        <TabsContent value="documents">
+          <RelatedRecordsTab
+            collection="plant_documents"
+            filterField="plantId"
+            filterValue={plant.id}
+            columns={[
+              { field: 'category', label: 'Categoria' },
+              { field: 'fileName', label: 'Arquivo' },
+            ]}
+          />
+        </TabsContent>
+        <TabsContent value="contracts">
+          <RelatedRecordsTab
+            collection="contracts"
+            filterField="plantId"
+            filterValue={plant.id}
+            columns={[
+              { field: 'title', label: 'Contrato' },
+              { field: 'status', label: 'Status' },
+            ]}
+            friendlyCodeCollection="contracts"
+          />
+        </TabsContent>
+        <TabsContent value="audit">
+          <AuditHistory recordId={plant.id} />
+        </TabsContent>
         <TabsContent value="security">
           <AdminPasswordManagement
             documentNumber={plant.document_number || ''}
@@ -112,6 +193,12 @@ export default function PlantProfile() {
           />
         </TabsContent>
       </Tabs>
+      <HistoryModal
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        record={plant}
+        collection="plants"
+      />
     </div>
   )
 }

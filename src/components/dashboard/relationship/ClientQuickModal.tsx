@@ -345,16 +345,48 @@ export function ClientQuickModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Cadastro já existe</AlertDialogTitle>
             <AlertDialogDescription>
-              Este cadastro já existe no sistema. Deseja utilizá-lo?
+              Já existe um registro com este documento no sistema.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {dupRecord && (
+            <div className="space-y-2 py-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Código:</span>
+                <span className="text-sm font-mono text-brand-blue">
+                  {dupRecord.friendly_code || '—'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Nome:</span>
+                <span className="text-sm font-medium">{dupRecord.name}</span>
+              </div>
+              {dupRecord.city && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Cidade:</span>
+                  <span className="text-sm">{dupRecord.city}</span>
+                </div>
+              )}
+              {dupRecord.phone && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Telefone:</span>
+                  <span className="text-sm">{dupRecord.phone}</span>
+                </div>
+              )}
+              {dupRecord.profiles && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Perfis:</span>
+                  <span className="text-sm">{dupRecord.profiles}</span>
+                </div>
+              )}
+            </div>
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDupConfirm}
               className="bg-brand-blue hover:bg-blue-800 text-white"
             >
-              Sim, utilizar
+              Selecionar Existente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

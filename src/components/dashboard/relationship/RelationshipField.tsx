@@ -3,10 +3,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { searchRecords, getRecordById } from '@/services/relationship-search'
+import { logAuditAction } from '@/services/audit-actions'
 import { ClientQuickModal } from './ClientQuickModal'
-import { Search, Plus, Eye, Edit, RefreshCw, Loader2, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
+import { HistoryModal } from './HistoryModal'
+import { Search, Plus, Eye, Edit, History, Loader2, X } from 'lucide-react'
 
 export interface RelationshipFieldProps {
   collection: string
@@ -37,7 +37,7 @@ export function RelationshipField({
   const [record, setRecord] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const isClient = collection === 'clients'
 
@@ -84,26 +84,27 @@ export function RelationshipField({
     setOpen(false)
   }
 
-  const handleRefresh = async () => {
-    if (!value) return
-    setRefreshing(true)
-    try {
-      const r = await getRecordById(collection, value)
-      setRecord(r)
-      onChange(r)
-    } catch {
-      toast.error('Erro ao atualizar')
-    } finally {
-      setRefreshing(false)
-    }
-  }
-
-  const handleAction = (mode: 'create' | 'edit' | 'view') => {
+  const handleAction = async (mode: 'create' | 'edit' | 'view') => {
     if (!isClient) {
-      toast.info(`Quick ${mode} disponível apenas para associados`)
       return
     }
+    if ((mode === 'edit' || mode === 'view') && record) {
+      await logAuditAction({
+        operation_type: 'View',
+        module: collection,
+        screen: `${collection}_${mode}`,
+        collection_name: collection,
+        record_id: record.id,
+        record_uuid: record.uuid,
+        record_friendly_code: record.friendly_code,
+      })
+    }
     setModalMode(mode)
+  }
+
+  const handleHistory = () => {
+    if (!record) return
+    setHistoryOpen(true)
   }
 
   const secondaryText = (r: any) =>
@@ -166,6 +167,9 @@ export function RelationshipField({
                     {secondaryFields.length > 0 && (
                       <div className="text-xs text-muted-foreground">{secondaryText(r)}</div>
                     )}
+                    {r.friendly_code && (
+                      <div className="text-xs font-mono text-brand-blue">{r.friendly_code}</div>
+                    )}
                   </button>
                 ))
               )}
@@ -224,11 +228,11 @@ export function RelationshipField({
           type="button"
           size="icon"
           variant="outline"
-          disabled={!record || refreshing}
-          onClick={handleRefresh}
-          title="Atualizar"
+          disabled={!record}
+          onClick={handleHistory}
+          title="Histórico"
         >
-          <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
+          <History className="h-4 w-4" />
         </Button>
       </div>
       {isClient && (
@@ -243,6 +247,12 @@ export function RelationshipField({
           }}
         />
       )}
+      <HistoryModal
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        record={record}
+        collection={collection}
+      />
     </div>
   )
 }
