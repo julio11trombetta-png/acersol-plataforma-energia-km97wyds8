@@ -34,10 +34,15 @@ import ClientProfile from './pages/dashboard/ClientProfile'
 import PlantProfile from './pages/dashboard/PlantProfile'
 import { ThemeProvider } from './stores/use-theme-store'
 import { AuthProvider, useAuth } from './stores/use-auth-store'
+import { PermissionsProvider } from './stores/use-permissions-store'
 import ForcePasswordChange from './pages/ForcePasswordChange'
 import { ModulePlaceholder } from './components/dashboard/ModulePlaceholder'
 import IAPage from './pages/dashboard/IAPage'
 import GovernancePage from './pages/dashboard/GovernancePage'
+import SecurityPage from './pages/dashboard/SecurityPage'
+import AuditModulePage from './pages/dashboard/AuditModulePage'
+import UserManagementPage from './pages/dashboard/UserManagementPage'
+import PermissionGroupsPage from './pages/dashboard/PermissionGroupsPage'
 import SupportPage from './pages/dashboard/SupportPage'
 import CMSPage from './pages/dashboard/CMSPage'
 import CRMPage from './pages/dashboard/CRMPage'
@@ -295,6 +300,9 @@ const AppContent = () => (
                 />
               }
             />
+            <Route path="seguranca/auditoria" element={<AuditModulePage />} />
+            <Route path="seguranca/usuarios" element={<UserManagementPage />} />
+            <Route path="seguranca/permissoes" element={<PermissionGroupsPage />} />
             <Route path="clientes/:id" element={<ClientProfile />} />
             <Route path="usinas/:id" element={<PlantProfile />} />
           </Route>
@@ -310,7 +318,9 @@ const AppContent = () => (
 const App = () => (
   <ThemeProvider defaultTheme="system" storageKey="acersol-theme">
     <AuthProvider>
-      <AppContent />
+      <PermissionsProvider>
+        <AppContent />
+      </PermissionsProvider>
     </AuthProvider>
   </ThemeProvider>
 )

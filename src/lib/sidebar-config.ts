@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   MessageSquare,
   UserCheck,
+  KeyRound,
   type LucideIcon,
 } from 'lucide-react'
 
