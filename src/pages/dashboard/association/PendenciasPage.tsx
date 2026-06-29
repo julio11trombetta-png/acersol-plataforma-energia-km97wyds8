@@ -16,24 +16,18 @@ export default function PendenciasPage() {
   const loadData = async () => {
     try {
       const [clients, invs, ticks] = await Promise.all([
-        pb
-          .collection('clients')
-          .getFullList({
-            filter:
-              'associateStatus = "Pendente" || associateStatus = "Em Análise" || associateStatus = "Bloqueado"',
-          }),
-        pb
-          .collection('invoices')
-          .getFullList({
-            filter: 'status = "Pendente" || status = "Atrasado"',
-            expand: 'clientId',
-          }),
-        pb
-          .collection('tickets')
-          .getFullList({
-            filter: 'status = "Aberto" || status = "Em Andamento"',
-            expand: 'clientId',
-          }),
+        pb.collection('clients').getFullList({
+          filter:
+            'associateStatus = "Pendente" || associateStatus = "Em Análise" || associateStatus = "Bloqueado"',
+        }),
+        pb.collection('invoices').getFullList({
+          filter: 'status = "Pendente" || status = "Atrasado"',
+          expand: 'clientId',
+        }),
+        pb.collection('tickets').getFullList({
+          filter: 'status = "Aberto" || status = "Em Andamento"',
+          expand: 'clientId',
+        }),
       ])
       setPending(clients)
       setInvoices(invs)
