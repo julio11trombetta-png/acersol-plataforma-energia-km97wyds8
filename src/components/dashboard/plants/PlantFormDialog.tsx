@@ -22,7 +22,7 @@ import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
 import { createPlant, updatePlant, checkDocumentExists } from '@/services/plants'
-import { getAllClients } from '@/services/clients'
+import { getAllClients, updateClient } from '@/services/clients'
 import { toast } from 'sonner'
 import { Search, Loader2 } from 'lucide-react'
 
@@ -64,6 +64,7 @@ const empty = {
   email: '',
   location: '',
   observacoes: '',
+  plant_type: 'Própria da ACERSOL',
 }
 
 export function PlantFormDialog({
@@ -96,6 +97,47 @@ export function PlantFormDialog({
   }, [open, editing])
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }))
+
+  const handleOwnerSelect = (clientId: string) => {
+    set('clientId', clientId)
+    if (!clientId) return
+    const client = clients.find((c) => c.id === clientId)
+    if (!client) return
+    if (client.document_number) set('document_number', client.document_number)
+    if (client.phone) set('phone', client.phone)
+    if (client.email) set('email', client.email)
+    if (client.city) set('city', client.city)
+    if (client.state) set('state', client.state)
+    if (client.address) set('address', client.address)
+    const profiles: string[] = (() => {
+      try {
+        const p = client.profiles
+        return typeof p === 'string' ? JSON.parse(p || '[]') : Array.isArray(p) ? p : []
+      } catch {
+        return []
+      }
+    })()
+    if (!profiles.includes('Proprietário de Usina')) {
+      toast.warning(
+        'Deseja adicionar automaticamente o perfil Proprietário de Usina para este cadastro?',
+        {
+          duration: 8000,
+          action: {
+            label: 'Sim, adicionar',
+            onClick: async () => {
+              try {
+                const updatedProfiles = [...profiles, 'Proprietário de Usina']
+                await updateClient(client.id, { profiles: JSON.stringify(updatedProfiles) })
+                toast.success('Perfil Proprietário de Usina adicionado!')
+              } catch {
+                toast.error('Erro ao adicionar perfil')
+              }
+            },
+          },
+        },
+      )
+    }
+  }
 
   const handleCEP = async () => {
     const cep = form.zipCode?.replace(/\D/g, '') || ''
@@ -150,7 +192,11 @@ export function PlantFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editing ? 'Editar Usina' : 'Nova Usina'}</DialogTitle>
+          <DialogTitle>
+            {editing
+              ? `Editar Usina${editing.friendly_code ? ' · ' + editing.friendly_code : ''}`
+              : 'Nova Usina'}
+          </DialogTitle>
           <DialogDescription>Preencha os dados técnicos da usina.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -181,10 +227,32 @@ export function PlantFormDialog({
             </Select>
           </div>
           <div className="space-y-1">
+            <Label>Tipo da Usina</Label>
+            <Select value={form.plant_type} onValueChange={(v) => set('plant_type', v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  'Própria da ACERSOL',
+                  'Usina Alocada',
+                  'Usina Parceira',
+                  'Usina Arrendada',
+                  'Usina de Investidor',
+                  'Outro',
+                ].map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label>Proprietário</Label>
             <Select
               value={form.clientId || 'none'}
-              onValueChange={(v) => set('clientId', v === 'none' ? '' : v)}
+              onValueChange={(v) => handleOwnerSelect(v === 'none' ? '' : v)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione" />

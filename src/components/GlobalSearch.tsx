@@ -41,15 +41,19 @@ export function GlobalSearch() {
     Promise.all([
       pb
         .collection('clients')
-        .getList(1, 5, { filter: `name ~ "${q}"` })
+        .getList(1, 5, {
+          filter: `name ~ "${q}" || friendly_code ~ "${q}" || uuid ~ "${q}" || document_number ~ "${q}"`,
+        })
         .catch(() => ({ items: [] })),
       pb
         .collection('plants')
-        .getList(1, 5, { filter: `name ~ "${q}"` })
+        .getList(1, 5, {
+          filter: `name ~ "${q}" || friendly_code ~ "${q}" || uuid ~ "${q}" || document_number ~ "${q}"`,
+        })
         .catch(() => ({ items: [] })),
       pb
         .collection('crm_leads')
-        .getList(1, 5, { filter: `company ~ "${q}"` })
+        .getList(1, 5, { filter: `company ~ "${q}" || friendly_code ~ "${q}" || uuid ~ "${q}"` })
         .catch(() => ({ items: [] })),
     ]).then(([c, p, l]) => {
       setClients(c.items)
@@ -80,6 +84,11 @@ export function GlobalSearch() {
                 }}
               >
                 <Users className="mr-2 h-4 w-4" /> {c.name}
+                {c.friendly_code && (
+                  <span className="ml-1 text-xs text-muted-foreground font-mono">
+                    {c.friendly_code}
+                  </span>
+                )}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -95,6 +104,11 @@ export function GlobalSearch() {
                 }}
               >
                 <Zap className="mr-2 h-4 w-4" /> {p.name}
+                {p.friendly_code && (
+                  <span className="ml-1 text-xs text-muted-foreground font-mono">
+                    {p.friendly_code}
+                  </span>
+                )}
               </CommandItem>
             ))}
           </CommandGroup>
@@ -104,6 +118,11 @@ export function GlobalSearch() {
             {leads.map((l) => (
               <CommandItem key={l.id} onSelect={() => setOpen(false)}>
                 <TrendingUp className="mr-2 h-4 w-4" /> {l.company}
+                {l.friendly_code && (
+                  <span className="ml-1 text-xs text-muted-foreground font-mono">
+                    {l.friendly_code}
+                  </span>
+                )}
               </CommandItem>
             ))}
           </CommandGroup>

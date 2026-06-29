@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-29T12:25:41.776Z",
+  "generatedAt": "2026-06-29T16:57:36.076Z",
   "collections": [
     {
       "name": "users",
@@ -248,10 +248,30 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "profiles",
+          "type": "json",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
-        "CREATE UNIQUE INDEX `idx_clients_document_number` ON `clients` (document_number) WHERE document_number IS NOT NULL AND document_number != ''"
+        "CREATE UNIQUE INDEX `idx_clients_document_number` ON `clients` (document_number) WHERE document_number IS NOT NULL AND document_number != ''",
+        "CREATE INDEX `idx_clients_uuid` ON `clients` (uuid)",
+        "CREATE INDEX `idx_clients_fcode` ON `clients` (friendly_code)"
       ]
     },
     {
@@ -479,10 +499,38 @@
           "required": false,
           "system": false,
           "collectionRef": "clients"
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "plant_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Própria da ACERSOL",
+            "Usina Alocada",
+            "Usina Parceira",
+            "Usina Arrendada",
+            "Usina de Investidor",
+            "Outro"
+          ]
         }
       ],
       "indexes": [
-        "CREATE UNIQUE INDEX `idx_plants_document_number` ON `plants` (document_number) WHERE document_number IS NOT NULL AND document_number != ''"
+        "CREATE UNIQUE INDEX `idx_plants_document_number` ON `plants` (document_number) WHERE document_number IS NOT NULL AND document_number != ''",
+        "CREATE INDEX `idx_plants_uuid` ON `plants` (uuid)",
+        "CREATE INDEX `idx_plants_fcode` ON `plants` (friendly_code)"
       ]
     },
     {
@@ -534,9 +582,24 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_crm_leads_uuid` ON `crm_leads` (uuid)",
+        "CREATE INDEX `idx_crm_leads_fcode` ON `crm_leads` (friendly_code)"
+      ]
     },
     {
       "name": "invoices",
@@ -594,9 +657,24 @@
           "type": "date",
           "required": false,
           "system": false
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_invoices_uuid` ON `invoices` (uuid)",
+        "CREATE INDEX `idx_invoices_fcode` ON `invoices` (friendly_code)"
+      ]
     },
     {
       "name": "consumptions",
@@ -647,9 +725,24 @@
           "required": false,
           "system": false,
           "collectionRef": "clients"
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_consumptions_uuid` ON `consumptions` (uuid)",
+        "CREATE INDEX `idx_consumptions_fcode` ON `consumptions` (friendly_code)"
+      ]
     },
     {
       "name": "plant_generation",
@@ -731,9 +824,24 @@
           "type": "text",
           "required": false,
           "system": false
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_plant_generation_uuid` ON `plant_generation` (uuid)",
+        "CREATE INDEX `idx_plant_generation_fcode` ON `plant_generation` (friendly_code)"
+      ]
     },
     {
       "name": "password_management_logs",
@@ -902,9 +1010,24 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_tickets_uuid` ON `tickets` (uuid)",
+        "CREATE INDEX `idx_tickets_fcode` ON `tickets` (friendly_code)"
+      ]
     },
     {
       "name": "news",
@@ -1196,9 +1319,24 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_contracts_uuid` ON `contracts` (uuid)",
+        "CREATE INDEX `idx_contracts_fcode` ON `contracts` (friendly_code)"
+      ]
     },
     {
       "name": "knowledge_base",
@@ -1580,9 +1718,24 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_associate_documents_uuid` ON `associate_documents` (uuid)",
+        "CREATE INDEX `idx_associate_documents_fcode` ON `associate_documents` (friendly_code)"
+      ]
     },
     {
       "name": "dependents",
@@ -1959,9 +2112,183 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_plant_documents_uuid` ON `plant_documents` (uuid)",
+        "CREATE INDEX `idx_plant_documents_fcode` ON `plant_documents` (friendly_code)"
+      ]
+    },
+    {
+      "name": "audit_logs",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "view": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "create": "@request.auth.id != ''",
+        "update": null,
+        "delete": null
+      },
+      "fields": [
+        {
+          "name": "protocol",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "operation_uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "userId",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "user_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "user_profile",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "module",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "screen",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "collection_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "record_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "record_uuid",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "record_friendly_code",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "operation_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Create",
+            "Update",
+            "Delete",
+            "View",
+            "Import",
+            "Export",
+            "Login",
+            "Logout",
+            "Upload",
+            "Download"
+          ]
+        },
+        {
+          "name": "field_changes",
+          "type": "json",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "ip_address",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "browser",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "os",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "device",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "session_id",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "operation_hash",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_audit_logs_protocol ON audit_logs (protocol)",
+        "CREATE INDEX idx_audit_logs_record ON audit_logs (record_id)",
+        "CREATE INDEX idx_audit_logs_created ON audit_logs (created DESC)"
+      ]
     }
   ]
 }
