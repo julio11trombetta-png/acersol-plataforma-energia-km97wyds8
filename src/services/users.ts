@@ -23,3 +23,10 @@ export const adminForcePasswordChange = (documentNumber: string, value = true) =
 
 export const getUserByDocument = (documentNumber: string) =>
   pb.send(`/backend/v1/user-status/${documentNumber.replace(/\D/g, '')}`, { method: 'GET' })
+
+export const resetPasswordById = (userId: string) =>
+  pb.send('/backend/v1/password/admin-reset-by-id', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+    headers: { 'Content-Type': 'application/json' },
+  })

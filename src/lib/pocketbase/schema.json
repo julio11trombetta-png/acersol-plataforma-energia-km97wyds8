@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-06-29T18:40:28.634Z",
+  "generatedAt": "2026-06-29T20:55:38.150Z",
   "collections": [
     {
       "name": "users",
       "type": "auth",
       "apiRules": {
-        "list": "id = @request.auth.id",
-        "view": "id = @request.auth.id",
-        "create": "",
-        "update": "id = @request.auth.id",
-        "delete": "id = @request.auth.id"
+        "list": "@request.auth.id != '' && (@request.auth.role = 'admin' || id = @request.auth.id)",
+        "view": "@request.auth.id != '' && (@request.auth.role = 'admin' || id = @request.auth.id)",
+        "create": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "update": "id = @request.auth.id || @request.auth.role = 'admin'",
+        "delete": "id = @request.auth.id || @request.auth.role = 'admin'"
       },
       "fields": [
         {
@@ -39,13 +39,6 @@
           "autodateTriggers": ["onCreate", "onUpdate"]
         },
         {
-          "name": "role",
-          "type": "select",
-          "required": false,
-          "system": false,
-          "selectValues": ["client", "owner", "admin"]
-        },
-        {
           "name": "force_password_change",
           "type": "bool",
           "required": false,
@@ -65,6 +58,142 @@
         },
         {
           "name": "last_login",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "role",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["client", "owner", "admin", "employee", "distributor"]
+        },
+        {
+          "name": "employee_type",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "department",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Diretoria",
+            "Financeiro",
+            "Comercial",
+            "Marketing",
+            "Jurídico",
+            "Tecnologia",
+            "Relacionamento",
+            "Operações",
+            "Administrativo",
+            "Outro"
+          ]
+        },
+        {
+          "name": "position",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": [
+            "Administrador",
+            "Diretor",
+            "Gerente",
+            "Financeiro",
+            "Contador",
+            "Comercial",
+            "Marketing",
+            "Publicidade",
+            "Atendimento",
+            "Suporte",
+            "Jurídico",
+            "TI",
+            "Consultor",
+            "Operador",
+            "Estagiário",
+            "Outro"
+          ]
+        },
+        {
+          "name": "position_custom",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "department_custom",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cpf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "rg",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "birth_date",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "whatsapp",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Ativo", "Inativo", "Férias", "Desligado"]
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created_by",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "updated_by",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "deleted_at",
           "type": "date",
           "required": false,
           "system": false

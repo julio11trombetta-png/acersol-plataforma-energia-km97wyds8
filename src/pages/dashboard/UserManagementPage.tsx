@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -6,157 +6,247 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Users, Shield, Clock, Monitor, Smartphone, LogOut } from 'lucide-react'
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Users, Shield, UserPlus, Building2, Wifi, KeyRound } from 'lucide-react'
 import pb from '@/lib/pocketbase/client'
 import { useRealtime } from '@/hooks/use-realtime'
-import { getActiveSessions, revokeSession, getLoginHistoryByUser } from '@/services/sessions'
 import {
-  getAllUserPermissions,
-  updateUserPermissions,
-  getUserPermissions,
-} from '@/services/permissions'
-import { getPermissionGroups } from '@/services/permissions'
-import { ALL_PERMISSIONS, PERMISSION_LABELS } from '@/lib/permissions'
+  getCollaborators,
+  resetPasswordById,
+  toggleBlockUser,
+  deactivateUser,
+  softDeleteUser,
+  deleteCollaborator,
+  checkUserHasHistory,
+} from '@/services/collaborators'
+import { getAllUserPermissions } from '@/services/permissions'
+import { getActiveSessions } from '@/services/sessions'
+import { logAuditAction } from '@/services/audit-actions'
+import { CollaboratorFormDialog } from '@/components/dashboard/collaborators/CollaboratorFormDialog'
+import { AdvancedPermissionsModal } from '@/components/dashboard/collaborators/AdvancedPermissionsModal'
+import { CollaboratorActionsMenu } from '@/components/dashboard/collaborators/CollaboratorActionsMenu'
 import { toast } from 'sonner'
 
+const STATUS_BADGES: Record<string, string> = {
+  Ativo: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  Inativo: 'bg-gray-100 text-gray-600 dark:bg-gray-900/30 dark:text-gray-400',
+  Férias: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  Desligado: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+}
+
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<any[]>([])
+  const [collaborators, setCollaborators] = useState<any[]>([])
   const [sessions, setSessions] = useState<any[]>([])
   const [permRecords, setPermRecords] = useState<any[]>([])
-  const [groups, setGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedUser, setSelectedUser] = useState<any>(null)
-  const [permDialog, setPermDialog] = useState(false)
-  const [userPerms, setUserPerms] = useState<string[]>([])
-  const [userGroups, setUserGroups] = useState<string[]>([])
-  const [loginHist, setLoginHist] = useState<any[]>([])
-  const [saving, setSaving] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<any>(null)
+  const [permUser, setPermUser] = useState<any>(null)
+  const [deleteTarget, setDeleteTarget] = useState<any>(null)
+  const [deleteInfo, setDeleteInfo] = useState<{ hasHistory: boolean; loading: boolean }>({
+    hasHistory: false,
+    loading: false,
+  })
+  const [resetResult, setResetResult] = useState<string | null>(null)
 
   const loadData = async () => {
     try {
-      const [u, s, p, g] = await Promise.all([
-        pb.collection('users').getFullList({ sort: '-created' }),
+      const [c, s, p] = await Promise.all([
+        getCollaborators(),
         getActiveSessions().catch(() => []),
         getAllUserPermissions().catch(() => []),
-        getPermissionGroups().catch(() => []),
       ])
-      setUsers(u)
+      setCollaborators(c.filter((u: any) => !u.deleted_at))
       setSessions(s)
       setPermRecords(p)
-      setGroups(g)
     } catch {
       /* */
     } finally {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     loadData()
   }, [])
   useRealtime('users', () => loadData())
   useRealtime('user_sessions', () => loadData())
 
-  const openPerms = async (user: any) => {
-    setSelectedUser(user)
-    setPermDialog(true)
+  const onlineIds = useMemo(() => new Set(sessions.map((s) => s.userId)), [sessions])
+  const deptCount = useMemo(
+    () => new Set(collaborators.map((c) => c.department).filter(Boolean)).size,
+    [collaborators],
+  )
+
+  const openNew = () => {
+    setEditing(null)
+    setFormOpen(true)
+  }
+  const openEdit = (u: any) => {
+    setEditing(u)
+    setFormOpen(true)
+  }
+
+  const handleResetPassword = async (u: any) => {
     try {
-      const rec = await getUserPermissions(user.id)
-      try {
-        setUserPerms(JSON.parse(rec.permissions || '[]'))
-      } catch {
-        setUserPerms([])
-      }
-      setUserGroups(rec.groupIds || [])
+      const res = await resetPasswordById(u.id)
+      setResetResult(res.temporary_password)
+      await logAuditAction({
+        operation_type: 'Update',
+        module: 'Segurança',
+        screen: 'Colaboradores',
+        collection_name: 'users',
+        record_id: u.id,
+        justification: `Senha redefinida para ${u.name}`,
+        classification_level: '3',
+      })
+      toast.success('Senha redefinida com sucesso!')
     } catch {
-      setUserPerms([])
-      setUserGroups([])
-    }
-    try {
-      const hist = await getLoginHistoryByUser(user.id, 1, 10)
-      setLoginHist(hist.items || [])
-    } catch {
-      setLoginHist([])
+      toast.error('Erro ao redefinir senha')
     }
   }
 
-  const savePerms = async () => {
-    if (!selectedUser) return
-    setSaving(true)
+  const handleToggleBlock = async (u: any) => {
+    const shouldBlock = u.active !== false
     try {
-      const existing = permRecords.find((p) => p.userId === selectedUser.id)
-      if (existing) {
-        await updateUserPermissions(existing.id, userPerms, userGroups)
+      await toggleBlockUser(u.id, shouldBlock)
+      await logAuditAction({
+        operation_type: 'Update',
+        module: 'Segurança',
+        screen: 'Colaboradores',
+        collection_name: 'users',
+        record_id: u.id,
+        justification: `${shouldBlock ? 'Bloqueado' : 'Desbloqueado'}: ${u.name}`,
+        classification_level: '3',
+      })
+      toast.success(shouldBlock ? 'Colaborador bloqueado' : 'Colaborador desbloqueado')
+      loadData()
+    } catch {
+      toast.error('Erro ao alterar status')
+    }
+  }
+
+  const handleDeactivate = async (u: any) => {
+    try {
+      await deactivateUser(u.id)
+      await logAuditAction({
+        operation_type: 'Update',
+        module: 'Segurança',
+        screen: 'Colaboradores',
+        collection_name: 'users',
+        record_id: u.id,
+        justification: `Desativado: ${u.name}`,
+        classification_level: '3',
+      })
+      toast.success('Colaborador desativado')
+      loadData()
+    } catch {
+      toast.error('Erro ao desativar')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    try {
+      if (deleteInfo.hasHistory) {
+        await softDeleteUser(deleteTarget.id)
+        toast.success('Colaborador arquivado (soft delete - possui histórico)')
       } else {
-        await pb.collection('user_permissions').create({
-          userId: selectedUser.id,
-          permissions: JSON.stringify(userPerms),
-          groupIds: userGroups,
-        })
+        await deleteCollaborator(deleteTarget.id)
+        toast.success('Colaborador excluído')
       }
-      toast.success('Permissões atualizadas!')
-      setPermDialog(false)
+      await logAuditAction({
+        operation_type: 'Delete',
+        module: 'Segurança',
+        screen: 'Colaboradores',
+        collection_name: 'users',
+        record_id: deleteTarget.id,
+        justification: `Excluído: ${deleteTarget.name}`,
+        classification_level: '3',
+      })
+      setDeleteTarget(null)
       loadData()
     } catch {
-      toast.error('Erro ao salvar permissões')
-    } finally {
-      setSaving(false)
+      toast.error('Erro ao excluir')
     }
   }
 
-  const handleRevoke = async (sessionId: string) => {
-    try {
-      await revokeSession(sessionId)
-      toast.success('Sessão revogada')
-      loadData()
-    } catch {
-      toast.error('Erro ao revogar sessão')
-    }
+  const onDeleteClick = async (u: any) => {
+    setDeleteTarget(u)
+    setDeleteInfo({ hasHistory: false, loading: true })
+    const has = await checkUserHasHistory(u.id)
+    setDeleteInfo({ hasHistory: has, loading: false })
   }
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-brand-blue/10 flex items-center justify-center">
-          <Users className="h-5 w-5 text-brand-blue" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-brand-blue/10 flex items-center justify-center">
+            <Users className="h-5 w-5 text-brand-blue" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">Colaboradores</h2>
+            <p className="text-sm text-muted-foreground">Gestão de equipe e permissões</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Gerenciamento de Usuários</h2>
-          <p className="text-sm text-muted-foreground">Usuários, permissões e sessões</p>
-        </div>
+        <Button className="bg-brand-blue text-white rounded-full" onClick={openNew}>
+          <UserPlus className="mr-2 h-4 w-4" /> Adicionar Colaborador
+        </Button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold">{users.length}</p>
-            <p className="text-xs text-muted-foreground">Total de Usuários</p>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Users className="h-8 w-8 text-brand-blue" />
+            <div>
+              <p className="text-xl font-bold">{collaborators.length}</p>
+              <p className="text-xs text-muted-foreground">Total de Colaboradores</p>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-green-600">{sessions.length}</p>
-            <p className="text-xs text-muted-foreground">Sessões Ativas</p>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Wifi className="h-8 w-8 text-green-500" />
+            <div>
+              <p className="text-xl font-bold text-green-600">
+                {collaborators.filter((c) => onlineIds.has(c.id)).length}
+              </p>
+              <p className="text-xs text-muted-foreground">Online Agora</p>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold text-brand-blue">{groups.length}</p>
-            <p className="text-xs text-muted-foreground">Grupos de Permissão</p>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Shield className="h-8 w-8 text-purple-500" />
+            <div>
+              <p className="text-xl font-bold">{permRecords.length}</p>
+              <p className="text-xs text-muted-foreground">Perfis de Permissão</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <Building2 className="h-8 w-8 text-orange-500" />
+            <div>
+              <p className="text-xl font-bold">{deptCount}</p>
+              <p className="text-xs text-muted-foreground">Departamentos</p>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Usuários</CardTitle>
+          <CardTitle className="text-sm">Lista de Colaboradores</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
@@ -168,8 +258,7 @@ export default function UserManagementPage() {
           ) : (
             <ScrollArea className="max-h-[500px]">
               <div className="divide-y">
-                {users.map((u) => {
-                  const userSession = sessions.filter((s) => s.userId === u.id)
+                {collaborators.map((u) => {
                   const permRec = permRecords.find((p) => p.userId === u.id)
                   let permCount = 0
                   try {
@@ -180,184 +269,138 @@ export default function UserManagementPage() {
                   return (
                     <div
                       key={u.id}
-                      className="p-4 hover:bg-muted/30 transition-colors flex items-center justify-between gap-3"
+                      className="p-3 hover:bg-muted/30 transition-colors flex items-center gap-3"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={u.avatar ? pb.files.getUrl(u, u.avatar) : undefined} />
-                          <AvatarFallback className="text-xs">
-                            {u.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
+                      <Avatar className="h-9 w-9 flex-shrink-0">
+                        {u.avatar && <AvatarImage src={pb.files.getUrl(u, u.avatar)} />}
+                        <AvatarFallback className="text-xs">
+                          {u.name?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0 grid grid-cols-2 md:grid-cols-4 gap-2 items-center">
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">{u.name || u.email}</p>
                           <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant="outline" className="text-xs">
-                          {u.role}
-                        </Badge>
-                        {userSession.length > 0 && (
-                          <Badge className="bg-green-100 text-green-700 text-xs">Online</Badge>
-                        )}
-                        {permCount > 0 && (
-                          <Badge variant="secondary" className="text-xs">
-                            {permCount} perms
+                        <div className="hidden md:block text-xs">
+                          <p className="truncate">
+                            {u.position === 'Outro' ? u.position_custom : u.position || '—'}
+                          </p>
+                          <p className="text-muted-foreground truncate">
+                            {u.department === 'Outro' ? u.department_custom : u.department || '—'}
+                          </p>
+                        </div>
+                        <div className="hidden md:block text-xs text-muted-foreground">
+                          {u.last_login ? new Date(u.last_login).toLocaleString('pt-BR') : '—'}
+                        </div>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <Badge variant="outline" className="text-xs">
+                            {u.role}
                           </Badge>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="rounded-full"
-                          onClick={() => openPerms(u)}
-                        >
-                          <Shield className="h-3 w-3 mr-1" /> Gerenciar
-                        </Button>
+                          <Badge className={`text-xs ${STATUS_BADGES[u.status || 'Ativo'] || ''}`}>
+                            {u.status || 'Ativo'}
+                          </Badge>
+                          {onlineIds.has(u.id) && (
+                            <Badge className="bg-green-100 text-green-700 text-xs">Online</Badge>
+                          )}
+                          {permCount > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {permCount} perms
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                      <CollaboratorActionsMenu
+                        user={u}
+                        onEdit={openEdit}
+                        onPermissions={setPermUser}
+                        onResetPassword={handleResetPassword}
+                        onToggleBlock={handleToggleBlock}
+                        onDeactivate={handleDeactivate}
+                        onDelete={onDeleteClick}
+                      />
                     </div>
                   )
                 })}
+                {collaborators.length === 0 && (
+                  <p className="p-8 text-center text-sm text-muted-foreground">
+                    Nenhum colaborador cadastrado.
+                  </p>
+                )}
               </div>
             </ScrollArea>
           )}
         </CardContent>
       </Card>
 
-      {selectedUser && (
-        <Dialog open={permDialog} onOpenChange={setPermDialog}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                Gerenciar Usuário: {selectedUser.name || selectedUser.email}
-              </DialogTitle>
-              <DialogDescription>Atribua permissões e grupos ao usuário.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2 p-3 bg-muted/30 rounded-lg text-xs">
-                <div>
-                  <p className="text-muted-foreground">ID</p>
-                  <p className="font-mono">{selectedUser.id}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Email</p>
-                  <p className="truncate">{selectedUser.email}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Perfil</p>
-                  <p>{selectedUser.role}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Último Login</p>
-                  <p>
-                    {selectedUser.lastLogin
-                      ? new Date(selectedUser.lastLogin).toLocaleString('pt-BR')
-                      : '—'}
-                  </p>
-                </div>
-              </div>
+      <CollaboratorFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        editing={editing}
+        onSaved={loadData}
+      />
+      <AdvancedPermissionsModal
+        open={!!permUser}
+        onOpenChange={(v) => !v && setPermUser(null)}
+        user={permUser}
+        onSaved={loadData}
+      />
 
-              {sessions.filter((s) => s.userId === selectedUser.id).length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">Sessões Ativas</h4>
-                  {sessions
-                    .filter((s) => s.userId === selectedUser.id)
-                    .map((s) => (
-                      <div
-                        key={s.id}
-                        className="flex items-center justify-between p-2 rounded border mb-1 text-xs"
-                      >
-                        <span className="flex items-center gap-1">
-                          {s.device === 'Mobile' ? (
-                            <Smartphone className="h-3 w-3" />
-                          ) : (
-                            <Monitor className="h-3 w-3" />
-                          )}
-                          {s.browser} · {s.os} · {s.ip_address}
-                        </span>
-                        <Button size="sm" variant="ghost" onClick={() => handleRevoke(s.id)}>
-                          <LogOut className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                </div>
-              )}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(v) => !v && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteInfo.loading
+                ? 'Verificando histórico...'
+                : deleteInfo.hasHistory
+                  ? `O colaborador ${deleteTarget?.name} possui registros de atividade. Será realizado um arquivamento (soft delete). O acesso será removido mas os dados serão preservados. Deseja continuar?`
+                  : `Deseja realmente excluir o colaborador ${deleteTarget?.name}? Esta ação não pode ser desfeita.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDelete}
+              disabled={deleteInfo.loading}
+            >
+              {deleteInfo.hasHistory ? 'Arquivar' : 'Excluir Permanentemente'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Permissões</h4>
-                <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto p-2 border rounded">
-                  {ALL_PERMISSIONS.map((p) => (
-                    <label key={p} className="flex items-center gap-2 text-xs cursor-pointer">
-                      <Checkbox
-                        checked={userPerms.includes(p)}
-                        onCheckedChange={(v) => {
-                          if (v) setUserPerms([...userPerms, p])
-                          else setUserPerms(userPerms.filter((x) => x !== p))
-                        }}
-                      />
-                      {PERMISSION_LABELS[p]}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Grupos</h4>
-                <div className="flex flex-wrap gap-2">
-                  {groups.map((g) => (
-                    <label
-                      key={g.id}
-                      className="flex items-center gap-2 text-xs cursor-pointer p-2 border rounded"
-                    >
-                      <Checkbox
-                        checked={userGroups.includes(g.id)}
-                        onCheckedChange={(v) => {
-                          if (v) setUserGroups([...userGroups, g.id])
-                          else setUserGroups(userGroups.filter((x) => x !== g.id))
-                        }}
-                      />
-                      {g.name}
-                    </label>
-                  ))}
-                  {groups.length === 0 && (
-                    <p className="text-xs text-muted-foreground">Nenhum grupo criado.</p>
-                  )}
-                </div>
-              </div>
-
-              {loginHist.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 flex items-center gap-1">
-                    <Clock className="h-4 w-4" /> Histórico de Login
-                  </h4>
-                  <div className="space-y-1 max-h-[100px] overflow-y-auto">
-                    {loginHist.map((h) => (
-                      <div
-                        key={h.id}
-                        className="text-xs flex items-center justify-between p-1.5 border-b"
-                      >
-                        <span>{new Date(h.created).toLocaleString('pt-BR')}</span>
-                        <span className={h.success ? 'text-green-600' : 'text-red-600'}>
-                          {h.success ? 'Sucesso' : `Falha: ${h.failure_reason || '—'}`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setPermDialog(false)}>
-                  Cancelar
-                </Button>
-                <Button className="bg-brand-blue text-white" onClick={savePerms} disabled={saving}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </div>
+      <Dialog open={!!resetResult} onOpenChange={(v) => !v && setResetResult(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-brand-blue" /> Senha Redefinida
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              A senha temporária foi gerada. Compartilhe com o colaborador:
+            </p>
+            <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
+              <code className="flex-1 font-mono text-sm break-all">{resetResult}</code>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(resetResult || '')
+                  toast.success('Senha copiada!')
+                }}
+              >
+                Copiar
+              </Button>
             </div>
-          </DialogContent>
-        </Dialog>
-      )}
+            <p className="text-xs text-muted-foreground">
+              O colaborador deverá alterar a senha no próximo acesso.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

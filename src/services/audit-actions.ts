@@ -10,6 +10,7 @@ export async function logAuditAction(params: {
   record_friendly_code?: string
   justification?: string
   classification_level?: string
+  field_changes?: string
 }) {
   const user = pb.authStore.record
   if (!user) return
@@ -41,7 +42,7 @@ export async function logAuditAction(params: {
       record_uuid: params.record_uuid || '',
       record_friendly_code: params.record_friendly_code || '',
       operation_type: params.operation_type,
-      field_changes: JSON.stringify({}),
+      field_changes: params.field_changes || JSON.stringify({}),
       justification: params.justification || '',
       classification_level: level,
     })
