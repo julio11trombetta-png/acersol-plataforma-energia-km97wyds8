@@ -8,6 +8,7 @@ import {
   TrendingUp,
   LifeBuoy,
   FileText,
+  FileSignature,
   Newspaper,
   Gavel,
   BarChart2,
