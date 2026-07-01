@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Download, Loader2, Bot, Database, FileCode2 } from 'lucide-react'
-import { exportDatabase, exportDatabaseMySQL, exportMySQLSchema } from '@/services/export'
+import { Bot } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Shield } from 'lucide-react'
 import { DashboardStatsCard } from '@/components/dashboard/DashboardStatsCard'
@@ -56,9 +55,6 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const [stats, setStats] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
-  const [exporting, setExporting] = useState(false)
-  const [exportingMySQL, setExportingMySQL] = useState(false)
-  const [exportingSchema, setExportingSchema] = useState(false)
   const [tickets, setTickets] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
 
@@ -106,42 +102,6 @@ export default function AdminDashboard() {
       /* */
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleExport = async () => {
-    setExporting(true)
-    try {
-      await exportDatabase()
-      toast.success('Banco de dados exportado!')
-    } catch {
-      toast.error('Falha ao exportar')
-    } finally {
-      setExporting(false)
-    }
-  }
-
-  const handleExportMySQL = async () => {
-    setExportingMySQL(true)
-    try {
-      await exportDatabaseMySQL()
-      toast.success('Exportação MySQL concluída com sucesso')
-    } catch {
-      toast.error('Falha ao exportar para MySQL')
-    } finally {
-      setExportingMySQL(false)
-    }
-  }
-
-  const handleExportMySQLSchema = async () => {
-    setExportingSchema(true)
-    try {
-      await exportMySQLSchema()
-      toast.success('Esquema MySQL exportado com sucesso')
-    } catch {
-      toast.error('Falha ao exportar esquema MySQL')
-    } finally {
-      setExportingSchema(false)
     }
   }
 
@@ -193,45 +153,6 @@ export default function AdminDashboard() {
               <Bot className="mr-2 h-4 w-4" /> ACERSOL Expert IA
             </Button>
           </Link>
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={handleExport}
-            disabled={exporting}
-          >
-            {exporting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}{' '}
-            {exporting ? 'Gerando...' : 'Exportar SQL'}
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={handleExportMySQL}
-            disabled={exportingMySQL}
-          >
-            {exportingMySQL ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Database className="mr-2 h-4 w-4" />
-            )}{' '}
-            {exportingMySQL ? 'Gerando arquivo SQL...' : 'Exportar para MySQL'}
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-full"
-            onClick={handleExportMySQLSchema}
-            disabled={exportingSchema}
-          >
-            {exportingSchema ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <FileCode2 className="mr-2 h-4 w-4" />
-            )}{' '}
-            {exportingSchema ? 'Gerando esquema...' : 'Exportar Esquema MySQL'}
-          </Button>
         </div>
       </div>
 

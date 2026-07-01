@@ -2,6 +2,11 @@ import { formatCurrency } from '@/lib/formatters'
 import { getAssetUrl, ICONS } from '@/lib/premium-pdf/styles'
 import logoHorizontal from '@/assets/logomarca-horizontal-jpg-d6a8a.jpg'
 
+function safeNum(v: any): number {
+  const n = Number(v)
+  return isNaN(n) || !isFinite(n) ? 0 : n
+}
+
 export interface TemplateData {
   [key: string]: string | number | TemplateData[] | TemplateData
 }
@@ -92,25 +97,25 @@ export function buildTemplateData(
 ): TemplateData {
   const client = budget.expand?.client_id || budget.expand?.lead_id
   const logoUrl = `${window.location.origin}${logoHorizontal}`
-  const economiaPct = budget.economia_percentual || 0
+  const economiaPct = safeNum(budget.economia_percentual) || 0
   const filledMonthly = monthlyData.filter((m) => m.consumo_kwh > 0 || m.valor_conta > 0)
 
   const avgConta =
     filledMonthly.length > 0
-      ? filledMonthly.reduce((s, m) => s + (m.valor_conta || 0), 0) / filledMonthly.length
-      : budget.valor_conta || 0
+      ? filledMonthly.reduce((s, m) => s + safeNum(m.valor_conta), 0) / filledMonthly.length
+      : safeNum(budget.valor_conta) || 0
 
   const avgConsumo =
     filledMonthly.length > 0
-      ? filledMonthly.reduce((s, m) => s + (m.consumo_kwh || 0), 0) / filledMonthly.length
-      : budget.creditos_necessarios || 0
+      ? filledMonthly.reduce((s, m) => s + safeNum(m.consumo_kwh), 0) / filledMonthly.length
+      : safeNum(budget.creditos_necessarios) || 0
 
   const maxConsumo =
     filledMonthly.length > 0
-      ? Math.max(...filledMonthly.map((m) => m.consumo_kwh || 0))
-      : budget.creditos_necessarios || 100
+      ? Math.max(...filledMonthly.map((m) => safeNum(m.consumo_kwh)))
+      : safeNum(budget.creditos_necessarios) || 100
 
-  const valorAtual = budget.valor_conta || avgConta
+  const valorAtual = safeNum(budget.valor_conta) || avgConta
   const valorEstimado = valorAtual * (1 - economiaPct / 100)
 
   const ucs =
@@ -214,8 +219,10 @@ export function buildTemplateData(
     800,
   )
 
-  const potUsina = budget.expand?.plant_id?.potencia_instalada || budget.expand?.plant_id?.capacity
-  const geracaoUsina = budget.expand?.plant_id?.generation_now
+  const potUsina =
+    safeNum(budget.expand?.plant_id?.potencia_instalada) ||
+    safeNum(budget.expand?.plant_id?.capacity)
+  const geracaoUsina = safeNum(budget.expand?.plant_id?.generation_now)
 
   const getFooter = () => {
     return `<div class="page-footer">

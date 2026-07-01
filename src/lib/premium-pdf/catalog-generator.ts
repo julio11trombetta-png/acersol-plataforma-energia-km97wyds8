@@ -59,11 +59,14 @@ export async function generatePremiumCatalogPDF(
 </html>`
 
   if (html.includes('NaN') || html.includes('undefined') || html.includes('null')) {
-    alert(
-      'Erro de validação: Dados inválidos detectados (NaN, null ou undefined). O documento não pode ser gerado com falhas.',
+    console.warn(
+      'Budget PDF: Dados inválidos detectados (NaN, null ou undefined). Substituindo por placeholders.',
     )
-    return
   }
+  const sanitizedHtml = html
+    .replace(/\bNaN\b/g, '—')
+    .replace(/\bundefined\b/g, 'Aguardando dados')
+    .replace(/\bnull\b/g, 'Aguardando dados')
 
   const placeholdersRegex = /\{\{[A-Z_0-9]+\}\}/g
   const leftOver = html.match(placeholdersRegex)
@@ -87,7 +90,7 @@ export async function generatePremiumCatalogPDF(
     alert('Por favor, permita popups para gerar o catálogo.')
     return
   }
-  win.document.write(html)
+  win.document.write(sanitizedHtml)
   win.document.close()
 
   win.onload = () => {
