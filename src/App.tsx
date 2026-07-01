@@ -49,6 +49,10 @@ import SupportPage from './pages/dashboard/SupportPage'
 import CMSPage from './pages/dashboard/CMSPage'
 import CRMPage from './pages/dashboard/CRMPage'
 import SettingsPage from './pages/dashboard/SettingsPage'
+import BudgetDashboardPage from './pages/dashboard/BudgetDashboardPage'
+import BudgetsPage from './pages/dashboard/BudgetsPage'
+import BudgetCreatePage from './pages/dashboard/BudgetCreatePage'
+import BudgetDetailPage from './pages/dashboard/BudgetDetailPage'
 import AssociationDashboard from './pages/dashboard/association/AssociationDashboard'
 import Associados from './pages/dashboard/association/Associados'
 import ConsumerUnitsPage from './pages/dashboard/association/ConsumerUnitsPage'
@@ -204,6 +208,10 @@ const AppContent = () => (
             <Route path="cms" element={<CMSPage />} />
             <Route path="governanca" element={<GovernancePage />} />
             <Route path="ia" element={<IAPage />} />
+            <Route path="comercial" element={<BudgetDashboardPage />} />
+            <Route path="comercial/orcamentos" element={<BudgetsPage />} />
+            <Route path="comercial/orcamentos/novo" element={<BudgetCreatePage />} />
+            <Route path="comercial/orcamentos/:id" element={<BudgetDetailPage />} />
             <Route path="configuracoes" element={<SettingsPage />} />
             <Route path="associacao" element={<AssociationDashboard />} />
             <Route path="associacao/associados" element={<Associados />} />

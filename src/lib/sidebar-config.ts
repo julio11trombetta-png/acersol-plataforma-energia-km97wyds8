@@ -91,7 +91,10 @@ export const sidebarGroups: SidebarGroupConfig[] = [
   {
     label: 'Comercial',
     items: [
+      { name: 'Dashboard', path: '/dashboard/admin/comercial', icon: BarChart2 },
+      { name: 'Orçamentos', path: '/dashboard/admin/comercial/orcamentos', icon: FileText },
       { name: 'CRM', path: '/dashboard/admin/crm', icon: TrendingUp },
+      { name: 'Clientes', path: '/dashboard/admin/clients', icon: Users },
       { name: 'Suporte', path: '/dashboard/admin/suporte', icon: LifeBuoy },
     ],
   },
