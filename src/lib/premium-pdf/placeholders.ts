@@ -1,12 +1,12 @@
 import { formatCurrency } from '@/lib/formatters'
-import { getAssetUrl } from '@/lib/premium-pdf/styles'
+import { getAssetUrl, ICONS } from '@/lib/premium-pdf/styles'
 import logoHorizontal from '@/assets/logomarca-horizontal-jpg-d6a8a.jpg'
 
 export interface TemplateData {
   [key: string]: string | number | TemplateData[] | TemplateData
 }
 
-export function renderTemplate(html: string, data: TemplateData): string {
+export function renderTemplate(html: string, data: TemplateData, pageNum: number): string {
   let result = html
   result = result.replace(
     /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
@@ -24,21 +24,50 @@ export function renderTemplate(html: string, data: TemplateData): string {
     const val = data[key]
     return val !== undefined && val !== null ? String(val) : ''
   })
+  result = result.replace(/\{\{PAGE_NUM\}\}/g, String(pageNum))
   return result
 }
 
-function findAsset(assets: any[], cat: string) {
+function findAsset(assets: any[], cat: string, usedKeys: string[] = []) {
+  const matches = assets.filter(
+    (a) => a.category === cat && !usedKeys.includes(a.id || a.url || ''),
+  )
+  if (matches.length > 0) {
+    const selected = matches[Math.floor(Math.random() * matches.length)]
+    usedKeys.push(selected.id || selected.url || '')
+    return selected
+  }
   return assets.find((a) => a.category === cat)
 }
 
+function formatMoneyOrEmpty(val: number): string {
+  if (!val || isNaN(val) || val <= 0) return 'Aguardando dados'
+  return formatCurrency(val)
+}
+
+function formatNumOrEmpty(val: number, suffix = ''): string {
+  if (!val || isNaN(val) || val <= 0) return '—'
+  return `${val.toLocaleString('pt-BR')}${suffix}`
+}
+
 function buildChartHtml(history: any[], maxConsumo: number): string {
+  if (history.length === 0 || maxConsumo <= 0) {
+    return `
+      <div style="background:#f8fafc; border-radius:12px; padding:40px 20px; border:1px solid #e8e8e8; text-align:center;">
+        <div style="color:var(--primary); margin-bottom:12px; display:flex; justify-content:center;">${ICONS.clock || ''}</div>
+        <h3 style="font-size:16px;color:#555;margin-bottom:8px;">Aguardando histórico de consumo</h3>
+        <p style="font-size:13px;color:#888;">Os dados de faturamento mensal estão sendo processados.</p>
+      </div>
+    `
+  }
+
   const bars = history
     .map((m) => {
       const rawVal = parseFloat(m.CONSUMO.replace(/[^\d.-]/g, '')) || 0
       const h = maxConsumo > 0 ? Math.max((rawVal / maxConsumo) * 100, 5) : 5
-      const label = m.MES.substring(0, 3)
+      const label = String(m.MES).substring(0, 3)
       return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
-      <div style="font-size:9px;font-weight:700;color:var(--primary);margin-bottom:4px">${rawVal}</div>
+      <div style="font-size:9px;font-weight:700;color:var(--primary);margin-bottom:4px">${rawVal > 0 ? rawVal : ''}</div>
       <div style="width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg, var(--primary), var(--accent));height:${h}%;min-height:4px;box-shadow:0 2px 8px rgba(0,0,0,0.1);"></div>
       <div style="font-size:10px;margin-top:6px;color:#666;text-align:center;font-weight:600;text-transform:uppercase;">${label}</div>
     </div>`
@@ -84,86 +113,165 @@ export function buildTemplateData(
   const valorAtual = budget.valor_conta || avgConta
   const valorEstimado = valorAtual * (1 - economiaPct / 100)
 
-  const mockUnits =
+  const ucs =
     units.length > 0
-      ? units.map((u) => ({
-          UC: u.numero_uc || '—',
-          ENDERECO: [u.cidade, u.estado].filter(Boolean).join(' - ') || '—',
-          CLASSE: u.classe || '—',
-          CONSUMO: `${(u.averageConsumption || 0).toFixed(0)} kWh`,
-        }))
+      ? units
       : [
           {
-            UC: budget.uc || '—',
-            ENDERECO: [budget.cidade, budget.estado].filter(Boolean).join(' - ') || '—',
-            CLASSE: budget.classe || '—',
-            CONSUMO: `${budget.creditos_necessarios || 0} kWh`,
+            numero_uc: budget.uc,
+            cidade: budget.cidade,
+            estado: budget.estado,
+            classe: budget.classe,
+            averageConsumption: budget.creditos_necessarios,
           },
-        ]
+        ].filter((u) => u.numero_uc || u.cidade)
 
-  const mockHistory =
+  const tableUnidades =
+    ucs.length > 0
+      ? `<table class="uc-table">
+    <thead>
+      <tr>
+        <th>Unidade (UC)</th>
+        <th>Endereço / Local</th>
+        <th>Classe</th>
+        <th>Consumo Médio</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${ucs
+        .map(
+          (u) => `<tr>
+        <td><strong>${u.numero_uc || '—'}</strong></td>
+        <td>${[u.cidade, u.estado].filter(Boolean).join(' - ') || '—'}</td>
+        <td>${u.classe || '—'}</td>
+        <td>${u.averageConsumption > 0 ? `${Math.round(u.averageConsumption)} kWh` : '—'}</td>
+      </tr>`,
+        )
+        .join('')}
+    </tbody>
+  </table>`
+      : `<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:8px; border:1px dashed #ccc; color:#666;">Aguardando dados das unidades consumidoras</div>`
+
+  const historyDisplay =
     filledMonthly.length > 0
       ? filledMonthly.map((m) => ({
           MES: m.mes || '—',
-          CONSUMO: `${(m.consumo_kwh || 0).toFixed(0)}`,
-          VALOR: formatCurrency(m.valor_conta || 0),
+          CONSUMO: m.consumo_kwh > 0 ? `${Math.round(m.consumo_kwh)}` : '—',
+          VALOR: m.valor_conta > 0 ? formatCurrency(m.valor_conta) : '—',
           PRECO_KWH:
-            m.consumo_kwh > 0 ? `R$ ${((m.valor_conta || 0) / m.consumo_kwh).toFixed(2)}` : '—',
+            m.consumo_kwh > 0 && m.valor_conta > 0
+              ? `R$ ${(m.valor_conta / m.consumo_kwh).toFixed(2)}`
+              : '—',
         }))
-      : [
-          {
-            MES: 'Estimado',
-            CONSUMO: `${avgConsumo.toFixed(0)}`,
-            VALOR: formatCurrency(valorAtual),
-            PRECO_KWH: '—',
-          },
-        ]
+      : []
 
-  const chartHtml = buildChartHtml(mockHistory, maxConsumo)
+  const tableHistorico =
+    historyDisplay.length > 0
+      ? `<table class="uc-table">
+    <thead>
+      <tr>
+        <th>Mês/Ano</th>
+        <th>Consumo Total (kWh)</th>
+        <th>Valor Faturado</th>
+        <th>Preço Médio (kWh)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${historyDisplay
+        .map(
+          (h) => `<tr>
+        <td><strong>${h.MES}</strong></td>
+        <td>${h.CONSUMO}</td>
+        <td>${h.VALOR}</td>
+        <td>${h.PRECO_KWH}</td>
+      </tr>`,
+        )
+        .join('')}
+    </tbody>
+  </table>`
+      : `<div style="padding:20px; text-align:center; background:#f8fafc; border-radius:8px; border:1px dashed #ccc; color:#666;">Aguardando histórico de faturamento</div>`
+
+  const chartHtml = buildChartHtml(historyDisplay, maxConsumo)
   const obsText = budget.observacoes?.trim() || ''
+
+  const usedAssets: string[] = []
+  const imgCapa = getAssetUrl(
+    findAsset(assets, 'plant', usedAssets),
+    'solar%20plant%20aerial',
+    1200,
+    1600,
+  )
+  const imgSustentabilidade = getAssetUrl(
+    findAsset(assets, 'nature', usedAssets),
+    'green%20nature',
+    800,
+    1000,
+  )
+  const imgUsina = getAssetUrl(
+    findAsset(assets, 'plant', usedAssets),
+    'solar%20energy%20farm',
+    1200,
+    800,
+  )
+
+  const potUsina = budget.expand?.plant_id?.potencia_instalada || budget.expand?.plant_id?.capacity
+  const geracaoUsina = budget.expand?.plant_id?.generation_now
+
+  const getFooter = () => {
+    return `<div class="page-footer">
+      <div class="logo"><img src="${logoUrl}" alt="ACERSOL"/></div>
+      <div class="info">
+        <span>(54) 9267-9352</span>
+        <span>contato@acersol.com.br</span>
+        <span>www.acersol.com.br</span>
+      </div>
+      <div class="page-number">{{PAGE_NUM}}</div>
+    </div>`
+  }
 
   return {
     LOGO: logoUrl,
-    CLIENTE: client?.name || client?.company || '—',
+    CLIENTE: client?.name || client?.company || 'Não informado',
     CPF_CNPJ: client?.document_number || client?.cnpj || '—',
     CIDADE: budget.cidade || '—',
     ESTADO: budget.estado || '—',
+    CIDADE_ESTADO: [budget.cidade, budget.estado].filter(Boolean).join(' - ') || 'Não informado',
     DISTRIBUIDORA: budget.distribuidora || '—',
     NUMERO_PROPOSTA: budget.numero || '—',
     DATA: budget.created
       ? new Date(budget.created).toLocaleDateString('pt-BR')
       : new Date().toLocaleDateString('pt-BR'),
     RESPONSAVEL: budget.responsavel || 'Equipe ACERSOL',
-    ECONOMIA_PERCENTUAL: `${economiaPct}%`,
-    ECONOMIA_MENSAL: formatCurrency(budget.economia_mensal || (valorAtual * economiaPct) / 100),
-    ECONOMIA_ANUAL: formatCurrency(
+    ECONOMIA_PERCENTUAL_LABEL: economiaPct > 0 ? `${economiaPct}%` : '—',
+    ECONOMIA_MENSAL_LABEL: formatMoneyOrEmpty(
+      budget.economia_mensal || (valorAtual * economiaPct) / 100,
+    ),
+    ECONOMIA_ANUAL_LABEL: formatMoneyOrEmpty(
       budget.economia_anual || ((valorAtual * economiaPct) / 100) * 12,
     ),
-    CREDITOS_NECESSARIOS: `${Math.round(budget.creditos_necessarios || avgConsumo)}`,
-    VALOR_ATUAL: formatCurrency(valorAtual),
-    VALOR_ESTIMADO: formatCurrency(valorEstimado),
-    MEDIA_KWH: Math.round(avgConsumo),
+    CREDITOS_NECESSARIOS_LABEL: formatNumOrEmpty(budget.creditos_necessarios || avgConsumo),
+    VALOR_ATUAL_LABEL: formatMoneyOrEmpty(valorAtual),
+    VALOR_ESTIMADO_LABEL: formatMoneyOrEmpty(valorEstimado),
+    MEDIA_KWH_LABEL: formatNumOrEmpty(avgConsumo),
+    QTD_UCS: ucs.length > 0 ? String(ucs.length) : '—',
     USINA: budget.expand?.plant_id?.name || 'Usina Fotovoltaica ACERSOL',
-    POTENCIA: `${budget.expand?.plant_id?.potencia_instalada || budget.expand?.plant_id?.capacity || 1000} kWp`,
-    GERACAO: `${budget.expand?.plant_id?.generation_now || 120000} kWh/mês`,
+    POTENCIA_LABEL: formatNumOrEmpty(potUsina, ' kWp'),
+    GERACAO_LABEL: formatNumOrEmpty(geracaoUsina, ' kWh/mês'),
+    STATUS_USINA: budget.expand?.plant_id?.status || 'Em Operação',
     OBSERVACOES: obsText,
     SHOW_OBS: obsText ? 'block' : 'none',
-    MAPA: '',
     CHART_HTML: chartHtml,
-    IMG_CAPA: getAssetUrl(findAsset(assets, 'plant'), 'solar%20plant%20aerial', 1200, 1600),
-    IMG_USINA: getAssetUrl(findAsset(assets, 'plant'), 'solar%20energy%20farm', 1200, 800),
-    IMG_CLIENTE: logoUrl,
-    IMG_SUSTENTABILIDADE: getAssetUrl(findAsset(assets, 'nature'), 'green%20nature', 800, 1000),
-    IMG_EQUIPE: getAssetUrl(findAsset(assets, 'industry'), 'industry%20solar%20energy', 1200, 800),
-    IMG_DRONE: getAssetUrl(findAsset(assets, 'panels'), 'solar%20panels%20drone', 1200, 800),
-    IMG_BACKGROUND: getAssetUrl(findAsset(assets, 'nature'), 'nature%20landscape', 1200, 1600),
-    ASSOCIADOS: '5.200+',
-    USINAS_COUNT: '24',
-    MEGAWATTS: '12,5',
-    KWH_ANO: '18.5M',
-    CO2: '5.400',
-    MUNICIPIOS: '85',
-    UNIDADES: mockUnits,
-    HISTORICO: mockHistory,
+    TABLE_UNIDADES: tableUnidades,
+    TABLE_HISTORICO: tableHistorico,
+    IMG_CAPA: imgCapa,
+    IMG_USINA: imgUsina,
+    IMG_SUSTENTABILIDADE: imgSustentabilidade,
+    DADO_ASSOCIADOS: 'Em atualização',
+    DADO_USINAS: 'Em atualização',
+    DADO_MW: 'Em atualização',
+    DADO_GERACAO: 'Em atualização',
+    DADO_CO2: 'Em atualização',
+    DADO_CIDADES: 'Em atualização',
+    FOOTER: getFooter(),
   }
 }

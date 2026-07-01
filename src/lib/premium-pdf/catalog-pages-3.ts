@@ -2,22 +2,23 @@ import { ICONS } from '@/lib/premium-pdf/styles'
 
 export function pagePlant(): string {
   return `<div class="catalog-page flex-page">
-<img class="plant-photo" src="{{IMG_USINA}}" alt="Usina Solar"/>
-<div style="padding:15mm 20mm 5mm; flex-shrink: 0;">
+<img class="plant-photo" src="{{IMG_USINA}}" alt="Usina Solar" onerror="this.style.display='none'"/>
+<div class="page-header" style="padding-top:15mm;">
   <span class="section-tag">USINA DESIGNADA</span>
-  <h2 style="color:var(--primary);font-size:26px;font-weight:700;margin-top:6px;">{{USINA}}</h2>
+  <h2>{{USINA}}</h2>
 </div>
 <div class="plant-grid" style="flex-shrink: 0;">
-  <div class="plant-grid-item"><div class="icon">${ICONS.zap}</div><div class="num">{{POTENCIA}}</div><div class="label">Potência Instalada</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.sun}</div><div class="num">{{GERACAO}}</div><div class="label">Geração Mensal Média</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.percent}</div><div class="num">{{ECONOMIA_PERCENTUAL}}</div><div class="label">Desconto Aplicado</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.shield}</div><div class="num">Ativa</div><div class="label">Status de Operação</div></div>
+  <div class="plant-grid-item"><div class="icon">${ICONS.zap}</div><div class="num">{{POTENCIA_LABEL}}</div><div class="label">Potência Instalada</div></div>
+  <div class="plant-grid-item"><div class="icon">${ICONS.sun}</div><div class="num">{{GERACAO_LABEL}}</div><div class="label">Geração Mensal Média</div></div>
+  <div class="plant-grid-item"><div class="icon">${ICONS.percent}</div><div class="num">{{ECONOMIA_PERCENTUAL_LABEL}}</div><div class="label">Desconto Aplicado</div></div>
+  <div class="plant-grid-item"><div class="icon">${ICONS.shield}</div><div class="num">{{STATUS_USINA}}</div><div class="label">Status de Operação</div></div>
 </div>
 <div style="padding:10mm 20mm; flex-grow: 1;">
   <div class="data-card" style="background:#fff; border:1px solid #eee; border-left:4px solid var(--accent); padding:24px;">
     <p style="font-size:14px;color:#444;line-height:1.8;">A usina designada para a sua compensação energética opera com tecnologia fotovoltaica de última geração, garantindo uma geração estável e confiável de créditos suficientes para abater o seu consumo mensal. A ACERSOL monitora o desempenho da usina em tempo real, realizando manutenções preventivas para assegurar a máxima eficiência.</p>
   </div>
 </div>
+{{FOOTER}}
 </div>`
 }
 
@@ -70,24 +71,25 @@ export function pageBenefits(): string {
         `<div class="benefit-card"><div class="icon">${b.i}</div><div class="title">${b.t}</div><div class="desc">${b.d}</div></div>`,
     )
     .join('')
-  return `<div class="catalog-page">
-<div style="padding:25mm 20mm 10mm;">
+  return `<div class="catalog-page flex-page">
+<div class="page-header">
   <span class="section-tag">BENEFÍCIOS EXCLUSIVOS</span>
-  <h2 style="color:var(--primary);font-size:26px;font-weight:700;margin-top:6px;">Por que escolher a ACERSOL?</h2>
+  <h2>Por que escolher a ACERSOL?</h2>
 </div>
-<div class="benefits-grid">
+<div class="benefits-grid" style="flex-grow:1;">
   ${cards}
 </div>
+{{FOOTER}}
 </div>`
 }
 
 export function pageObservations(): string {
-  return `<div class="catalog-page">
-<div style="padding:25mm 20mm 10mm;">
+  return `<div class="catalog-page flex-page">
+<div class="page-header">
   <span class="section-tag">OBSERVAÇÕES IMPORTANTES</span>
-  <h2 style="color:var(--primary);font-size:26px;font-weight:700;margin-top:6px;">Condições e Validade da Proposta</h2>
+  <h2>Condições e Validade da Proposta</h2>
 </div>
-<div style="padding:0 20mm;">
+<div style="padding:0 20mm; flex-grow:1;">
   <p style="font-size:14px;line-height:1.7;color:#555;margin-bottom:20px;">Esta proposta comercial foi elaborada com base no histórico de consumo apresentado e nas regras tarifárias vigentes da concessionária local. Trata-se de um documento informativo, não constituindo por si só um vínculo contratual definitivo.</p>
   
   <div class="obs-box">
@@ -110,6 +112,7 @@ export function pageObservations(): string {
     <p style="font-size:12px;color:#999;margin-top:8px">www.acersol.com.br</p>
   </div>
 </div>
+{{FOOTER}}
 </div>`
 }
 

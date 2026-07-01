@@ -1,7 +1,12 @@
 import { getInstitutionalAssets } from '@/services/institutional-assets'
 import { renderTemplate, buildTemplateData } from '@/lib/premium-pdf/placeholders'
 import { getCatalogStyles } from '@/lib/premium-pdf/catalog-styles'
-import { pageCover, pageInstitutional, pageHowItWorks } from '@/lib/premium-pdf/catalog-pages-1'
+import {
+  pageCover,
+  pageDiagnostico,
+  pageInstitutional,
+  pageHowItWorks,
+} from '@/lib/premium-pdf/catalog-pages-1'
 import {
   pageClientData,
   pageConsumptionHistory,
@@ -32,6 +37,7 @@ export async function generatePremiumCatalogPDF(
 
   const pages = [
     pageCover(),
+    pageDiagnostico(),
     pageInstitutional(),
     pageHowItWorks(),
     pageClientData(),
@@ -43,7 +49,7 @@ export async function generatePremiumCatalogPDF(
     pageClosing(),
   ]
 
-  const rendered = pages.map((p) => renderTemplate(p, data)).join('\n')
+  const rendered = pages.map((p, i) => renderTemplate(p, data, i + 1)).join('\n')
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -56,6 +62,30 @@ export async function generatePremiumCatalogPDF(
   ${rendered}
 </body>
 </html>`
+
+  if (html.includes('NaN') || html.includes('undefined') || html.includes('null')) {
+    alert(
+      'Erro de validação: Dados inválidos detectados (NaN, null ou undefined). O documento não pode ser gerado com falhas.',
+    )
+    return
+  }
+
+  const placeholdersRegex = /\{\{[A-Z_0-9]+\}\}/g
+  const leftOver = html.match(placeholdersRegex)
+  if (leftOver && leftOver.length > 0) {
+    alert(
+      'Erro de validação: Variáveis não substituídas encontradas: ' +
+        leftOver.slice(0, 3).join(', '),
+    )
+    return
+  }
+
+  if (html.includes('5.200+') || html.includes('18.5M')) {
+    alert(
+      'Erro de validação: Dados fictícios detectados. Substitua por dados reais ou marque como "Em atualização".',
+    )
+    return
+  }
 
   const win = window.open('', '_blank')
   if (!win) {
