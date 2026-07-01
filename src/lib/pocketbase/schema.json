@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T19:41:45.878Z",
+  "generatedAt": "2026-07-01T19:51:16.444Z",
   "collections": [
     {
       "name": "users",
@@ -3324,18 +3324,6 @@
           "system": false
         },
         {
-          "name": "consumo_medio",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "valor_conta",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
           "name": "economia_percentual",
           "type": "number",
           "required": false,
@@ -3635,6 +3623,165 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "budget_units",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "budget_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "budgets"
+        },
+        {
+          "name": "numero_uc",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "distribuidora",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cidade",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "estado",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "classe",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "subclasse",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "modalidade",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "grupo_tarifario",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["Ativa", "Inativa", "Em Transição"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_budget_units_budget ON budget_units (budget_id)"]
+    },
+    {
+      "name": "budget_monthly_consumption",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "budget_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "budgets"
+        },
+        {
+          "name": "unit_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "budget_units"
+        },
+        {
+          "name": "mes",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "ano",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "consumo_kwh",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "valor_conta",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_bmc_budget ON budget_monthly_consumption (budget_id)",
+        "CREATE INDEX idx_bmc_unit ON budget_monthly_consumption (unit_id)"
+      ]
     }
   ]
 }

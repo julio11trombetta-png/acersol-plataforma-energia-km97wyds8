@@ -87,9 +87,9 @@ migrate(
 
     var budgetsCol = app.findCollectionByNameOrId('budgets')
     var cField = budgetsCol.fields.getByName('consumo_medio')
-    if (cField) budgetsCol.fields.remove(cField)
+    if (cField) budgetsCol.fields.removeById(cField.getId())
     var vField = budgetsCol.fields.getByName('valor_conta')
-    if (vField) budgetsCol.fields.remove(vField)
+    if (vField) budgetsCol.fields.removeById(vField.getId())
     app.save(budgetsCol)
   },
   (app) => {
