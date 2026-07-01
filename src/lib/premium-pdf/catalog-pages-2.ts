@@ -6,8 +6,8 @@ export function pageConsumptionHistory(): string {
         <h2 class="page-subtitle">Histórico de consumo (12 meses)</h2>
       </div>
       <div class="content">
-        {{CHART_CONSUMO}}
-        {{CHART_VALOR}}
+        <div class="page-hero-img"><img src="{{IMG_ANALISE}}" alt="Análise" onerror="this.style.display='none'"/></div>
+        {{CHART_HTML}}
         
         <div class="analysis-summary">
           <div class="summary-card bg-primary">
@@ -40,6 +40,7 @@ export function pageFinancialSimulation(): string {
         <h2 class="page-subtitle">Antes x Depois</h2>
       </div>
       <div class="content">
+        <div class="sim-image"><img src="{{IMG_SIMULACAO}}" alt="Simulação" onerror="this.style.display='none'"/></div>
         <div class="sim-compare">
           <div class="sim-box before">
             <div class="box-header">SEM ACERSOL</div>

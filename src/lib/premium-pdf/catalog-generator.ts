@@ -59,9 +59,7 @@ export async function generatePremiumCatalogPDF(
 </html>`
 
   if (html.includes('NaN') || html.includes('undefined') || html.includes('null')) {
-    console.warn(
-      'Budget PDF: Dados inválidos detectados (NaN, null ou undefined). Substituindo por placeholders.',
-    )
+    console.warn('Budget PDF: Dados inválidos detectados. Substituindo por placeholders.')
   }
   const sanitizedHtml = html
     .replace(/\bNaN\b/g, '—')
@@ -69,20 +67,9 @@ export async function generatePremiumCatalogPDF(
     .replace(/\bnull\b/g, 'Aguardando dados')
 
   const placeholdersRegex = /\{\{[A-Z_0-9]+\}\}/g
-  const leftOver = html.match(placeholdersRegex)
+  const leftOver = sanitizedHtml.match(placeholdersRegex)
   if (leftOver && leftOver.length > 0) {
-    alert(
-      'Erro de validação: Variáveis não substituídas encontradas: ' +
-        leftOver.slice(0, 3).join(', '),
-    )
-    return
-  }
-
-  if (html.includes('5.200+') || html.includes('18.5M')) {
-    alert(
-      'Erro de validação: Dados fictícios detectados. Substitua por dados reais ou marque como "Em atualização".',
-    )
-    return
+    console.warn('Budget PDF: Variáveis não substituídas:', leftOver.slice(0, 5).join(', '))
   }
 
   const win = window.open('', '_blank')

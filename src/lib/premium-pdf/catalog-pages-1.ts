@@ -6,7 +6,7 @@ export function pageCover(): string {
       <div class="cover-bg" style="background-image:url('{{IMG_CAPA}}')"></div>
       <div class="cover-gradient"></div>
       <div class="cover-content">
-        <img src="{{LOGO}}" alt="ACERSOL" class="logo" />
+        <img src="{{LOGO}}" alt="ACERSOL" class="logo" onerror="this.style.display='none'" />
         <div class="title-block">
           <h1>PROPOSTA COMERCIAL</h1>
           <h2>Sistema de Compensação de<br/>Energia Elétrica (SCEE)</h2>
@@ -30,9 +30,23 @@ export function pageCover(): string {
               <span class="value">{{DATA}}</span>
             </div>
           </div>
+          <div class="info-item">
+            <span class="icon">${ICONS.mapPin}</span>
+            <div>
+              <span class="label">Local</span>
+              <span class="value">{{CIDADE_ESTADO}}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="icon">${ICONS.user}</span>
+            <div>
+              <span class="label">Responsável</span>
+              <span class="value">{{RESPONSAVEL}}</span>
+            </div>
+          </div>
         </div>
         <div class="footer-block">
-          <span>Energia renovável. Economia inteligente.</span>
+          <span>Energia Compartilhada. Economia Inteligente.</span>
           <span class="page-num">01</span>
         </div>
       </div>
@@ -44,8 +58,8 @@ export function pageDiagnostico(): string {
   return `
     <div class="catalog-page page-diagnostico">
       <div class="header">
-        <h1 class="page-title">DIAGNÓSTICO DO CLIENTE</h1>
-        <h2 class="page-subtitle">Resumo executivo</h2>
+        <h1 class="page-title">DIAGNÓSTICO ENERGÉTICO</h1>
+        <h2 class="page-subtitle">Resumo executivo personalizado</h2>
       </div>
       <div class="content">
         <p class="text">Após a análise das informações fornecidas, identificamos um grande potencial de economia através da participação no Sistema de Compensação de Energia Elétrica (SCEE), permitindo que sua unidade consumidora receba créditos de energia gerados por nossas usinas solares.</p>
@@ -115,6 +129,7 @@ export function pageInstitutional(): string {
         <h1 class="page-title">QUEM É A ACERSOL</h1>
       </div>
       <div class="content">
+        <div class="page-hero-img"><img src="{{IMG_INSTITUCIONAL}}" alt="ACERSOL" onerror="this.style.display='none'"/></div>
         <p class="text intro-text">A ACERSOL é uma associação civil sem fins lucrativos que atua no compartilhamento de créditos de energia elétrica através do Sistema de Compensação de Energia Elétrica (SCEE). Nosso propósito é democratizar o acesso à energia renovável, proporcionando economia, sustentabilidade e segurança jurídica a nossos associados.</p>
         
         <div class="mvv-grid">
@@ -194,6 +209,7 @@ export function pageHowItWorks(): string {
         <h2 class="page-subtitle">Entenda o processo</h2>
       </div>
       <div class="content">
+        <div class="page-hero-img"><img src="{{IMG_COMO_FUNCIONA}}" alt="Como Funciona" onerror="this.style.display='none'"/></div>
         <div class="timeline">
           <div class="tl-item">
             <div class="tl-number">1</div>

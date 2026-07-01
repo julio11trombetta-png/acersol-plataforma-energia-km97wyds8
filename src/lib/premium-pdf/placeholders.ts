@@ -218,6 +218,54 @@ export function buildTemplateData(
     1200,
     800,
   )
+  const imgInstitucional = getAssetUrl(
+    findAsset(assets, 'industry', usedAssets),
+    'solar%20panel%20installation',
+    1200,
+    600,
+  )
+  const imgComoFunciona = getAssetUrl(
+    findAsset(assets, 'panels', usedAssets),
+    'solar%20panels%20rooftop',
+    1200,
+    600,
+  )
+  const imgAnalise = getAssetUrl(
+    findAsset(assets, 'industry', usedAssets),
+    'electricity%20meter',
+    1200,
+    600,
+  )
+  const imgSimulacao = getAssetUrl(
+    findAsset(assets, 'panels', usedAssets),
+    'solar%20investment',
+    1200,
+    600,
+  )
+  const imgBeneficios = getAssetUrl(
+    findAsset(assets, 'nature', usedAssets),
+    'green%20energy%20nature',
+    1200,
+    600,
+  )
+  const imgPassos = getAssetUrl(
+    findAsset(assets, 'plant', usedAssets),
+    'solar%20construction',
+    1200,
+    600,
+  )
+  const imgMapa = getAssetUrl(
+    findAsset(assets, 'nature', usedAssets),
+    'map%20location%20satellite',
+    1200,
+    400,
+  )
+  const imgPainel = getAssetUrl(
+    findAsset(assets, 'panels', usedAssets),
+    'solar%20panel%20close%20up',
+    1200,
+    800,
+  )
 
   const potUsina =
     safeNum(budget.expand?.plant_id?.potencia_instalada) ||
@@ -260,8 +308,18 @@ export function buildTemplateData(
     VALOR_ATUAL_LABEL: formatMoneyOrEmpty(valorAtual),
     VALOR_ESTIMADO_LABEL: formatMoneyOrEmpty(valorEstimado),
     MEDIA_KWH_LABEL: formatNumOrEmpty(avgConsumo),
+    CONTA_MEDIA_LABEL: formatMoneyOrEmpty(avgConta),
+    PRECO_MEDIO_LABEL:
+      avgConsumo > 0 && avgConta > 0 ? `R$ ${(avgConta / avgConsumo).toFixed(2)}` : '—',
     QTD_UCS: ucs.length > 0 ? String(ucs.length) : '—',
     USINA: budget.expand?.plant_id?.name || 'Usina Fotovoltaica ACERSOL',
+    USINA_LOCAL: budget.expand?.plant_id?.location || budget.expand?.plant_id?.city || '—',
+    USINA_TECNOLOGIA: budget.expand?.plant_id?.technologyType || 'Solar Fotovoltaica',
+    USINA_ENTRADA: budget.expand?.plant_id?.data_instalacao
+      ? new Date(budget.expand.plant_id.data_instalacao).toLocaleDateString('pt-BR')
+      : budget.expand?.plant_id?.data_homologacao
+        ? new Date(budget.expand.plant_id.data_homologacao).toLocaleDateString('pt-BR')
+        : '—',
     POTENCIA_LABEL: formatNumOrEmpty(potUsina, ' kWp'),
     GERACAO_LABEL: formatNumOrEmpty(geracaoUsina, ' kWh/mês'),
     STATUS_USINA: budget.expand?.plant_id?.status || 'Em Operação',
@@ -273,6 +331,14 @@ export function buildTemplateData(
     IMG_CAPA: imgCapa,
     IMG_USINA: imgUsina,
     IMG_SUSTENTABILIDADE: imgSustentabilidade,
+    IMG_INSTITUCIONAL: imgInstitucional,
+    IMG_COMO_FUNCIONA: imgComoFunciona,
+    IMG_ANALISE: imgAnalise,
+    IMG_SIMULACAO: imgSimulacao,
+    IMG_BENEFICIOS: imgBeneficios,
+    IMG_PASSOS: imgPassos,
+    IMG_MAPA: imgMapa,
+    IMG_PAINEL: imgPainel,
     DADO_ASSOCIADOS: 'Em atualização',
     DADO_USINAS: 'Em atualização',
     DADO_MW: 'Em atualização',

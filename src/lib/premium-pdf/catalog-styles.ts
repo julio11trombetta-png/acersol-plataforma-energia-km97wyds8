@@ -24,7 +24,7 @@ export function getCatalogStyles(model: PresentationModel = 'executive'): string
     
     /* Cover Page */
     .page-cover { justify-content: flex-end; }
-    .cover-bg { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; }
+    .cover-bg { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; background-color: var(--primary); }
     .cover-gradient { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,59,115,1) 0%, rgba(0,59,115,0.7) 50%, rgba(0,0,0,0) 100%); z-index: 2; }
     .cover-content { position: relative; z-index: 3; padding: 25mm 20mm; color: #fff; display: flex; flex-direction: column; height: 100%; }
     .cover-content .logo { width: 180px; filter: brightness(0) invert(1); margin-bottom: auto; }
@@ -47,7 +47,7 @@ export function getCatalogStyles(model: PresentationModel = 'executive'): string
     .header { padding: 20mm 20mm 10mm; }
     .page-title { font-size: 14px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
     .page-subtitle { font-size: 22px; font-weight: 700; color: var(--primary); }
-    .content { flex: 1; padding: 0 20mm; }
+    .content { flex: 1; padding: 0 20mm 20mm; }
     .pdf-footer { height: 15mm; border-top: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; padding: 0 20mm; font-size: 10px; color: #666; font-weight: 600; position: absolute; bottom: 0; left: 0; right: 0; background: #fff; }
     .footer-page { font-size: 12px; font-weight: 800; color: var(--primary); }
 
@@ -184,5 +184,18 @@ export function getCatalogStyles(model: PresentationModel = 'executive'): string
     .sig-line { height: 1px; background: #cbd5e1; margin-bottom: 10px; }
     .sig-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
     .sig-date { font-size: 10px; color: #999; }
+
+    .page-footer { position: absolute; bottom: 0; left: 0; right: 0; height: 15mm; border-top: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; padding: 0 20mm; font-size: 10px; color: #666; font-weight: 600; background: #fff; }
+    .page-footer .logo img { height: 18px; }
+    .page-footer .info { display: flex; gap: 15px; }
+    .page-footer .page-number { font-size: 12px; font-weight: 800; color: var(--primary); }
+    .page-hero-img { height: 40mm; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+    .page-hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .sim-image { height: 40mm; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+    .sim-image img { width: 100%; height: 100%; object-fit: cover; }
+    .ben-hero { height: 40mm; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+    .ben-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .steps-hero { height: 40mm; border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+    .steps-hero img { width: 100%; height: 100%; object-fit: cover; }
   </style>`
 }

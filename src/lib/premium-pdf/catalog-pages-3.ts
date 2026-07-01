@@ -107,6 +107,7 @@ export function pageBenefits(): string {
         <h2 class="page-subtitle">Vantagens de participar da ACERSOL</h2>
       </div>
       <div class="content">
+        <div class="ben-hero"><img src="{{IMG_BENEFICIOS}}" alt="Benefícios" onerror="this.style.display='none'"/></div>
         <div class="benefits-grid-9">
           ${cards}
         </div>
@@ -124,6 +125,7 @@ export function pageNextSteps(): string {
         <h2 class="page-subtitle">Como será o processo de adesão</h2>
       </div>
       <div class="content">
+        <div class="steps-hero"><img src="{{IMG_PASSOS}}" alt="Próximos Passos" onerror="this.style.display='none'"/></div>
         <div class="steps-timeline">
           <div class="step-row">
             <div class="step-num bg-primary">1</div>

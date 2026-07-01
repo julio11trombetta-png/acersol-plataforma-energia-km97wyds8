@@ -117,13 +117,28 @@ function ForcePasswordRoute() {
   return <ForcePasswordChange />
 }
 
+function RootRedirect() {
+  const { user, isAuthenticated, loading } = useAuth()
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  if (isAuthenticated && user) {
+    if (user.force_password_change) return <Navigate to="/force-password-change" replace />
+    return <Navigate to={`/dashboard/${user.role}`} replace />
+  }
+  return <Navigate to="/login" replace />
+}
+
 const AppContent = () => (
   <BrowserRouter>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route
           path="/login"
           element={
