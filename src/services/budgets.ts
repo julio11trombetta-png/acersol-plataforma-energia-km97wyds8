@@ -31,13 +31,11 @@ export const getBudgets = (page = 1, perPage = 20, filters: BudgetFilters = {}) 
 }
 
 export const getAllBudgets = () =>
-  pb
-    .collection('budgets')
-    .getFullList({
-      sort: '-created',
-      filter: 'deleted_at = null',
-      expand: 'lead_id,client_id,plant_id',
-    })
+  pb.collection('budgets').getFullList({
+    sort: '-created',
+    filter: 'deleted_at = null',
+    expand: 'lead_id,client_id,plant_id',
+  })
 
 export const getBudget = (id: string) =>
   pb.collection('budgets').getOne(id, { expand: 'lead_id,client_id,plant_id' })
