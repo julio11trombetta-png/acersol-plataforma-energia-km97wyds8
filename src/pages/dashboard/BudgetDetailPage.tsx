@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { ArrowLeft, FileText, Copy, UserPlus, Send, Edit } from 'lucide-react'
+import { ArrowLeft, FileText, Copy, UserPlus, Send, Edit, Sparkles } from 'lucide-react'
 import {
   getBudget,
   getBudgetFiles,
@@ -13,6 +13,7 @@ import {
   logBudgetAction,
 } from '@/services/budgets'
 import { generateBudgetPDF } from '@/lib/budget-pdf'
+import { generatePremiumCatalogPDF } from '@/lib/premium-pdf/catalog-generator'
 import { STATUS_COLORS } from '@/lib/budget-calculations'
 import { formatCurrency } from '@/lib/formatters'
 import { getBudgetUnits } from '@/services/budget-units'
@@ -111,6 +112,18 @@ export default function BudgetDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full border-brand-green text-brand-green hover:bg-brand-green hover:text-white"
+            onClick={() =>
+              generatePremiumCatalogPDF(budget, units, monthlyData).catch(() =>
+                toast.error('Erro ao gerar catálogo'),
+              )
+            }
+          >
+            <Sparkles className="mr-1 h-4 w-4" /> Catálogo
+          </Button>
           <Button
             variant="outline"
             size="sm"
