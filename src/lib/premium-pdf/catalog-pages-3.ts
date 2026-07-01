@@ -1,141 +1,228 @@
 import { ICONS } from '@/lib/premium-pdf/styles'
 
 export function pagePlant(): string {
-  return `<div class="catalog-page flex-page">
-<img class="plant-photo" src="{{IMG_USINA}}" alt="Usina Solar" onerror="this.style.display='none'"/>
-<div class="page-header" style="padding-top:15mm;">
-  <span class="section-tag">USINA DESIGNADA</span>
-  <h2>{{USINA}}</h2>
-</div>
-<div class="plant-grid" style="flex-shrink: 0;">
-  <div class="plant-grid-item"><div class="icon">${ICONS.zap}</div><div class="num">{{POTENCIA_LABEL}}</div><div class="label">Potência Instalada</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.sun}</div><div class="num">{{GERACAO_LABEL}}</div><div class="label">Geração Mensal Média</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.percent}</div><div class="num">{{ECONOMIA_PERCENTUAL_LABEL}}</div><div class="label">Desconto Aplicado</div></div>
-  <div class="plant-grid-item"><div class="icon">${ICONS.shield}</div><div class="num">{{STATUS_USINA}}</div><div class="label">Status de Operação</div></div>
-</div>
-<div style="padding:10mm 20mm; flex-grow: 1;">
-  <div class="data-card" style="background:#fff; border:1px solid #eee; border-left:4px solid var(--accent); padding:24px;">
-    <p style="font-size:14px;color:#444;line-height:1.8;">A usina designada para a sua compensação energética opera com tecnologia fotovoltaica de última geração, garantindo uma geração estável e confiável de créditos suficientes para abater o seu consumo mensal. A ACERSOL monitora o desempenho da usina em tempo real, realizando manutenções preventivas para assegurar a máxima eficiência.</p>
-  </div>
-</div>
-{{FOOTER}}
-</div>`
+  return `
+    <div class="catalog-page page-plant">
+      <div class="header">
+        <h1 class="page-title">USINA DESIGNADA</h1>
+        <h2 class="page-subtitle">{{USINA}}</h2>
+      </div>
+      <div class="content">
+        <div class="plant-image-container">
+          <img src="{{IMG_USINA}}" alt="Usina Solar" class="plant-image" onerror="this.style.display='none'"/>
+        </div>
+        
+        <div class="plant-info-grid">
+          <div class="p-info-item">
+            <span class="icon">${ICONS.mapPin}</span>
+            <div class="p-text">
+              <span class="label">Localização</span>
+              <span class="value">{{USINA_LOCAL}}</span>
+            </div>
+          </div>
+          <div class="p-info-item">
+            <span class="icon">${ICONS.zap}</span>
+            <div class="p-text">
+              <span class="label">Tecnologia</span>
+              <span class="value">{{USINA_TECNOLOGIA}}</span>
+            </div>
+          </div>
+          <div class="p-info-item">
+            <span class="icon">${ICONS.bolt}</span>
+            <div class="p-text">
+              <span class="label">Potência Instalada</span>
+              <span class="value">{{POTENCIA_LABEL}}</span>
+            </div>
+          </div>
+          <div class="p-info-item">
+            <span class="icon">${ICONS.clock}</span>
+            <div class="p-text">
+              <span class="label">Entrada em Operação</span>
+              <span class="value">{{USINA_ENTRADA}}</span>
+            </div>
+          </div>
+          <div class="p-info-item">
+            <span class="icon">${ICONS.sun}</span>
+            <div class="p-text">
+              <span class="label">Geração Média Mensal</span>
+              <span class="value">{{GERACAO_LABEL}}</span>
+            </div>
+          </div>
+          <div class="p-info-item">
+            <span class="icon">${ICONS.shield}</span>
+            <div class="p-text">
+              <span class="label">Status</span>
+              <span class="value">{{STATUS_USINA}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="plant-map-container">
+          <div class="map-label">Localização aproximada da usina</div>
+          <img src="{{IMG_MAPA}}" alt="Mapa da Usina" class="map-img"/>
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }
 
 export function pageBenefits(): string {
   const items = [
-    {
-      i: ICONS.wallet,
-      t: 'Sem Investimento',
-      d: 'Zero custo de adesão e sem taxas de instalação.',
-    },
-    { i: ICONS.tools, t: 'Sem Obras', d: 'Nenhuma alteração estrutural no seu imóvel.' },
+    { i: ICONS.wallet, t: 'Sem investimento', d: 'Você não investe em equipamentos.' },
+    { i: ICONS.tools, t: 'Sem obras', d: 'Não é necessário realizar obras ou instalações.' },
+    { i: ICONS.clock, t: 'Sem manutenção', d: 'Nós cuidamos de tudo para você.' },
+    { i: ICONS.trending, t: 'Economia imediata', d: 'Redução da conta de energia todos os meses.' },
+    { i: ICONS.leaf, t: 'Energia renovável', d: 'Fonte limpa que reduz impactos ambientais.' },
     {
       i: ICONS.shield,
-      t: 'Lei 14.300/22',
-      d: 'Total conformidade com o marco legal da Geração Distribuída.',
+      t: 'Segurança jurídica',
+      d: 'Atuação em conformidade com a legislação vigente.',
     },
-    { i: ICONS.leaf, t: 'Energia Limpa', d: '100% renovável, reduzindo a pegada de carbono.' },
-    { i: ICONS.trending, t: 'Economia Real', d: 'Redução na conta de luz desde o primeiro mês.' },
-    {
-      i: ICONS.clock,
-      t: 'Sem Manutenção',
-      d: 'A operação e manutenção das usinas são por nossa conta.',
-    },
-    { i: ICONS.lock, t: 'Contrato Seguro', d: 'Garantias jurídicas e transparência total.' },
+    { i: ICONS.user, t: 'Atendimento local', d: 'Suporte próximo e atendimento ágil.' },
+    { i: ICONS.scale, t: 'Transparência', d: 'Processos claros e prestação de contas.' },
     {
       i: ICONS.users,
-      t: 'Associação Forte',
-      d: 'Modelo cooperativo/associativo sólido e comprovado.',
+      t: 'Acesso facilitado',
+      d: 'Quem pode participar: empresas, produtores, entidades e órgãos públicos.',
     },
-    {
-      i: ICONS.globe,
-      t: 'Sustentabilidade',
-      d: 'Contribuição direta para a preservação ambiental.',
-    },
-    {
-      i: ICONS.award,
-      t: 'Alta Qualidade',
-      d: 'Usinas com equipamentos Tier 1 e inversores premium.',
-    },
-    {
-      i: ICONS.scale,
-      t: 'Transparência',
-      d: 'Acompanhamento claro dos créditos e consumo gerado.',
-    },
-    { i: ICONS.check, t: 'Adesão Simples', d: 'Processo rápido, 100% digital e sem burocracia.' },
   ]
+
   const cards = items
     .map(
-      (b) =>
-        `<div class="benefit-card"><div class="icon">${b.i}</div><div class="title">${b.t}</div><div class="desc">${b.d}</div></div>`,
+      (b) => `
+    <div class="ben-card">
+      <div class="ben-icon">${b.i}</div>
+      <h4 class="ben-title">${b.t}</h4>
+      <p class="ben-desc">${b.d}</p>
+    </div>
+  `,
     )
     .join('')
-  return `<div class="catalog-page flex-page">
-<div class="page-header">
-  <span class="section-tag">BENEFÍCIOS EXCLUSIVOS</span>
-  <h2>Por que escolher a ACERSOL?</h2>
-</div>
-<div class="benefits-grid" style="flex-grow:1;">
-  ${cards}
-</div>
-{{FOOTER}}
-</div>`
+
+  return `
+    <div class="catalog-page page-benefits">
+      <div class="header">
+        <h1 class="page-title">BENEFÍCIOS PARA VOCÊ</h1>
+        <h2 class="page-subtitle">Vantagens de participar da ACERSOL</h2>
+      </div>
+      <div class="content">
+        <div class="benefits-grid-9">
+          ${cards}
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }
 
-export function pageObservations(): string {
-  return `<div class="catalog-page flex-page">
-<div class="page-header">
-  <span class="section-tag">OBSERVAÇÕES IMPORTANTES</span>
-  <h2>Condições e Validade da Proposta</h2>
-</div>
-<div style="padding:0 20mm; flex-grow:1;">
-  <p style="font-size:14px;line-height:1.7;color:#555;margin-bottom:20px;">Esta proposta comercial foi elaborada com base no histórico de consumo apresentado e nas regras tarifárias vigentes da concessionária local. Trata-se de um documento informativo, não constituindo por si só um vínculo contratual definitivo.</p>
-  
-  <div class="obs-box">
-    <p style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:8px">Validade da Proposta</p>
-    <p>As condições, o percentual de desconto e os valores estimados nesta proposta são válidos por <strong>30 dias</strong> contados a partir de {{DATA}}. Após este período, a disponibilidade de cota na usina designada e as condições comerciais poderão ser reavaliadas.</p>
-  </div>
-  
-  <div class="obs-box" style="border-left-color:var(--accent);margin-top:20px">
-    <p style="font-size:15px;font-weight:700;color:var(--accent);margin-bottom:8px">Formalização</p>
-    <p>A efetivação da parceria se dará mediante a assinatura digital do Termo de Adesão ao Estatuto da Associação. Todo o trâmite junto à distribuidora de energia ({{DISTRIBUIDORA}}) será conduzido pela equipe técnica da ACERSOL sem custos adicionais para o associado.</p>
-  </div>
-  
-  <div class="obs-box" style="border-left-color:#eab308;margin-top:20px; display: {{SHOW_OBS}};">
-    <p style="font-size:15px;font-weight:700;color:#ca8a04;margin-bottom:8px">Notas Específicas do Consultor</p>
-    <p>{{OBSERVACOES}}</p>
-  </div>
+export function pageNextSteps(): string {
+  return `
+    <div class="catalog-page page-steps">
+      <div class="header">
+        <h1 class="page-title">PRÓXIMOS PASSOS</h1>
+        <h2 class="page-subtitle">Como será o processo de adesão</h2>
+      </div>
+      <div class="content">
+        <div class="steps-timeline">
+          <div class="step-row">
+            <div class="step-num bg-primary">1</div>
+            <div class="step-text">
+              <h4>Adesão</h4>
+              <p>Assinatura do termo de participação na ACERSOL.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num bg-accent">2</div>
+            <div class="step-text">
+              <h4>Documentação</h4>
+              <p>Envio da documentação da unidade consumidora.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num bg-accent">3</div>
+            <div class="step-text">
+              <h4>Cadastro</h4>
+              <p>Realizamos o cadastro junto à distribuidora.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num bg-accent">4</div>
+            <div class="step-text">
+              <h4>Validação</h4>
+              <p>A distribuidora valida e habilita sua participação.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num bg-accent">5</div>
+            <div class="step-text">
+              <h4>Ativação</h4>
+              <p>Início da geração de créditos para sua unidade.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-num bg-accent">6</div>
+            <div class="step-text">
+              <h4>Economia</h4>
+              <p>Créditos começam a abater sua conta de energia.</p>
+            </div>
+          </div>
+        </div>
 
-  <div style="text-align:center;margin-top:30mm">
-    <div class="qr-placeholder">${ICONS.globe}</div>
-    <p style="font-size:12px;color:#999;margin-top:8px">www.acersol.com.br</p>
-  </div>
-</div>
-{{FOOTER}}
-</div>`
+        <div class="prazo-box">
+          <div class="icon">${ICONS.calendar}</div>
+          <div class="text">
+            <strong>PRAZO ESTIMADO</strong>
+            <p>O processo completo leva em média de 30 a 45 dias após o envio da documentação completa.</p>
+          </div>
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }
 
 export function pageClosing(): string {
-  return `<div class="catalog-page closing-page">
-<div class="closing-logo"><img src="{{LOGO}}" alt="ACERSOL"/></div>
-<div class="closing-message">Bem-vindo ao futuro da energia.</div>
-<div class="closing-sub">Sua parceria sustentável e inteligente com a ACERSOL.</div>
-<div class="contact-row">
-  <div class="contact-item">${ICONS.phone} (54) 9267-9352</div>
-  <div class="contact-item">${ICONS.mail} contato@acersol.com.br</div>
-  <div class="contact-item">${ICONS.mapPin} Rio Grande do Sul, Brasil</div>
-</div>
-<div class="sign-area">
-  <div class="sign-box">
-    <span style="display:block;margin-bottom:4px;font-size:14px;color:var(--primary)">Representante ACERSOL</span>
-    {{RESPONSAVEL}}
-  </div>
-  <div class="sign-box">
-    <span style="display:block;margin-bottom:4px;font-size:14px;color:var(--primary)">Cliente / Associado</span>
-    {{CLIENTE}}
-  </div>
-</div>
-<p style="font-size:11px;color:#999;margin-top:30mm;text-transform:uppercase;letter-spacing:1px;">ACERSOL - ASSOCIAÇÃO COMPANHIA DE ENERGIA RENOVÁVEL SOLAR<br/>CNPJ: 65.133.572/0001-94</p>
-</div>`
+  return `
+    <div class="catalog-page page-closing">
+      <div class="header">
+        <h1 class="page-title">ENCERRAMENTO</h1>
+        <h2 class="page-subtitle">Conte com a ACERSOL</h2>
+      </div>
+      <div class="content">
+        <p class="closing-text">Agradecemos a oportunidade de apresentar esta proposta.<br/>Estamos à disposição para esclarecer quaisquer dúvidas e iniciar essa parceria que trará economia e sustentabilidade para sua entidade.</p>
+        
+        <div class="closing-image-container">
+          <img src="{{IMG_PAINEL}}" alt="Encerramento" />
+        </div>
+
+        <div class="closing-bottom">
+          <div class="closing-contacts">
+            <h4>Fale com a ACERSOL</h4>
+            <div class="c-item"><span class="icon">${ICONS.phone}</span> (54) 9 9922-0000</div>
+            <div class="c-item"><span class="icon">${ICONS.mail}</span> contato@acersol.com.br</div>
+            <div class="c-item"><span class="icon">${ICONS.globe}</span> www.acersol.com.br</div>
+            <div class="c-item"><span class="icon">${ICONS.mapPin}</span> Constantina - RS</div>
+          </div>
+          <div class="closing-qr">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://www.acersol.com.br" alt="QR Code" />
+          </div>
+        </div>
+
+        <div class="closing-signatures">
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-name">Responsável ACERSOL</div>
+            <div class="sig-date">Data: ___/___/___</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line"></div>
+            <div class="sig-name">Ciente do Cliente</div>
+            <div class="sig-date">Data: ___/___/___</div>
+          </div>
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }

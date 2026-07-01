@@ -1,127 +1,251 @@
 import { ICONS } from '@/lib/premium-pdf/styles'
 
 export function pageCover(): string {
-  return `<div class="catalog-page flex-page cover-page">
-<div class="cover-bg" style="background-image:url('{{IMG_CAPA}}')"></div>
-<div class="cover-overlay"></div>
-<div class="cover-content">
-  <div class="cover-logo"><img src="{{LOGO}}" alt="ACERSOL"/></div>
-  <div class="cover-title">
-    <span class="cover-tag">PROPOSTA DE PARTICIPAÇÃO</span>
-    <h1>Energia Solar<br/>Compartilhada</h1>
-    <p class="cover-slogan" style="font-size:20px; color:#e2e8f0; margin-top: 16px; font-weight: 500;">Energia Compartilhada. Economia Inteligente.</p>
-  </div>
-  <div class="cover-footer">
-    <p style="font-size:20px;font-weight:700;margin-bottom:8px;">{{CLIENTE}}</p>
-    <p style="font-size:14px; opacity:0.9; margin-bottom:4px;">{{CIDADE_ESTADO}} | {{DATA}}</p>
-    <p style="font-size:14px; opacity:0.9; margin-bottom:4px;">Proposta Nº {{NUMERO_PROPOSTA}}</p>
-    <p style="font-size:14px; opacity:0.9;">Consultor: {{RESPONSAVEL}}</p>
-  </div>
-</div>
-</div>`
+  return `
+    <div class="catalog-page page-cover">
+      <div class="cover-bg" style="background-image:url('{{IMG_CAPA}}')"></div>
+      <div class="cover-gradient"></div>
+      <div class="cover-content">
+        <img src="{{LOGO}}" alt="ACERSOL" class="logo" />
+        <div class="title-block">
+          <h1>PROPOSTA COMERCIAL</h1>
+          <h2>Sistema de Compensação de<br/>Energia Elétrica (SCEE)</h2>
+        </div>
+        <div class="client-block">
+          <span class="label">Cliente</span>
+          <span class="value">{{CLIENTE}}</span>
+        </div>
+        <div class="info-block">
+          <div class="info-item">
+            <span class="icon">${ICONS.fileText}</span>
+            <div>
+              <span class="label">Proposta nº</span>
+              <span class="value">{{NUMERO_PROPOSTA}}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="icon">${ICONS.calendar}</span>
+            <div>
+              <span class="label">Data</span>
+              <span class="value">{{DATA}}</span>
+            </div>
+          </div>
+        </div>
+        <div class="footer-block">
+          <span>Energia renovável. Economia inteligente.</span>
+          <span class="page-num">01</span>
+        </div>
+      </div>
+    </div>
+  `
 }
 
 export function pageDiagnostico(): string {
-  return `<div class="catalog-page flex-page">
-<div class="page-header">
-  <span class="section-tag">RESUMO EXECUTIVO</span>
-  <h2>Diagnóstico Energético</h2>
-</div>
-<div class="page-content" style="flex-grow: 1; padding: 0 20mm;">
-  <p class="intro-text" style="font-size:16px; line-height:1.6; color:#444; margin-bottom: 30px;">Após a análise das informações fornecidas, identificamos potencial para redução dos custos com energia elétrica através da modalidade de Geração Distribuída Compartilhada.</p>
-  
-  <div class="diag-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-    <div class="data-card">
-      <div class="key">Cliente</div>
-      <div class="val">{{CLIENTE}}</div>
+  return `
+    <div class="catalog-page page-diagnostico">
+      <div class="header">
+        <h1 class="page-title">DIAGNÓSTICO DO CLIENTE</h1>
+        <h2 class="page-subtitle">Resumo executivo</h2>
+      </div>
+      <div class="content">
+        <p class="text">Após a análise das informações fornecidas, identificamos um grande potencial de economia através da participação no Sistema de Compensação de Energia Elétrica (SCEE), permitindo que sua unidade consumidora receba créditos de energia gerados por nossas usinas solares.</p>
+        
+        <div class="diag-split">
+          <div class="diag-blue-box">
+            <div class="diag-item">
+              <span class="icon">${ICONS.building}</span>
+              <div class="diag-text">
+                <span class="label">Distribuidora</span>
+                <span class="value">{{DISTRIBUIDORA}}</span>
+              </div>
+            </div>
+            <div class="diag-item">
+              <span class="icon">${ICONS.mapPin}</span>
+              <div class="diag-text">
+                <span class="label">Cidade</span>
+                <span class="value">{{CIDADE_ESTADO}}</span>
+              </div>
+            </div>
+            <div class="diag-item">
+              <span class="icon">${ICONS.fileText}</span>
+              <div class="diag-text">
+                <span class="label">Unidade Consumidora</span>
+                <span class="value">{{UC_CODE}}</span>
+              </div>
+            </div>
+            <div class="diag-item">
+              <span class="icon">${ICONS.zap}</span>
+              <div class="diag-text">
+                <span class="label">Consumo Médio</span>
+                <span class="value">{{MEDIA_KWH_LABEL}}</span>
+              </div>
+            </div>
+            <div class="diag-item">
+              <span class="icon">${ICONS.percent}</span>
+              <div class="diag-text">
+                <span class="label">Potencial de Economia</span>
+                <span class="value">Aprox. {{ECONOMIA_PERCENTUAL_LABEL}}</span>
+              </div>
+            </div>
+            <div class="diag-item highlight">
+              <span class="icon">${ICONS.wallet}</span>
+              <div class="diag-text">
+                <span class="label">Economia Estimada</span>
+                <span class="value">{{ECONOMIA_MENSAL_LABEL}}/mês</span>
+              </div>
+            </div>
+            <div class="diag-disclaimer">
+              ** Esta proposta foi elaborada exclusivamente para a {{CLIENTE}}, considerando os dados informados no momento da simulação.
+            </div>
+          </div>
+          <div class="diag-image">
+            <img src="{{IMG_SUSTENTABILIDADE}}" alt="Diagnóstico" />
+          </div>
+        </div>
+      </div>
+      {{FOOTER}}
     </div>
-    <div class="data-card">
-      <div class="key">Localidade</div>
-      <div class="val">{{CIDADE_ESTADO}}</div>
-    </div>
-    <div class="data-card">
-      <div class="key">Concessionária</div>
-      <div class="val">{{DISTRIBUIDORA}}</div>
-    </div>
-    <div class="data-card">
-      <div class="key">Unidades (UCs)</div>
-      <div class="val">{{QTD_UCS}}</div>
-    </div>
-    <div class="data-card">
-      <div class="key">Consumo Médio</div>
-      <div class="val">{{MEDIA_KWH_LABEL}}</div>
-    </div>
-    <div class="data-card" style="border-left-color:var(--accent); background:#f0fdf4;">
-      <div class="key" style="color:var(--accent);">Economia Estimada</div>
-      <div class="val" style="color:var(--accent); font-size:18px;">{{ECONOMIA_PERCENTUAL_LABEL}}</div>
-    </div>
-  </div>
-</div>
-{{FOOTER}}
-</div>`
+  `
 }
 
 export function pageInstitutional(): string {
-  return `<div class="catalog-page flex-page">
-<div class="split-layout">
-  <div class="split-image"><img src="{{IMG_SUSTENTABILIDADE}}" alt="Sustentabilidade"/></div>
-  <div class="split-text">
-    <span class="section-tag">INSTITUCIONAL</span>
-    <h2>Sobre a ACERSOL</h2>
-    <p>A ACERSOL é referência nacional em gestão de energia solar compartilhada, conectando associados a usinas fotovoltaicas de alta performance.</p>
-    <p style="margin-top:12px">Nossa missão é democratizar o acesso à energia limpa, garantindo economia real e contribuição ativa para um futuro sustentável sem a necessidade de investimentos ou obras no seu imóvel.</p>
-  </div>
-</div>
-<div class="indicators-grid" style="flex-grow: 1;">
-  <div class="indicator-card"><div class="icon">${ICONS.users}</div><div class="num" style="font-size:20px;">{{DADO_ASSOCIADOS}}</div><div class="label">Associados</div></div>
-  <div class="indicator-card"><div class="icon">${ICONS.sun}</div><div class="num" style="font-size:20px;">{{DADO_USINAS}}</div><div class="label">Usinas</div></div>
-  <div class="indicator-card"><div class="icon">${ICONS.zap}</div><div class="num" style="font-size:20px;">{{DADO_MW}}</div><div class="label">Potência</div></div>
-  <div class="indicator-card"><div class="icon">${ICONS.bolt}</div><div class="num" style="font-size:20px;">{{DADO_GERACAO}}</div><div class="label">Geração Limpa</div></div>
-  <div class="indicator-card"><div class="icon">${ICONS.leaf}</div><div class="num" style="font-size:20px;">{{DADO_CO2}}</div><div class="label">Sustentabilidade</div></div>
-  <div class="indicator-card"><div class="icon">${ICONS.mapPin}</div><div class="num" style="font-size:20px;">{{DADO_CIDADES}}</div><div class="label">Cobertura</div></div>
-</div>
-{{FOOTER}}
-</div>`
+  return `
+    <div class="catalog-page page-institutional">
+      <div class="header">
+        <h1 class="page-title">QUEM É A ACERSOL</h1>
+      </div>
+      <div class="content">
+        <p class="text intro-text">A ACERSOL é uma associação civil sem fins lucrativos que atua no compartilhamento de créditos de energia elétrica através do Sistema de Compensação de Energia Elétrica (SCEE). Nosso propósito é democratizar o acesso à energia renovável, proporcionando economia, sustentabilidade e segurança jurídica a nossos associados.</p>
+        
+        <div class="mvv-grid">
+          <div class="mvv-card">
+            <div class="icon-wrap"><div class="icon">${ICONS.users}</div></div>
+            <h3>MISSÃO</h3>
+            <p>Promover economia e sustentabilidade através da energia compartilhada.</p>
+          </div>
+          <div class="mvv-card">
+            <div class="icon-wrap"><div class="icon">${ICONS.sun}</div></div>
+            <h3>VISÃO</h3>
+            <p>Ser referência regional em gestão de energia compartilhada.</p>
+          </div>
+          <div class="mvv-card">
+            <div class="icon-wrap"><div class="icon">${ICONS.shield}</div></div>
+            <h3>VALORES</h3>
+            <p>Transparência, ética, sustentabilidade, cooperação e foco no associado.</p>
+          </div>
+        </div>
+
+        <h2 class="section-subtitle">NOSSOS DIFERENCIAIS</h2>
+        <div class="diferenciais-grid">
+          <div class="diff-card">
+            <div class="icon">${ICONS.zap}</div>
+            <div>
+              <h4>Energia Compartilhada</h4>
+              <p>Créditos gerados por usinas solares para abater sua conta.</p>
+            </div>
+          </div>
+          <div class="diff-card">
+            <div class="icon">${ICONS.wallet}</div>
+            <div>
+              <h4>Sem Investimento</h4>
+              <p>Você não precisa investir na compra de equipamentos ou instalação.</p>
+            </div>
+          </div>
+          <div class="diff-card">
+            <div class="icon">${ICONS.trending}</div>
+            <div>
+              <h4>Economia Real</h4>
+              <p>Redução dos custos com energia elétrica todos os meses.</p>
+            </div>
+          </div>
+          <div class="diff-card">
+            <div class="icon">${ICONS.building}</div>
+            <div>
+              <h4>Gestão Completa</h4>
+              <p>Cuidamos de todo o processo junto à distribuidora e órgãos reguladores.</p>
+            </div>
+          </div>
+          <div class="diff-card">
+            <div class="icon">${ICONS.user}</div>
+            <div>
+              <h4>Atendimento Personalizado</h4>
+              <p>Suporte próximo e atendimento humanizado.</p>
+            </div>
+          </div>
+          <div class="diff-card">
+            <div class="icon">${ICONS.leaf}</div>
+            <div>
+              <h4>Sustentabilidade</h4>
+              <p>Energia limpa que contribui com o meio ambiente e o futuro.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }
 
 export function pageHowItWorks(): string {
-  return `<div class="catalog-page flex-page">
-<div class="page-header">
-  <span class="section-tag">COMO FUNCIONA</span>
-  <h2>Sistema de Compensação</h2>
-  <p class="subtitle">Entenda como a energia solar compartilhada chega até você de forma simples e transparente.</p>
-</div>
-<div class="flow-infographic" style="flex-shrink: 0;">
-  <div class="flow-step"><div class="flow-icon">${ICONS.user}</div><div class="flow-label">Cliente</div></div>
-  <div class="flow-arrow">→</div>
-  <div class="flow-step"><div class="flow-icon">${ICONS.building}</div><div class="flow-label">ACERSOL</div></div>
-  <div class="flow-arrow">→</div>
-  <div class="flow-step"><div class="flow-icon">${ICONS.sun}</div><div class="flow-label">Usina</div></div>
-  <div class="flow-arrow">→</div>
-  <div class="flow-step"><div class="flow-icon">${ICONS.zap}</div><div class="flow-label">Distribuidora</div></div>
-  <div class="flow-arrow">→</div>
-  <div class="flow-step"><div class="flow-icon">${ICONS.percent}</div><div class="flow-label">Créditos</div></div>
-  <div class="flow-arrow">→</div>
-  <div class="flow-step"><div class="flow-icon">${ICONS.fileText}</div><div class="flow-label">Conta</div></div>
-</div>
-<div style="padding:10mm 20mm; flex-grow: 1;">
-  <div class="data-card" style="margin-bottom:12px">
-    <div class="key">1. Associação</div>
-    <div class="val" style="font-weight:400;">O cliente se associa à ACERSOL e recebe uma cota de créditos de energia proporcional ao seu consumo.</div>
-  </div>
-  <div class="data-card" style="margin-bottom:12px;border-left-color:var(--accent)">
-    <div class="key">2. Geração</div>
-    <div class="val" style="font-weight:400;">Nossas usinas geram energia limpa que é injetada diretamente na rede da distribuidora local.</div>
-  </div>
-  <div class="data-card" style="margin-bottom:12px">
-    <div class="key">3. Compensação</div>
-    <div class="val" style="font-weight:400;">A distribuidora converte a energia injetada em créditos que abatem o consumo na sua fatura de energia.</div>
-  </div>
-  <div class="data-card" style="border-left-color:var(--accent)">
-    <div class="key">4. Economia</div>
-    <div class="val" style="font-weight:400;">Você paga apenas a diferença para a distribuidora e a fatura da ACERSOL com desconto garantido, gerando economia todo mês.</div>
-  </div>
-</div>
-{{FOOTER}}
-</div>`
+  return `
+    <div class="catalog-page page-how-it-works">
+      <div class="header">
+        <h1 class="page-title">COMO FUNCIONA O SCEE</h1>
+        <h2 class="page-subtitle">Entenda o processo</h2>
+      </div>
+      <div class="content">
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-number">1</div>
+            <div class="tl-icon">${ICONS.sun}</div>
+            <div class="tl-content">
+              <h3>USINA SOLAR</h3>
+              <p>A ACERSOL gera energia limpa em suas usinas fotovoltaicas.</p>
+            </div>
+          </div>
+          <div class="tl-arrow"></div>
+          <div class="tl-item">
+            <div class="tl-number">2</div>
+            <div class="tl-icon">${ICONS.building}</div>
+            <div class="tl-content">
+              <h3>DISTRIBUIDORA</h3>
+              <p>A energia gerada é injetada na rede da distribuidora local.</p>
+            </div>
+          </div>
+          <div class="tl-arrow"></div>
+          <div class="tl-item">
+            <div class="tl-number">3</div>
+            <div class="tl-icon">${ICONS.zap}</div>
+            <div class="tl-content">
+              <h3>CRÉDITOS DE ENERGIA</h3>
+              <p>Os créditos são gerados e disponibilizados para os associados da ACERSOL.</p>
+            </div>
+          </div>
+          <div class="tl-arrow"></div>
+          <div class="tl-item">
+            <div class="tl-number">4</div>
+            <div class="tl-icon">${ICONS.user}</div>
+            <div class="tl-content">
+              <h3>UNIDADE CONSUMIDORA</h3>
+              <p>Os créditos são direcionados para sua unidade consumidora.</p>
+            </div>
+          </div>
+          <div class="tl-arrow"></div>
+          <div class="tl-item">
+            <div class="tl-number">5</div>
+            <div class="tl-icon">${ICONS.wallet}</div>
+            <div class="tl-content">
+              <h3>ECONOMIA NA FATURA</h3>
+              <p>Os créditos abatem o consumo da sua conta de energia elétrica.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tl-badge">
+          <span class="icon">${ICONS.check}</span> Tudo isso sem instalação, sem obras e sem investimento.
+        </div>
+      </div>
+      {{FOOTER}}
+    </div>
+  `
 }

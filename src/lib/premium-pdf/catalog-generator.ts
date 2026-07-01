@@ -7,15 +7,11 @@ import {
   pageInstitutional,
   pageHowItWorks,
 } from '@/lib/premium-pdf/catalog-pages-1'
-import {
-  pageClientData,
-  pageConsumptionHistory,
-  pageFinancialSimulation,
-} from '@/lib/premium-pdf/catalog-pages-2'
+import { pageConsumptionHistory, pageFinancialSimulation } from '@/lib/premium-pdf/catalog-pages-2'
 import {
   pagePlant,
   pageBenefits,
-  pageObservations,
+  pageNextSteps,
   pageClosing,
 } from '@/lib/premium-pdf/catalog-pages-3'
 import { PresentationModel } from '@/lib/premium-pdf/styles'
@@ -40,12 +36,11 @@ export async function generatePremiumCatalogPDF(
     pageDiagnostico(),
     pageInstitutional(),
     pageHowItWorks(),
-    pageClientData(),
     pageConsumptionHistory(),
     pageFinancialSimulation(),
     pagePlant(),
     pageBenefits(),
-    pageObservations(),
+    pageNextSteps(),
     pageClosing(),
   ]
 
