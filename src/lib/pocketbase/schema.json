@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T20:14:47.366Z",
+  "generatedAt": "2026-07-01T20:30:33.406Z",
   "collections": [
     {
       "name": "users",
@@ -3420,6 +3420,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "presentation_model",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["executive", "institutional", "commercial"]
         }
       ],
       "indexes": []
@@ -3782,6 +3789,65 @@
         "CREATE INDEX idx_bmc_budget ON budget_monthly_consumption (budget_id)",
         "CREATE INDEX idx_bmc_unit ON budget_monthly_consumption (unit_id)"
       ]
+    },
+    {
+      "name": "institutional_assets",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["plant", "panels", "industry", "nature"]
+        },
+        {
+          "name": "file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_inst_assets_category ON institutional_assets (category)"]
     }
   ]
 }
