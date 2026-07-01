@@ -65,7 +65,7 @@ export function BudgetStepMonthlyConsumption({
     )
   }, [currentUnitId, monthlyData])
 
-  const indicators = calculateIndicators(currentRecords)
+  const indicators = useMemo(() => calculateIndicators(currentRecords), [currentRecords])
 
   const updateRecord = (idx: number, field: 'consumo_kwh' | 'valor_conta', value: number) => {
     const updated = [...currentRecords]
@@ -157,8 +157,14 @@ export function BudgetStepMonthlyConsumption({
                   <Input
                     type="number"
                     className="h-8 w-32"
-                    value={r.consumo_kwh || ''}
-                    onChange={(e) => updateRecord(i, 'consumo_kwh', Number(e.target.value))}
+                    value={r.consumo_kwh === 0 ? '' : r.consumo_kwh}
+                    onChange={(e) =>
+                      updateRecord(
+                        i,
+                        'consumo_kwh',
+                        e.target.value === '' ? 0 : Number(e.target.value),
+                      )
+                    }
                   />
                 </TableCell>
                 <TableCell>
@@ -166,8 +172,14 @@ export function BudgetStepMonthlyConsumption({
                     type="number"
                     step="0.01"
                     className="h-8 w-32"
-                    value={r.valor_conta || ''}
-                    onChange={(e) => updateRecord(i, 'valor_conta', Number(e.target.value))}
+                    value={r.valor_conta === 0 ? '' : r.valor_conta}
+                    onChange={(e) =>
+                      updateRecord(
+                        i,
+                        'valor_conta',
+                        e.target.value === '' ? 0 : Number(e.target.value),
+                      )
+                    }
                   />
                 </TableCell>
               </TableRow>

@@ -1,6 +1,7 @@
 import pb from '@/lib/pocketbase/client'
 import { getBudgetUnits } from '@/services/budget-units'
 import { getMonthlyConsumption } from '@/services/budget-monthly-consumption'
+import { cleanNumber } from '@/lib/formatters'
 
 export interface BudgetFilters {
   search?: string
@@ -68,7 +69,7 @@ export const convertToAssociate = async (id: string) => {
   const lead = budget.expand?.lead_id
   const clientData: any = {
     name: lead?.company || budget.expand?.client_id?.name || 'N/D',
-    document_number: lead?.cnpj || '',
+    document_number: cleanNumber(lead?.cnpj || ''),
     city: budget.cidade || '',
     state: budget.estado || '',
     utilityProvider: budget.distribuidora || '',

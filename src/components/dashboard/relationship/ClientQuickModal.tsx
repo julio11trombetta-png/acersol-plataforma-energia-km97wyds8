@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select'
 import { ProfileMultiSelect } from './ProfileMultiSelect'
 import { FieldLabel, handleModalAutoFocus } from './FormFields'
-import { formatDocument, formatPhone, formatCEP } from '@/lib/formatters'
+import { formatDocument, formatPhone, formatCEP, cleanNumber } from '@/lib/formatters'
 import { validateDocument } from '@/lib/document-validation'
 import { lookupCEP } from '@/lib/lookups'
 import { createClient, updateClient } from '@/services/clients'
@@ -95,7 +95,15 @@ export function ClientQuickModal({
       } catch {
         /* intentionally ignored */
       }
-      setForm({ ...form, ...editing, profiles })
+      setForm({
+        ...form,
+        ...editing,
+        document_number: formatDocument(editing.document_number || ''),
+        phone: formatPhone(editing.phone || ''),
+        whatsapp: formatPhone(editing.whatsapp || ''),
+        zipCode: formatCEP(editing.zipCode || ''),
+        profiles,
+      })
     } else {
       setForm({
         name: '',
@@ -145,6 +153,10 @@ export function ClientQuickModal({
       }
       const payload = {
         ...form,
+        document_number: cleanNumber(form.document_number || ''),
+        phone: cleanNumber(form.phone || ''),
+        whatsapp: cleanNumber(form.whatsapp || ''),
+        zipCode: cleanNumber(form.zipCode || ''),
         profiles: JSON.stringify(form.profiles || []),
         energyUnitId: form.energyUnitId || 'N/D',
       }

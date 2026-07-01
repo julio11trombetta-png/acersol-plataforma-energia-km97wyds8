@@ -17,6 +17,7 @@ import {
   aggregateIndicators,
   type MonthlyRecord,
 } from '@/lib/budget-calculations'
+import { cleanNumber } from '@/lib/formatters'
 import { useAuth } from '@/stores/use-auth-store'
 import { toast } from 'sonner'
 import { BudgetStepClient } from './BudgetStepClient'
@@ -68,10 +69,16 @@ export function BudgetStepper() {
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }))
 
-  const indicators = aggregateIndicators(Object.values(monthlyData))
-  const savings = calculateMonthlySavings(indicators.avgBillValue, form.economia_percentual)
-  const annualSavings = calculateAnnualSavings(savings)
-  const reqCredits = calculateRequiredCredits(indicators.avgConsumption)
+  const indicators = useMemo(() => aggregateIndicators(Object.values(monthlyData)), [monthlyData])
+  const savings = useMemo(
+    () => calculateMonthlySavings(indicators.avgBillValue, form.economia_percentual),
+    [indicators.avgBillValue, form.economia_percentual],
+  )
+  const annualSavings = useMemo(() => calculateAnnualSavings(savings), [savings])
+  const reqCredits = useMemo(
+    () => calculateRequiredCredits(indicators.avgConsumption),
+    [indicators.avgConsumption],
+  )
 
   const handleSubmit = async (finalStatus: string) => {
     setSaving(true)
@@ -80,7 +87,9 @@ export function BudgetStepper() {
       if (form.clientType === 'new') {
         const lead = await createCrmLead({
           company: form.newClientName,
-          cnpj: form.newClientDoc,
+          cnpj: cleanNumber(form.newClientDoc || ''),
+          phone: cleanNumber(form.newClientPhone || ''),
+          email: form.newClientEmail,
           type: 'Comercial',
           status: 'Novos Leads',
         })

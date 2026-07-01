@@ -55,7 +55,7 @@ export function BudgetStepSimulation({
                 <TrendingUp className="h-4 w-4 text-green-600" />
                 <span className="text-xs text-muted-foreground">Economia Mensal</span>
               </div>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(savings)}</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(savings || 0)}</p>
             </CardContent>
           </Card>
           <Card className="bg-blue-50 dark:bg-blue-900/20">
@@ -64,7 +64,9 @@ export function BudgetStepSimulation({
                 <Calendar className="h-4 w-4 text-blue-600" />
                 <span className="text-xs text-muted-foreground">Economia Anual</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600">{formatCurrency(annualSavings)}</p>
+              <p className="text-2xl font-bold text-blue-600">
+                {formatCurrency(annualSavings || 0)}
+              </p>
             </CardContent>
           </Card>
           <Card className="bg-orange-50 dark:bg-orange-900/20">
@@ -105,7 +107,7 @@ export function BudgetStepSimulation({
           <div className="flex justify-between">
             <span className="text-muted-foreground">Novo valor estimado:</span>
             <strong className="text-green-600">
-              {formatCurrency(indicators.avgBillValue - savings)}
+              {formatCurrency(indicators.avgBillValue - (savings || 0))}
             </strong>
           </div>
         </div>

@@ -1,5 +1,6 @@
-import { Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import logoHorizontal from '@/assets/logomarca-horizontal-jpg-d6a8a.jpg'
+import logoCircle from '@/assets/logo-20eaa.png'
 
 export function Logo({
   className,
@@ -11,32 +12,22 @@ export function Logo({
   size?: 'sm' | 'md' | 'lg'
 }) {
   const sizes = {
-    sm: { box: 'h-9 w-9', icon: 'h-5 w-5', text: 'text-xl' },
-    md: { box: 'h-12 w-12', icon: 'h-7 w-7', text: 'text-2xl' },
-    lg: { box: 'h-16 w-16', icon: 'h-9 w-9', text: 'text-3xl' },
+    sm: 'h-6',
+    md: 'h-8',
+    lg: 'h-12',
+  }
+
+  if (!showText) {
+    return (
+      <div className={cn('flex items-center justify-center', className)}>
+        <img src={logoCircle} alt="ACERSOL" className={cn('object-contain', sizes[size])} />
+      </div>
+    )
   }
 
   return (
-    <div className={cn('flex items-center gap-3 group', className)}>
-      <div
-        className={cn(
-          'relative flex items-center justify-center rounded-xl bg-gradient-to-br from-brand-blue to-brand-blue/80 shadow-lg transition-transform duration-300 group-hover:scale-105',
-          sizes[size].box,
-        )}
-      >
-        <Zap
-          className={cn('text-brand-yellow fill-brand-yellow/30', sizes[size].icon)}
-          strokeWidth={2.5}
-        />
-      </div>
-      {showText && (
-        <span className={cn('font-black tracking-tighter text-foreground', sizes[size].text)}>
-          ACER
-          <span className="bg-gradient-to-r from-brand-blue to-brand-green bg-clip-text text-transparent">
-            SOL
-          </span>
-        </span>
-      )}
+    <div className={cn('flex items-center', className)}>
+      <img src={logoHorizontal} alt="ACERSOL" className={cn('object-contain', sizes[size])} />
     </div>
   )
 }

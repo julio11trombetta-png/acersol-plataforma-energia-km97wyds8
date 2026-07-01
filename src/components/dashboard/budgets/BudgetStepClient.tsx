@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BRAZILIAN_STATES, UTILITY_PROVIDERS } from '@/lib/regional-data'
+import { formatDocument, formatPhone } from '@/lib/formatters'
 
 interface Props {
   form: any
@@ -87,7 +88,7 @@ export function BudgetStepClient({ form, set, leads, clients }: Props) {
             <Input
               placeholder="000.000.000-00"
               value={form.newClientDoc}
-              onChange={(e) => set('newClientDoc', e.target.value)}
+              onChange={(e) => set('newClientDoc', formatDocument(e.target.value))}
             />
           </div>
           <div className="space-y-1">
@@ -95,7 +96,7 @@ export function BudgetStepClient({ form, set, leads, clients }: Props) {
             <Input
               placeholder="(00) 00000-0000"
               value={form.newClientPhone}
-              onChange={(e) => set('newClientPhone', e.target.value)}
+              onChange={(e) => set('newClientPhone', formatPhone(e.target.value))}
             />
           </div>
           <div className="space-y-1">

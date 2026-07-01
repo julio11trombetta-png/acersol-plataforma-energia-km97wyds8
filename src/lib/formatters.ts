@@ -1,3 +1,7 @@
+export function cleanNumber(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
 export function formatCurrency(value: number): string {
   return `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
 }
