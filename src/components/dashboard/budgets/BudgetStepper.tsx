@@ -4,23 +4,27 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { getCrmLeads } from '@/services/crm'
+import { getCrmLeads, createCrmLead } from '@/services/crm'
 import { getAllClients } from '@/services/clients'
 import { getAllPlants } from '@/services/plants'
 import { createBudget, createBudgetFile, logBudgetAction } from '@/services/budgets'
-import { createCrmLead } from '@/services/crm'
+import { createBudgetUnit } from '@/services/budget-units'
+import { createMonthlyConsumption } from '@/services/budget-monthly-consumption'
 import {
   calculateMonthlySavings,
   calculateAnnualSavings,
   calculateRequiredCredits,
+  aggregateIndicators,
+  type MonthlyRecord,
 } from '@/lib/budget-calculations'
 import { useAuth } from '@/stores/use-auth-store'
 import { toast } from 'sonner'
 import { BudgetStepClient } from './BudgetStepClient'
-import { BudgetStepInvoice } from './BudgetStepInvoice'
+import { BudgetStepUnits } from './BudgetStepUnits'
+import { BudgetStepMonthlyConsumption } from './BudgetStepMonthlyConsumption'
 import { BudgetStepSimulation } from './BudgetStepSimulation'
 
-const STEPS = ['Cliente/Lead', 'Fatura', 'Simulação', 'Usina', 'Finalização']
+const STEPS = ['Cliente/Lead', 'Unidades', 'Consumo Mensal', 'Simulação', 'Finalização']
 
 export function BudgetStepper() {
   const navigate = useNavigate()
@@ -31,6 +35,8 @@ export function BudgetStepper() {
   const [clients, setClients] = useState<any[]>([])
   const [plants, setPlants] = useState<any[]>([])
   const [files, setFiles] = useState<File[]>([])
+  const [units, setUnits] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<Record<string, MonthlyRecord[]>>({})
   const [form, setForm] = useState<any>({
     clientType: 'lead',
     lead_id: '',
@@ -42,17 +48,10 @@ export function BudgetStepper() {
     cidade: '',
     estado: 'RS',
     distribuidora: 'RGE',
-    uc: '',
-    classe: '',
-    subclasse: '',
-    modalidade: '',
-    grupo: '',
-    consumo_medio: 0,
-    valor_conta: 0,
+    economia_percentual: 15,
     impostos_icms: 18,
     impostos_pis: 0.65,
     impostos_cofins: 3.0,
-    economia_percentual: 15,
     plant_id: '',
     validade: '',
     observacoes: '',
@@ -68,9 +67,11 @@ export function BudgetStepper() {
   }, [])
 
   const set = (k: string, v: any) => setForm((p: any) => ({ ...p, [k]: v }))
-  const savings = calculateMonthlySavings(form.valor_conta, form.economia_percentual)
+
+  const indicators = aggregateIndicators(Object.values(monthlyData))
+  const savings = calculateMonthlySavings(indicators.avgBillValue, form.economia_percentual)
   const annualSavings = calculateAnnualSavings(savings)
-  const reqCredits = calculateRequiredCredits(form.consumo_medio)
+  const reqCredits = calculateRequiredCredits(indicators.avgConsumption)
 
   const handleSubmit = async (finalStatus: string) => {
     setSaving(true)
@@ -94,13 +95,11 @@ export function BudgetStepper() {
         cidade: form.cidade,
         estado: form.estado,
         distribuidora: form.distribuidora,
-        uc: form.uc,
-        classe: form.classe,
-        subclasse: form.subclasse,
-        modalidade: form.modalidade,
-        grupo: form.grupo,
-        consumo_medio: form.consumo_medio,
-        valor_conta: form.valor_conta,
+        uc: units[0]?.numero_uc || '',
+        classe: units[0]?.classe || '',
+        subclasse: units[0]?.subclasse || '',
+        modalidade: units[0]?.modalidade || '',
+        grupo: units[0]?.grupo_tarifario || '',
         economia_percentual: form.economia_percentual,
         economia_mensal: savings,
         economia_anual: annualSavings,
@@ -113,6 +112,21 @@ export function BudgetStepper() {
         impostos_cofins: form.impostos_cofins,
       }
       const budget = await createBudget(payload)
+      for (const u of units) {
+        const { _tempId, ...unitData } = u
+        const unit = await createBudgetUnit({ ...unitData, budget_id: budget.id })
+        const records = monthlyData[_tempId] || []
+        for (const r of records) {
+          if (r.consumo_kwh > 0 || r.valor_conta > 0) {
+            await createMonthlyConsumption({
+              ...r,
+              ano: new Date().getFullYear(),
+              budget_id: budget.id,
+              unit_id: unit.id,
+            })
+          }
+        }
+      }
       for (const f of files) await createBudgetFile(budget.id, f, f.name)
       await logBudgetAction(budget.id, 'Create', `Orçamento criado com status: ${finalStatus}`)
       toast.success('Orçamento criado com sucesso!')
@@ -153,14 +167,33 @@ export function BudgetStepper() {
       <Card className="border-muted shadow-sm">
         <CardContent className="p-6">
           {step === 1 && <BudgetStepClient form={form} set={set} leads={leads} clients={clients} />}
-          {step === 2 && (
-            <BudgetStepInvoice form={form} set={set} files={files} setFiles={setFiles} />
+          {step === 2 && <BudgetStepUnits units={units} setUnits={setUnits} />}
+          {step === 3 && (
+            <BudgetStepMonthlyConsumption
+              units={units}
+              monthlyData={monthlyData}
+              setMonthlyData={setMonthlyData}
+              files={files}
+              setFiles={setFiles}
+            />
           )}
-          {(step === 3 || step === 4 || step === 5) && (
+          {step === 4 && (
+            <BudgetStepSimulation
+              form={form}
+              set={set}
+              indicators={indicators}
+              savings={savings}
+              annualSavings={annualSavings}
+              reqCredits={reqCredits}
+              step={step}
+            />
+          )}
+          {step === 5 && (
             <BudgetStepSimulation
               form={form}
               set={set}
               plants={plants}
+              indicators={indicators}
               savings={savings}
               annualSavings={annualSavings}
               reqCredits={reqCredits}

@@ -13,24 +13,30 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { TrendingUp, Calendar, Zap, Check, Loader2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/formatters'
-import { checkPlantAvailability, AVAILABILITY_COLORS } from '@/lib/budget-calculations'
+import {
+  checkPlantAvailability,
+  AVAILABILITY_COLORS,
+  type ConsumptionIndicators,
+} from '@/lib/budget-calculations'
 
 interface Props {
   form: any
   set: (k: string, v: any) => void
-  plants: any[]
+  plants?: any[]
+  indicators: ConsumptionIndicators
   savings: number
   annualSavings: number
   reqCredits: number
   step: number
-  saving: boolean
-  onSubmit: (status: string) => void
+  saving?: boolean
+  onSubmit?: (status: string) => void
 }
 
 export function BudgetStepSimulation({
   form,
   set,
   plants,
+  indicators,
   savings,
   annualSavings,
   reqCredits,
@@ -38,7 +44,7 @@ export function BudgetStepSimulation({
   saving,
   onSubmit,
 }: Props) {
-  if (step === 3) {
+  if (step === 4) {
     return (
       <div className="space-y-4">
         <h3 className="font-semibold text-lg">Simulação Inteligente</h3>
@@ -67,94 +73,80 @@ export function BudgetStepSimulation({
                 <Zap className="h-4 w-4 text-orange-600" />
                 <span className="text-xs text-muted-foreground">Créditos Necessários</span>
               </div>
-              <p className="text-2xl font-bold text-orange-600">{reqCredits} kWh</p>
+              <p className="text-2xl font-bold text-orange-600">{reqCredits.toFixed(0)} kWh</p>
             </CardContent>
           </Card>
         </div>
         <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Valor atual da conta:</span>
-            <strong>{formatCurrency(form.valor_conta)}</strong>
+            <span className="text-muted-foreground">Média consumo mensal:</span>
+            <strong>{indicators.avgConsumption.toFixed(0)} kWh</strong>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Economia aplicada:</span>
-            <strong>{form.economia_percentual}%</strong>
+            <span className="text-muted-foreground">Média conta mensal:</span>
+            <strong>{formatCurrency(indicators.avgBillValue)}</strong>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Maior consumo:</span>
+            <strong>{indicators.maxConsumption.toFixed(0)} kWh</strong>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Menor consumo:</span>
+            <strong>{indicators.minConsumption.toFixed(0)} kWh</strong>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Total anual (kWh):</span>
+            <strong>{indicators.totalConsumption.toFixed(0)} kWh</strong>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Total anual (R$):</span>
+            <strong>{formatCurrency(indicators.totalBillValue)}</strong>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Novo valor estimado:</span>
-            <strong className="text-green-600">{formatCurrency(form.valor_conta - savings)}</strong>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Consumo médio mensal:</span>
-            <strong>{form.consumo_medio} kWh</strong>
+            <strong className="text-green-600">
+              {formatCurrency(indicators.avgBillValue - savings)}
+            </strong>
           </div>
         </div>
-      </div>
-    )
-  }
-
-  if (step === 4) {
-    return (
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg">Alocação de Usina</h3>
-        <p className="text-sm text-muted-foreground">
-          Selecione uma usina ativa para alocar os créditos necessários.
-        </p>
-        <div className="space-y-1">
-          <Label>Usina Disponível</Label>
-          <Select value={form.plant_id} onValueChange={(v) => set('plant_id', v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecionar usina..." />
-            </SelectTrigger>
-            <SelectContent>
-              {plants.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name} - {p.city || p.location || '—'} (
-                  {p.potencia_instalada || p.capacity || 0} kWp)
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="space-y-1">
+            <Label>Economia (%)</Label>
+            <Input
+              type="number"
+              step="0.1"
+              value={form.economia_percentual}
+              onChange={(e) => set('economia_percentual', Number(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>ICMS (%)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.impostos_icms}
+              onChange={(e) => set('impostos_icms', Number(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>PIS (%)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.impostos_pis}
+              onChange={(e) => set('impostos_pis', Number(e.target.value))}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>COFINS (%)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.impostos_cofins}
+              onChange={(e) => set('impostos_cofins', Number(e.target.value))}
+            />
+          </div>
         </div>
-        {form.plant_id &&
-          (() => {
-            const plant = plants.find((p) => p.id === form.plant_id)
-            const available = (plant?.generation_now || plant?.potencia_instalada || 0) * 150
-            const avail = checkPlantAvailability(reqCredits, available)
-            return (
-              <Card
-                className={
-                  avail === 'Disponível'
-                    ? 'border-green-500'
-                    : avail === 'Comprometido'
-                      ? 'border-red-500'
-                      : 'border-yellow-500'
-                }
-              >
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{plant?.name}</span>
-                    <Badge variant="secondary" className={AVAILABILITY_COLORS[avail]}>
-                      {avail}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Créditos disponíveis:</span>
-                    <strong>{available} kWh</strong>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Créditos necessários:</span>
-                    <strong>{reqCredits} kWh</strong>
-                  </div>
-                  {avail !== 'Disponível' && (
-                    <p className="text-xs text-red-500">
-                      ⚠ Esta usina não possui créditos suficientes para o consumo informado.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          })()}
       </div>
     )
   }
@@ -162,6 +154,56 @@ export function BudgetStepSimulation({
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">Finalização</h3>
+      <div className="space-y-1">
+        <Label>Usina Disponível</Label>
+        <Select value={form.plant_id} onValueChange={(v) => set('plant_id', v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecionar usina..." />
+          </SelectTrigger>
+          <SelectContent>
+            {(plants || []).map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name} - {p.city || p.location || '—'} ({p.potencia_instalada || p.capacity || 0}{' '}
+                kWp)
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {form.plant_id &&
+        (() => {
+          const plant = (plants || []).find((p) => p.id === form.plant_id)
+          const available = (plant?.generation_now || plant?.potencia_instalada || 0) * 150
+          const avail = checkPlantAvailability(reqCredits, available)
+          return (
+            <Card
+              className={
+                avail === 'Disponível'
+                  ? 'border-green-500'
+                  : avail === 'Comprometido'
+                    ? 'border-red-500'
+                    : 'border-yellow-500'
+              }
+            >
+              <CardContent className="p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">{plant?.name}</span>
+                  <Badge variant="secondary" className={AVAILABILITY_COLORS[avail]}>
+                    {avail}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Créditos disponíveis:</span>
+                  <strong>{available} kWh</strong>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Créditos necessários:</span>
+                  <strong>{reqCredits.toFixed(0)} kWh</strong>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })()}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <Label>Validade da Proposta</Label>
@@ -199,10 +241,6 @@ export function BudgetStepSimulation({
       <div className="bg-muted/30 rounded-lg p-4 space-y-2 text-sm">
         <h4 className="font-semibold mb-2">Resumo do Orçamento</h4>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Cliente:</span>
-          <strong>{form.newClientName || form.cidade || '—'}</strong>
-        </div>
-        <div className="flex justify-between">
           <span className="text-muted-foreground">Cidade:</span>
           <strong>{form.cidade || '—'}</strong>
         </div>
@@ -211,8 +249,12 @@ export function BudgetStepSimulation({
           <strong>{form.distribuidora}</strong>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Consumo médio:</span>
-          <strong>{form.consumo_medio} kWh</strong>
+          <span className="text-muted-foreground">Média consumo:</span>
+          <strong>{indicators.avgConsumption.toFixed(0)} kWh</strong>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-muted-foreground">Média conta:</span>
+          <strong>{formatCurrency(indicators.avgBillValue)}</strong>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Economia mensal:</span>
@@ -222,24 +264,20 @@ export function BudgetStepSimulation({
           <span className="text-muted-foreground">Economia anual:</span>
           <strong className="text-green-600">{formatCurrency(annualSavings)}</strong>
         </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Créditos necessários:</span>
-          <strong>{reqCredits} kWh</strong>
-        </div>
       </div>
       <div className="flex gap-3 justify-end pt-2">
         <Button
           variant="outline"
           className="rounded-full px-6"
           disabled={saving}
-          onClick={() => onSubmit('Rascunho')}
+          onClick={() => onSubmit?.('Rascunho')}
         >
           Salvar Rascunho
         </Button>
         <Button
           className="bg-brand-blue hover:bg-blue-800 text-white rounded-full px-8"
           disabled={saving}
-          onClick={() => onSubmit(form.status || 'Rascunho')}
+          onClick={() => onSubmit?.(form.status || 'Rascunho')}
         >
           {saving ? (
             <Loader2 className="h-4 w-4 animate-spin" />

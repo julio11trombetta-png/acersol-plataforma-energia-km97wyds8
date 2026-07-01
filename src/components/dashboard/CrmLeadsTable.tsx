@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import { exportToExcel } from '@/lib/export-utils'
+import { formatDocument } from '@/lib/formatters'
 
 const statusColors: Record<string, string> = {
   'Novos Leads': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
@@ -258,7 +259,7 @@ export function CrmLeadsTable() {
               <Input
                 placeholder="00.000.000/0001-00"
                 value={form.cnpj}
-                onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
+                onChange={(e) => setForm({ ...form, cnpj: formatDocument(e.target.value) })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">

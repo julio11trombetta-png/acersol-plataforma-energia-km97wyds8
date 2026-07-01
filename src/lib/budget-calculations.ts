@@ -10,6 +10,46 @@ export function calculateRequiredCredits(consumoMedio: number): number {
   return consumoMedio
 }
 
+export interface MonthlyRecord {
+  mes: string
+  consumo_kwh: number
+  valor_conta: number
+}
+
+export interface ConsumptionIndicators {
+  avgConsumption: number
+  avgBillValue: number
+  totalConsumption: number
+  totalBillValue: number
+  maxConsumption: number
+  minConsumption: number
+  maxBillValue: number
+  minBillValue: number
+  filledMonths: number
+}
+
+export function calculateIndicators(records: MonthlyRecord[]): ConsumptionIndicators {
+  const filled = records.filter((r) => r.consumo_kwh > 0 || r.valor_conta > 0)
+  const consumptions = filled.map((r) => r.consumo_kwh || 0)
+  const bills = filled.map((r) => r.valor_conta || 0)
+  const count = filled.length || 1
+  return {
+    avgConsumption: consumptions.reduce((a, b) => a + b, 0) / count,
+    avgBillValue: bills.reduce((a, b) => a + b, 0) / count,
+    totalConsumption: consumptions.reduce((a, b) => a + b, 0),
+    totalBillValue: bills.reduce((a, b) => a + b, 0),
+    maxConsumption: consumptions.length ? Math.max(...consumptions) : 0,
+    minConsumption: consumptions.length ? Math.min(...consumptions) : 0,
+    maxBillValue: bills.length ? Math.max(...bills) : 0,
+    minBillValue: bills.length ? Math.min(...bills) : 0,
+    filledMonths: filled.length,
+  }
+}
+
+export function aggregateIndicators(allRecords: MonthlyRecord[][]): ConsumptionIndicators {
+  return calculateIndicators(allRecords.flat())
+}
+
 export type PlantAvailability = 'Disponível' | 'Comprometido' | 'Livre'
 
 export function checkPlantAvailability(

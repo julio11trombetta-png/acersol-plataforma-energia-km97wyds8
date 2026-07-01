@@ -147,10 +147,6 @@ export function BudgetStepClient({ form, set, leads, clients }: Props) {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1">
-          <Label>Unidade Consumidora</Label>
-          <Input placeholder="UC" value={form.uc} onChange={(e) => set('uc', e.target.value)} />
-        </div>
       </div>
     </div>
   )

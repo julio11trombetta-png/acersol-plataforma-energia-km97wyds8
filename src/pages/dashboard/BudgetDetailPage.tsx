@@ -15,6 +15,8 @@ import {
 import { generateBudgetPDF } from '@/lib/budget-pdf'
 import { STATUS_COLORS } from '@/lib/budget-calculations'
 import { formatCurrency } from '@/lib/formatters'
+import { getBudgetUnits } from '@/services/budget-units'
+import { getMonthlyConsumption } from '@/services/budget-monthly-consumption'
 import { useRealtime } from '@/hooks/use-realtime'
 import { BudgetTimeline } from '@/components/dashboard/budgets/BudgetTimeline'
 import { BudgetCommunication } from '@/components/dashboard/budgets/BudgetCommunication'
@@ -25,15 +27,24 @@ export default function BudgetDetailPage() {
   const navigate = useNavigate()
   const [budget, setBudget] = useState<any>(null)
   const [files, setFiles] = useState<any[]>([])
+  const [units, setUnits] = useState<any[]>([])
+  const [monthlyData, setMonthlyData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [commOpen, setCommOpen] = useState(false)
 
   const loadData = async () => {
     if (!id) return
     try {
-      const [b, f] = await Promise.all([getBudget(id), getBudgetFiles(id)])
+      const [b, f, u, m] = await Promise.all([
+        getBudget(id),
+        getBudgetFiles(id),
+        getBudgetUnits(id),
+        getMonthlyConsumption(id),
+      ])
       setBudget(b)
       setFiles(f)
+      setUnits(u)
+      setMonthlyData(m)
       await logBudgetAction(id, 'View', 'Orçamento visualizado')
     } catch {
       /* */
@@ -133,8 +144,8 @@ export default function BudgetDetailPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground mb-1">Valor da Conta</p>
-            <p className="text-xl font-bold">{formatCurrency(budget.valor_conta || 0)}</p>
+            <p className="text-xs text-muted-foreground mb-1">Economia %</p>
+            <p className="text-xl font-bold">{budget.economia_percentual || 0}%</p>
           </CardContent>
         </Card>
         <Card>
@@ -166,6 +177,7 @@ export default function BudgetDetailPage() {
         <TabsList>
           <TabsTrigger value="details">Detalhes</TabsTrigger>
           <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+          <TabsTrigger value="units">Unidades</TabsTrigger>
           <TabsTrigger value="files">Arquivos</TabsTrigger>
         </TabsList>
         <TabsContent value="details">
@@ -192,8 +204,8 @@ export default function BudgetDetailPage() {
                   <strong>{budget.modalidade || '—'}</strong>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Consumo Médio:</span>{' '}
-                  <strong>{budget.consumo_medio || 0} kWh</strong>
+                  <span className="text-muted-foreground">Economia Mensal:</span>{' '}
+                  <strong>{formatCurrency(budget.economia_mensal || 0)}</strong>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Economia:</span>{' '}
@@ -223,6 +235,49 @@ export default function BudgetDetailPage() {
           <Card>
             <CardContent className="p-0">
               <BudgetTimeline budgetId={budget.id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="units">
+          <Card>
+            <CardContent className="p-4">
+              {units.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Nenhuma UC vinculada.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {units.map((u) => {
+                    const unitMonthly = monthlyData.filter((m) => m.unit_id === u.id)
+                    const totalKwh = unitMonthly.reduce((s, m) => s + (m.consumo_kwh || 0), 0)
+                    const totalValue = unitMonthly.reduce((s, m) => s + (m.valor_conta || 0), 0)
+                    return (
+                      <div key={u.id} className="border rounded-lg p-3 space-y-1">
+                        <div className="flex justify-between">
+                          <strong className="font-mono text-sm">{u.numero_uc}</strong>
+                          <span className="text-xs text-muted-foreground">
+                            {u.distribuidora || '—'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {u.cidade || '—'}/{u.estado || '—'}
+                          </span>
+                          <span className="text-muted-foreground">{u.classe || '—'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Total: {totalKwh.toFixed(0)} kWh
+                          </span>
+                          <span className="text-muted-foreground">
+                            {formatCurrency(totalValue)}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

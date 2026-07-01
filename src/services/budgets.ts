@@ -1,4 +1,6 @@
 import pb from '@/lib/pocketbase/client'
+import { getBudgetUnits } from '@/services/budget-units'
+import { getMonthlyConsumption } from '@/services/budget-monthly-consumption'
 
 export interface BudgetFilters {
   search?: string
@@ -94,6 +96,37 @@ export const convertToAssociate = async (id: string) => {
       await pb.collection('associate_documents').create(formData)
     } catch {
       /* intentionally ignored */
+    }
+  }
+  const budgetUnits = await getBudgetUnits(id)
+  const monthlyRecords = await getMonthlyConsumption(id)
+  for (const bu of budgetUnits) {
+    const unitRecords = monthlyRecords.filter((r: any) => r.unit_id === bu.id)
+    const avgConsumption =
+      unitRecords.length > 0
+        ? unitRecords.reduce((sum: number, r: any) => sum + (r.consumo_kwh || 0), 0) /
+          unitRecords.length
+        : 0
+    await pb.collection('consumer_units').create({
+      clientId: client.id,
+      ucCode: bu.numero_uc || '',
+      utility: bu.distribuidora || '',
+      ucClass: bu.classe || '',
+      tariffGroup: bu.grupo_tarifario || '',
+      subgroup: bu.subclasse || '',
+      modality: bu.modalidade || '',
+      averageConsumption: avgConsumption,
+      status: bu.status || 'Ativa',
+    })
+    for (const r of unitRecords) {
+      if (r.consumo_kwh > 0 || r.valor_conta > 0) {
+        await pb.collection('consumptions').create({
+          month: r.mes || '',
+          consumo: r.consumo_kwh || 0,
+          creditos: 0,
+          clientId: client.id,
+        })
+      }
     }
   }
   await updateBudget(id, { client_id: client.id, status: 'Convertido' })
